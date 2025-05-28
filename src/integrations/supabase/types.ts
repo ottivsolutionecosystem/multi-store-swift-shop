@@ -9,16 +9,252 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_items: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          price: number
+          product_id: string
+          quantity: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          price: number
+          product_id: string
+          quantity?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          price?: number
+          product_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          status: string
+          store_id: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          status?: string
+          store_id: string
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          status?: string
+          store_id?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          price: number
+          stock_quantity: number
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number
+          stock_quantity?: number
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number
+          stock_quantity?: number
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          store_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          role?: Database["public"]["Enums"]["user_role"]
+          store_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          store_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stores: {
+        Row: {
+          created_at: string
+          custom_domain: string | null
+          domain: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_domain?: string | null
+          domain: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_domain?: string | null
+          domain?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_store_by_domain: {
+        Args: { domain_name: string }
+        Returns: string
+      }
     }
     Enums: {
-      [_ in never]: never
+      user_role: "user" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +369,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["user", "admin"],
+    },
   },
 } as const
