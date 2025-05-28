@@ -12,14 +12,19 @@ type Product = Database['public']['Tables']['products']['Row'];
 export default function StorePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const { productService } = useServices();
-  const { store } = useTenant();
+  const services = useServices();
+  const { store, loading: tenantLoading } = useTenant();
   const { toast } = useToast();
 
   useEffect(() => {
     const loadProducts = async () => {
+      // Aguarda o tenant carregar e os serviços estarem disponíveis
+      if (tenantLoading || !services) {
+        return;
+      }
+
       try {
-        const productsData = await productService.getAllProducts();
+        const productsData = await services.productService.getAllProducts();
         setProducts(productsData);
       } catch (error) {
         console.error('Error loading products:', error);
@@ -34,7 +39,7 @@ export default function StorePage() {
     };
 
     loadProducts();
-  }, [productService, toast]);
+  }, [services, tenantLoading, toast]);
 
   const handleAddToCart = (product: Product) => {
     toast({
@@ -43,7 +48,7 @@ export default function StorePage() {
     });
   };
 
-  if (loading) {
+  if (tenantLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
