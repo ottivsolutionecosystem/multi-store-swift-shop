@@ -238,6 +238,116 @@ export type Database = {
           },
         ]
       }
+      promotions: {
+        Row: {
+          created_at: string
+          description: string | null
+          discount_type: Database["public"]["Enums"]["discount_type"]
+          discount_value: number
+          end_date: string
+          id: string
+          is_active: boolean
+          name: string
+          priority: number
+          product_id: string
+          start_date: string
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          discount_value: number
+          end_date: string
+          id?: string
+          is_active?: boolean
+          name: string
+          priority?: number
+          product_id: string
+          start_date: string
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          discount_type?: Database["public"]["Enums"]["discount_type"]
+          discount_value?: number
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          priority?: number
+          product_id?: string
+          start_date?: string
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      store_product_card_settings: {
+        Row: {
+          created_at: string
+          id: string
+          promotion_display_format: string
+          show_category: boolean
+          show_description: boolean
+          show_price: boolean
+          show_promotion_badge: boolean
+          show_stock_quantity: boolean
+          store_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          promotion_display_format?: string
+          show_category?: boolean
+          show_description?: boolean
+          show_price?: boolean
+          show_promotion_badge?: boolean
+          show_stock_quantity?: boolean
+          store_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          promotion_display_format?: string
+          show_category?: boolean
+          show_description?: boolean
+          show_price?: boolean
+          show_promotion_badge?: boolean
+          show_stock_quantity?: boolean
+          store_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "store_product_card_settings_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: true
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stores: {
         Row: {
           created_at: string
@@ -267,15 +377,63 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      active_promotions: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          discount_type: Database["public"]["Enums"]["discount_type"] | null
+          discount_value: number | null
+          end_date: string | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          original_price: number | null
+          priority: number | null
+          product_id: string | null
+          product_name: string | null
+          promotional_price: number | null
+          start_date: string | null
+          store_id: string | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "promotions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "promotions_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
+      calculate_promotional_price: {
+        Args: {
+          p_original_price: number
+          p_discount_type: Database["public"]["Enums"]["discount_type"]
+          p_discount_value: number
+        }
+        Returns: number
+      }
       get_store_by_domain: {
         Args: { domain_name: string }
         Returns: string
       }
+      is_promotion_current: {
+        Args: { p_start_date: string; p_end_date: string; p_is_active: boolean }
+        Returns: boolean
+      }
     }
     Enums: {
+      discount_type: "percentage" | "fixed_amount"
       user_role: "user" | "admin"
     }
     CompositeTypes: {
@@ -392,6 +550,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      discount_type: ["percentage", "fixed_amount"],
       user_role: ["user", "admin"],
     },
   },

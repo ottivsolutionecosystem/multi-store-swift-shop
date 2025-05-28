@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Tag, ShoppingCart, ArrowRight } from 'lucide-react';
+import { Package, Tag, ShoppingCart, ArrowRight, Percent } from 'lucide-react';
 
 export default function AdminPage() {
   const { user, profile, loading } = useAuth();
@@ -84,6 +84,31 @@ export default function AdminPage() {
                 className="w-full flex items-center justify-center gap-2"
               >
                 Gerenciar Categorias
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Percent className="h-5 w-5 text-orange-600" />
+                Promoções
+              </CardTitle>
+              <CardDescription>
+                Gerenciar promoções e descontos
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Criar e gerenciar promoções para impulsionar vendas.
+              </p>
+              <Button 
+                variant="secondary"
+                className="w-full flex items-center justify-center gap-2"
+                disabled
+              >
+                Em Breve
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </CardContent>

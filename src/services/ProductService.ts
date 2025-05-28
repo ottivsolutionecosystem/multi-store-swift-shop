@@ -1,5 +1,5 @@
 
-import { ProductRepository } from '@/repositories/ProductRepository';
+import { ProductRepository, ProductWithPromotion } from '@/repositories/ProductRepository';
 import { Database } from '@/integrations/supabase/types';
 
 type Product = Database['public']['Tables']['products']['Row'];
@@ -9,15 +9,15 @@ type ProductUpdate = Database['public']['Tables']['products']['Update'];
 export class ProductService {
   constructor(private productRepository: ProductRepository) {}
 
-  async getAllProducts(): Promise<Product[]> {
+  async getAllProducts(): Promise<ProductWithPromotion[]> {
     return this.productRepository.findAll();
   }
 
-  async getProductsByCategory(categoryId: string): Promise<Product[]> {
+  async getProductsByCategory(categoryId: string): Promise<ProductWithPromotion[]> {
     return this.productRepository.findByCategory(categoryId);
   }
 
-  async getProductsByCategoryWithSubcategories(categoryId: string): Promise<Product[]> {
+  async getProductsByCategoryWithSubcategories(categoryId: string): Promise<ProductWithPromotion[]> {
     return this.productRepository.findByCategoryIncludingSubcategories(categoryId);
   }
 

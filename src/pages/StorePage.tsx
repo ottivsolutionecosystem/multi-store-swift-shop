@@ -6,12 +6,10 @@ import { CategoryNav } from '@/components/categories/CategoryNav';
 import { useServices } from '@/hooks/useServices';
 import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/hooks/use-toast';
-import { Database } from '@/integrations/supabase/types';
-
-type Product = Database['public']['Tables']['products']['Row'];
+import { ProductWithPromotion } from '@/repositories/ProductRepository';
 
 export default function StorePage() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<ProductWithPromotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const services = useServices();
@@ -26,7 +24,7 @@ export default function StorePage() {
       }
 
       try {
-        let productsData: Product[];
+        let productsData: ProductWithPromotion[];
         
         if (selectedCategoryId) {
           // Carregar produtos da categoria selecionada, incluindo subcategorias
@@ -52,10 +50,11 @@ export default function StorePage() {
     loadProducts();
   }, [services, tenantLoading, selectedCategoryId, toast]);
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = (product: ProductWithPromotion) => {
+    const price = product.promotion ? product.promotion.promotional_price : product.price;
     toast({
       title: 'Produto adicionado',
-      description: `${product.name} foi adicionado ao carrinho`,
+      description: `${product.name} foi adicionado ao carrinho por R$ ${price.toFixed(2)}`,
     });
   };
 
@@ -119,6 +118,8 @@ export default function StorePage() {
                     key={product.id}
                     product={product}
                     onAddToCart={handleAddToCart}
+                    promotionDisplayFormat="percentage"
+                    showPromotionBadge={true}
                   />
                 ))}
               </div>
