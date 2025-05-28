@@ -57,6 +57,53 @@ export type Database = {
           },
         ]
       }
+      manufacturers: {
+        Row: {
+          address: Json | null
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          store_id: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          store_id: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: Json | null
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          store_id?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manufacturers_store_id_fkey"
+            columns: ["store_id"]
+            isOneToOne: false
+            referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
           created_at: string
@@ -139,46 +186,85 @@ export type Database = {
       }
       products: {
         Row: {
+          barcode: string | null
           category_id: string | null
+          collections: string[] | null
+          compare_at_price: number | null
+          continue_selling_when_out_of_stock: boolean
+          cost_per_item: number | null
           created_at: string
           description: string | null
           gallery_images: string[] | null
           id: string
           image_url: string | null
           is_active: boolean
+          manufacturer_id: string | null
           name: string
           price: number
+          profit_margin: number | null
+          seo_description: string | null
+          seo_title: string | null
+          sku: string | null
           stock_quantity: number
           store_id: string
+          tags: string[] | null
+          track_quantity: boolean
           updated_at: string
+          weight: number | null
         }
         Insert: {
+          barcode?: string | null
           category_id?: string | null
+          collections?: string[] | null
+          compare_at_price?: number | null
+          continue_selling_when_out_of_stock?: boolean
+          cost_per_item?: number | null
           created_at?: string
           description?: string | null
           gallery_images?: string[] | null
           id?: string
           image_url?: string | null
           is_active?: boolean
+          manufacturer_id?: string | null
           name: string
           price?: number
+          profit_margin?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
+          sku?: string | null
           stock_quantity?: number
           store_id: string
+          tags?: string[] | null
+          track_quantity?: boolean
           updated_at?: string
+          weight?: number | null
         }
         Update: {
+          barcode?: string | null
           category_id?: string | null
+          collections?: string[] | null
+          compare_at_price?: number | null
+          continue_selling_when_out_of_stock?: boolean
+          cost_per_item?: number | null
           created_at?: string
           description?: string | null
           gallery_images?: string[] | null
           id?: string
           image_url?: string | null
           is_active?: boolean
+          manufacturer_id?: string | null
           name?: string
           price?: number
+          profit_margin?: number | null
+          seo_description?: string | null
+          seo_title?: string | null
+          sku?: string | null
           stock_quantity?: number
           store_id?: string
+          tags?: string[] | null
+          track_quantity?: boolean
           updated_at?: string
+          weight?: number | null
         }
         Relationships: [
           {
@@ -186,6 +272,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_manufacturer_id_fkey"
+            columns: ["manufacturer_id"]
+            isOneToOne: false
+            referencedRelation: "manufacturers"
             referencedColumns: ["id"]
           },
           {
