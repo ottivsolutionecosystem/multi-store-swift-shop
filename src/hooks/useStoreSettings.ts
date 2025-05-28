@@ -3,31 +3,36 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useServices } from '@/hooks/useServices';
 import { Database } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
+import { useTenant } from '@/contexts/TenantContext';
 
 type StoreSettings = Database['public']['Tables']['store_settings']['Row'];
 type StoreSettingsUpdate = Database['public']['Tables']['store_settings']['Update'];
 
 export function useStoreSettings() {
   const services = useServices();
+  const { storeId } = useTenant();
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  console.log('useStoreSettings - services available:', !!services);
+  console.log('useStoreSettings - services available:', !!services, 'storeId:', storeId);
 
   const {
     data: storeSettings,
     isLoading,
     error
   } = useQuery({
-    queryKey: ['store-settings'],
+    queryKey: ['store-settings', storeId],
     queryFn: async () => {
       console.log('useStoreSettings - fetching store settings...');
-      if (!services) {
-        console.log('useStoreSettings - no services available');
+      if (!services || !storeId) {
+        console.log('useStoreSettings - no services or storeId available');
         return null;
       }
       
       try {
+        // Ensure user is associated with the store before fetching settings
+        await services.profileService.ensureUserStoreAssociation(storeId);
+        
         const settings = await services.storeSettingsService.getStoreSettingsWithDefaults();
         console.log('useStoreSettings - settings loaded:', settings);
         return settings;
@@ -36,20 +41,25 @@ export function useStoreSettings() {
         throw error;
       }
     },
-    enabled: !!services,
+    enabled: !!services && !!storeId,
+    retry: 1,
   });
 
   const updateMutation = useMutation({
     mutationFn: async (settings: StoreSettingsUpdate) => {
       console.log('useStoreSettings - updating settings:', settings);
-      if (!services) {
-        throw new Error('Services not available');
+      if (!services || !storeId) {
+        throw new Error('Services or store ID not available');
       }
+      
+      // Ensure user is associated with the store before updating
+      await services.profileService.ensureUserStoreAssociation(storeId);
+      
       return services.storeSettingsService.updateStoreSettings(settings);
     },
     onSuccess: () => {
       console.log('useStoreSettings - settings updated successfully');
-      queryClient.invalidateQueries({ queryKey: ['store-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['store-settings', storeId] });
       toast({
         title: 'Configurações salvas',
         description: 'As configurações da loja foram atualizadas com sucesso.',
@@ -67,10 +77,10 @@ export function useStoreSettings() {
 
   return {
     storeSettings,
-    isLoading: isLoading || !services,
+    isLoading: isLoading || !services || !storeId,
     error,
     updateStoreSettings: (settings: StoreSettingsUpdate) => {
-      if (!services) {
+      if (!services || !storeId) {
         toast({
           title: 'Erro',
           description: 'Serviços ainda não estão disponíveis. Tente novamente em alguns segundos.',
