@@ -14,41 +14,43 @@ import { ProductSettingsTab } from './ProductSettingsTab';
 import { GeneralSettingsTab } from './GeneralSettingsTab';
 import { storeSettingsSchema, StoreSettingsFormData } from '@/types/store-settings';
 
+const defaultValues: StoreSettingsFormData = {
+  primary_color: '#3b82f6',
+  secondary_color: '#6b7280',
+  logo_url: '',
+  banner_url: '',
+  store_description: '',
+  show_category: true,
+  show_description: true,
+  show_stock_quantity: true,
+  show_price: true,
+  show_promotion_badge: true,
+  promotion_display_format: 'percentage',
+};
+
 export function StoreSettingsForm() {
   const { storeSettings, updateStoreSettings, isUpdating } = useStoreSettings();
   const services = useServices();
 
   const form = useForm<StoreSettingsFormData>({
     resolver: zodResolver(storeSettingsSchema),
-    defaultValues: {
-      primary_color: '#3b82f6',
-      secondary_color: '#6b7280',
-      logo_url: '',
-      banner_url: '',
-      store_description: '',
-      show_category: true,
-      show_description: true,
-      show_stock_quantity: true,
-      show_price: true,
-      show_promotion_badge: true,
-      promotion_display_format: 'percentage',
-    },
+    defaultValues,
   });
 
   React.useEffect(() => {
     if (storeSettings) {
       form.reset({
-        primary_color: storeSettings.primary_color,
-        secondary_color: storeSettings.secondary_color,
-        logo_url: storeSettings.logo_url || '',
-        banner_url: storeSettings.banner_url || '',
-        store_description: storeSettings.store_description || '',
-        show_category: storeSettings.show_category,
-        show_description: storeSettings.show_description,
-        show_stock_quantity: storeSettings.show_stock_quantity,
-        show_price: storeSettings.show_price,
-        show_promotion_badge: storeSettings.show_promotion_badge,
-        promotion_display_format: storeSettings.promotion_display_format as 'percentage' | 'comparison',
+        primary_color: storeSettings.primary_color || defaultValues.primary_color,
+        secondary_color: storeSettings.secondary_color || defaultValues.secondary_color,
+        logo_url: storeSettings.logo_url || defaultValues.logo_url,
+        banner_url: storeSettings.banner_url || defaultValues.banner_url,
+        store_description: storeSettings.store_description || defaultValues.store_description,
+        show_category: storeSettings.show_category ?? defaultValues.show_category,
+        show_description: storeSettings.show_description ?? defaultValues.show_description,
+        show_stock_quantity: storeSettings.show_stock_quantity ?? defaultValues.show_stock_quantity,
+        show_price: storeSettings.show_price ?? defaultValues.show_price,
+        show_promotion_badge: storeSettings.show_promotion_badge ?? defaultValues.show_promotion_badge,
+        promotion_display_format: (storeSettings.promotion_display_format as 'percentage' | 'comparison') || defaultValues.promotion_display_format,
       });
     }
   }, [storeSettings, form]);
