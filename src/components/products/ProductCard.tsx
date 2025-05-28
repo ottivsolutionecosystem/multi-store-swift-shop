@@ -36,7 +36,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
     return (
       <Breadcrumb>
-        <BreadcrumbList className="text-xs">
+        <BreadcrumbList className="text-xs leading-none">
           {product.category.parent_category ? (
             <>
               <BreadcrumbItem>
