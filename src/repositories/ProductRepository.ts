@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 
@@ -45,10 +44,7 @@ export class ProductRepository {
         categories!left (
           id,
           name,
-          parent_category:categories!categories_parent_id_fkey (
-            id,
-            name
-          )
+          parent_id
         )
       `)
       .eq('store_id', this.storeId)
@@ -78,10 +74,7 @@ export class ProductRepository {
         categories!left (
           id,
           name,
-          parent_category:categories!categories_parent_id_fkey (
-            id,
-            name
-          )
+          parent_id
         )
       `)
       .eq('store_id', this.storeId)
@@ -130,10 +123,7 @@ export class ProductRepository {
         categories!left (
           id,
           name,
-          parent_category:categories!categories_parent_id_fkey (
-            id,
-            name
-          )
+          parent_id
         )
       `)
       .eq('store_id', this.storeId)
@@ -195,7 +185,30 @@ export class ProductRepository {
     if (error) throw error;
   }
 
-  private processProductsWithPromotions(products: any[]): ProductWithPromotion[] {
+  private async processProductsWithPromotions(products: any[]): Promise<ProductWithPromotion[]> {
+    // Primeiro, coletar todos os parent_ids únicos das categorias
+    const parentIds = [...new Set(
+      products
+        .map(p => p.categories?.parent_id)
+        .filter(id => id != null)
+    )];
+
+    // Buscar todas as categorias pai em uma única consulta
+    let parentCategories: any = {};
+    if (parentIds.length > 0) {
+      const { data: parents, error } = await supabase
+        .from('categories')
+        .select('id, name')
+        .in('id', parentIds);
+      
+      if (!error && parents) {
+        parentCategories = parents.reduce((acc, parent) => {
+          acc[parent.id] = parent;
+          return acc;
+        }, {});
+      }
+    }
+
     return products.map(product => {
       const { promotions, categories, ...productData } = product;
       
@@ -225,13 +238,15 @@ export class ProductRepository {
         };
       }
 
-      // Processar categoria
+      // Processar categoria com parent
       let category = null;
       if (categories) {
+        const parentCategory = categories.parent_id ? parentCategories[categories.parent_id] : null;
+        
         category = {
           id: categories.id,
           name: categories.name,
-          parent_category: categories.parent_category || null
+          parent_category: parentCategory || null
         };
       }
 
