@@ -310,7 +310,7 @@ export type Database = {
           logo_url: string | null
           payment_settings: Json | null
           primary_color: string
-          promotion_display_format: string
+          promotion_display_format: Database["public"]["Enums"]["promotion_display_format"]
           secondary_color: string
           shipping_settings: Json | null
           show_category: boolean
@@ -330,7 +330,7 @@ export type Database = {
           logo_url?: string | null
           payment_settings?: Json | null
           primary_color?: string
-          promotion_display_format?: string
+          promotion_display_format?: Database["public"]["Enums"]["promotion_display_format"]
           secondary_color?: string
           shipping_settings?: Json | null
           show_category?: boolean
@@ -350,7 +350,7 @@ export type Database = {
           logo_url?: string | null
           payment_settings?: Json | null
           primary_color?: string
-          promotion_display_format?: string
+          promotion_display_format?: Database["public"]["Enums"]["promotion_display_format"]
           secondary_color?: string
           shipping_settings?: Json | null
           show_category?: boolean
@@ -458,6 +458,7 @@ export type Database = {
     }
     Enums: {
       discount_type: "percentage" | "fixed_amount"
+      promotion_display_format: "percentage" | "comparison"
       user_role: "user" | "admin"
     }
     CompositeTypes: {
@@ -575,6 +576,7 @@ export const Constants = {
   public: {
     Enums: {
       discount_type: ["percentage", "fixed_amount"],
+      promotion_display_format: ["percentage", "comparison"],
       user_role: ["user", "admin"],
     },
   },

@@ -1,8 +1,8 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { useServices } from '@/hooks/useServices';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -38,22 +38,23 @@ type StoreSettingsFormData = z.infer<typeof storeSettingsSchema>;
 export default function StoreSettingsPage() {
   const { user, profile, loading: authLoading } = useAuth();
   const { storeSettings, isLoading, updateStoreSettings, isUpdating } = useStoreSettings();
+  const services = useServices();
   const navigate = useNavigate();
 
   const form = useForm<StoreSettingsFormData>({
     resolver: zodResolver(storeSettingsSchema),
     defaultValues: {
-      primary_color: storeSettings?.primary_color || '#3b82f6',
-      secondary_color: storeSettings?.secondary_color || '#6b7280',
-      logo_url: storeSettings?.logo_url || '',
-      banner_url: storeSettings?.banner_url || '',
-      store_description: storeSettings?.store_description || '',
-      show_category: storeSettings?.show_category ?? true,
-      show_description: storeSettings?.show_description ?? true,
-      show_stock_quantity: storeSettings?.show_stock_quantity ?? true,
-      show_price: storeSettings?.show_price ?? true,
-      show_promotion_badge: storeSettings?.show_promotion_badge ?? true,
-      promotion_display_format: (storeSettings?.promotion_display_format as 'percentage' | 'comparison') || 'percentage',
+      primary_color: '#3b82f6',
+      secondary_color: '#6b7280',
+      logo_url: '',
+      banner_url: '',
+      store_description: '',
+      show_category: true,
+      show_description: true,
+      show_stock_quantity: true,
+      show_price: true,
+      show_promotion_badge: true,
+      promotion_display_format: 'percentage',
     },
   });
 
@@ -86,13 +87,22 @@ export default function StoreSettingsPage() {
   }, [storeSettings, form]);
 
   const onSubmit = (data: StoreSettingsFormData) => {
+    console.log('Submitting store settings:', data);
+    console.log('Services available:', !!services);
     updateStoreSettings(data);
   };
 
-  if (authLoading || isLoading) {
+  const isServicesLoading = !services || isLoading;
+
+  if (authLoading || isServicesLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-4xl mx-auto px-4 py-8">
+          <div className="flex items-center justify-center h-64">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -427,7 +437,7 @@ export default function StoreSettingsPage() {
             <div className="flex justify-end">
               <Button
                 type="submit"
-                disabled={isUpdating}
+                disabled={isUpdating || !services}
                 className="min-w-[120px]"
               >
                 {isUpdating ? 'Salvando...' : 'Salvar Alterações'}

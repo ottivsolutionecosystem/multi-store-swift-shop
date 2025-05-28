@@ -18,13 +18,18 @@ export function useStoreSettings() {
     error
   } = useQuery({
     queryKey: ['store-settings'],
-    queryFn: () => services?.storeSettingsService.getStoreSettingsWithDefaults() || null,
+    queryFn: async () => {
+      if (!services) return null;
+      return services.storeSettingsService.getStoreSettingsWithDefaults();
+    },
     enabled: !!services,
   });
 
   const updateMutation = useMutation({
-    mutationFn: (settings: StoreSettingsUpdate) => {
-      if (!services) throw new Error('Services not available');
+    mutationFn: async (settings: StoreSettingsUpdate) => {
+      if (!services) {
+        throw new Error('Services not available');
+      }
       return services.storeSettingsService.updateStoreSettings(settings);
     },
     onSuccess: () => {
@@ -35,6 +40,7 @@ export function useStoreSettings() {
       });
     },
     onError: (error: Error) => {
+      console.error('Error updating store settings:', error);
       toast({
         title: 'Erro ao salvar configurações',
         description: error.message,
@@ -45,9 +51,19 @@ export function useStoreSettings() {
 
   return {
     storeSettings,
-    isLoading,
+    isLoading: isLoading || !services,
     error,
-    updateStoreSettings: updateMutation.mutate,
+    updateStoreSettings: (settings: StoreSettingsUpdate) => {
+      if (!services) {
+        toast({
+          title: 'Erro',
+          description: 'Serviços ainda não estão disponíveis. Tente novamente em alguns segundos.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      updateMutation.mutate(settings);
+    },
     isUpdating: updateMutation.isPending,
   };
 }
