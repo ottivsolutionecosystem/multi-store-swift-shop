@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { ProductCard } from '@/components/products/ProductCard';
+import { CategoryNav } from '@/components/categories/CategoryNav';
 import { useServices } from '@/hooks/useServices';
 import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/hooks/use-toast';
@@ -12,6 +13,7 @@ type Product = Database['public']['Tables']['products']['Row'];
 export default function StorePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const services = useServices();
   const { store, loading: tenantLoading } = useTenant();
   const { toast } = useToast();
@@ -24,7 +26,16 @@ export default function StorePage() {
       }
 
       try {
-        const productsData = await services.productService.getAllProducts();
+        let productsData: Product[];
+        
+        if (selectedCategoryId) {
+          // Carregar produtos da categoria selecionada, incluindo subcategorias
+          productsData = await services.productService.getProductsByCategoryWithSubcategories(selectedCategoryId);
+        } else {
+          // Carregar todos os produtos
+          productsData = await services.productService.getAllProducts();
+        }
+        
         setProducts(productsData);
       } catch (error) {
         console.error('Error loading products:', error);
@@ -39,7 +50,7 @@ export default function StorePage() {
     };
 
     loadProducts();
-  }, [services, tenantLoading, toast]);
+  }, [services, tenantLoading, selectedCategoryId, toast]);
 
   const handleAddToCart = (product: Product) => {
     toast({
@@ -74,27 +85,46 @@ export default function StorePage() {
             Bem-vindo à {store?.name}
           </h1>
           <p className="text-gray-600">
-            Descubra nossos produtos incríveis
+            Descubra nossos produtos incríveis de perfumaria para casa e sabonetes artesanais
           </p>
         </div>
 
-        {products.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              Nenhum produto disponível no momento
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {products.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                onAddToCart={handleAddToCart}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Navegação de Categorias */}
+          <aside className="w-full lg:w-64 flex-shrink-0">
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Categorias</h2>
+              <CategoryNav 
+                selectedCategoryId={selectedCategoryId}
+                onCategorySelect={setSelectedCategoryId}
               />
-            ))}
+            </div>
+          </aside>
+
+          {/* Lista de Produtos */}
+          <div className="flex-1">
+            {products.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500 text-lg">
+                  {selectedCategoryId 
+                    ? 'Nenhum produto encontrado nesta categoria' 
+                    : 'Nenhum produto disponível no momento'
+                  }
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {products.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onAddToCart={handleAddToCart}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </main>
     </div>
   );

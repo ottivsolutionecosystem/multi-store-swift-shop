@@ -20,6 +20,45 @@ export class CategoryRepository {
     return data || [];
   }
 
+  async findMainCategories(): Promise<Category[]> {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('store_id', this.storeId)
+      .is('parent_id', null)
+      .order('name');
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async findSubcategories(parentId: string): Promise<Category[]> {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('store_id', this.storeId)
+      .eq('parent_id', parentId)
+      .order('name');
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async findCategoryWithSubcategories(): Promise<(Category & { subcategories?: Category[] })[]> {
+    // Buscar categorias principais
+    const mainCategories = await this.findMainCategories();
+    
+    // Para cada categoria principal, buscar suas subcategorias
+    const categoriesWithSubs = await Promise.all(
+      mainCategories.map(async (category) => {
+        const subcategories = await this.findSubcategories(category.id);
+        return { ...category, subcategories };
+      })
+    );
+
+    return categoriesWithSubs;
+  }
+
   async findById(id: string): Promise<Category | null> {
     const { data, error } = await supabase
       .from('categories')

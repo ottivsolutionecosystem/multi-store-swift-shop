@@ -13,6 +13,18 @@ export class CategoryService {
     return this.categoryRepository.findAll();
   }
 
+  async getMainCategories(): Promise<Category[]> {
+    return this.categoryRepository.findMainCategories();
+  }
+
+  async getSubcategories(parentId: string): Promise<Category[]> {
+    return this.categoryRepository.findSubcategories(parentId);
+  }
+
+  async getCategoriesWithSubcategories(): Promise<(Category & { subcategories?: Category[] })[]> {
+    return this.categoryRepository.findCategoryWithSubcategories();
+  }
+
   async getCategoryById(id: string): Promise<Category | null> {
     return this.categoryRepository.findById(id);
   }

@@ -13,6 +13,14 @@ export class ProductService {
     return this.productRepository.findAll();
   }
 
+  async getProductsByCategory(categoryId: string): Promise<Product[]> {
+    return this.productRepository.findByCategory(categoryId);
+  }
+
+  async getProductsByCategoryWithSubcategories(categoryId: string): Promise<Product[]> {
+    return this.productRepository.findByCategoryIncludingSubcategories(categoryId);
+  }
+
   async getProductById(id: string): Promise<Product | null> {
     return this.productRepository.findById(id);
   }
