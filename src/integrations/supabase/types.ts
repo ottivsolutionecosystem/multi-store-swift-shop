@@ -14,6 +14,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          image_url: string | null
           name: string
           parent_id: string | null
           store_id: string
@@ -23,6 +24,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           name: string
           parent_id?: string | null
           store_id: string
@@ -32,6 +34,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          image_url?: string | null
           name?: string
           parent_id?: string | null
           store_id?: string
@@ -139,7 +142,9 @@ export type Database = {
           category_id: string | null
           created_at: string
           description: string | null
+          gallery_images: string[] | null
           id: string
+          image_url: string | null
           is_active: boolean
           name: string
           price: number
@@ -151,7 +156,9 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          gallery_images?: string[] | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name: string
           price?: number
@@ -163,7 +170,9 @@ export type Database = {
           category_id?: string | null
           created_at?: string
           description?: string | null
+          gallery_images?: string[] | null
           id?: string
+          image_url?: string | null
           is_active?: boolean
           name?: string
           price?: number
@@ -190,6 +199,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           email: string
           full_name: string | null
@@ -199,6 +209,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           email: string
           full_name?: string | null
@@ -208,6 +219,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
