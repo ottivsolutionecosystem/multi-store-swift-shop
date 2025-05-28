@@ -35,11 +35,12 @@ export function StoreSettingsForm() {
   const form = useForm<StoreSettingsFormData>({
     resolver: zodResolver(storeSettingsSchema),
     defaultValues,
+    mode: 'onChange',
   });
 
   React.useEffect(() => {
     if (storeSettings) {
-      form.reset({
+      const formData: StoreSettingsFormData = {
         primary_color: storeSettings.primary_color || defaultValues.primary_color,
         secondary_color: storeSettings.secondary_color || defaultValues.secondary_color,
         logo_url: storeSettings.logo_url || defaultValues.logo_url,
@@ -51,7 +52,8 @@ export function StoreSettingsForm() {
         show_price: storeSettings.show_price ?? defaultValues.show_price,
         show_promotion_badge: storeSettings.show_promotion_badge ?? defaultValues.show_promotion_badge,
         promotion_display_format: (storeSettings.promotion_display_format as 'percentage' | 'comparison') || defaultValues.promotion_display_format,
-      });
+      };
+      form.reset(formData);
     }
   }, [storeSettings, form]);
 

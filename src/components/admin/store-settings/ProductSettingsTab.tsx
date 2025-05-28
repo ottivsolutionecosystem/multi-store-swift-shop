@@ -5,20 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-
-interface StoreSettingsFormData {
-  primary_color: string;
-  secondary_color: string;
-  logo_url: string;
-  banner_url: string;
-  store_description: string;
-  show_category: boolean;
-  show_description: boolean;
-  show_stock_quantity: boolean;
-  show_price: boolean;
-  show_promotion_badge: boolean;
-  promotion_display_format: 'percentage' | 'comparison';
-}
+import { StoreSettingsFormData } from '@/types/store-settings';
 
 interface ProductSettingsTabProps {
   form: UseFormReturn<StoreSettingsFormData>;
