@@ -77,6 +77,34 @@ export function VisualSettingsTab({ form }: VisualSettingsTabProps) {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="price_color"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cor do Preço</FormLabel>
+                  <FormControl>
+                    <div className="flex gap-2">
+                      <Input
+                        type="color"
+                        {...field}
+                        className="w-20 h-10"
+                      />
+                      <Input
+                        {...field}
+                        placeholder="#16a34a"
+                        className="flex-1"
+                      />
+                    </div>
+                  </FormControl>
+                  <FormDescription>
+                    Cor exibida nos preços dos produtos
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </CardContent>
       </Card>

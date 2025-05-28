@@ -4,6 +4,7 @@ import { z } from 'zod';
 export const storeSettingsSchema = z.object({
   primary_color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Deve ser uma cor hexadecimal válida').default('#3b82f6'),
   secondary_color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Deve ser uma cor hexadecimal válida').default('#6b7280'),
+  price_color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Deve ser uma cor hexadecimal válida').default('#16a34a'),
   logo_url: z.string().default(''),
   banner_url: z.string().default(''),
   store_description: z.string().default(''),

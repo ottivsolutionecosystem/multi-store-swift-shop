@@ -24,6 +24,7 @@ export class StoreSettingsService {
     const defaultSettings = {
       primary_color: '#3b82f6',
       secondary_color: '#6b7280',
+      price_color: '#16a34a',
       show_category: true,
       show_description: true,
       show_stock_quantity: true,
@@ -46,6 +47,10 @@ export class StoreSettingsService {
 
     if (settings.secondary_color && !this.isValidHexColor(settings.secondary_color)) {
       throw new Error('Secondary color must be a valid hex color');
+    }
+
+    if (settings.price_color && !this.isValidHexColor(settings.price_color)) {
+      throw new Error('Price color must be a valid hex color');
     }
 
     if (settings.promotion_display_format && 

@@ -17,6 +17,7 @@ import { storeSettingsSchema, StoreSettingsFormData } from '@/types/store-settin
 const defaultValues: StoreSettingsFormData = {
   primary_color: '#3b82f6',
   secondary_color: '#6b7280',
+  price_color: '#16a34a',
   logo_url: '',
   banner_url: '',
   store_description: '',
@@ -43,6 +44,7 @@ export function StoreSettingsForm() {
       const formData: StoreSettingsFormData = {
         primary_color: storeSettings.primary_color || defaultValues.primary_color,
         secondary_color: storeSettings.secondary_color || defaultValues.secondary_color,
+        price_color: storeSettings.price_color || defaultValues.price_color,
         logo_url: storeSettings.logo_url || defaultValues.logo_url,
         banner_url: storeSettings.banner_url || defaultValues.banner_url,
         store_description: storeSettings.store_description || defaultValues.store_description,

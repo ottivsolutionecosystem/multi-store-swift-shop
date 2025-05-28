@@ -24,6 +24,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const showPrice = storeSettings?.show_price ?? true;
   const showPromotionBadge = storeSettings?.show_promotion_badge ?? true;
   const promotionDisplayFormat = storeSettings?.promotion_display_format || 'percentage';
+  const priceColor = storeSettings?.price_color || '#16a34a';
 
   const hasPromotion = Boolean(product.promotion);
   const displayPrice = hasPromotion ? product.promotion!.promotional_price : product.price;
@@ -110,7 +111,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                   <span className="text-sm text-gray-500 line-through">
                     {formatPrice(originalPrice)}
                   </span>
-                  <span className="text-2xl font-bold text-green-600">
+                  <span 
+                    className="text-2xl font-bold"
+                    style={{ color: priceColor }}
+                  >
                     {formatPrice(displayPrice)}
                   </span>
                   {promotionDisplayFormat === 'comparison' && (
@@ -120,7 +124,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                   )}
                 </>
               ) : (
-                <span className="text-2xl font-bold text-green-600">
+                <span 
+                  className="text-2xl font-bold"
+                  style={{ color: priceColor }}
+                >
                   {formatPrice(displayPrice)}
                 </span>
               )}
