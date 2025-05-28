@@ -309,6 +309,7 @@ export type Database = {
           id: string
           logo_url: string | null
           payment_settings: Json | null
+          price_color: string
           primary_color: string
           promotion_display_format: Database["public"]["Enums"]["promotion_display_format"]
           secondary_color: string
@@ -329,6 +330,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           payment_settings?: Json | null
+          price_color?: string
           primary_color?: string
           promotion_display_format?: Database["public"]["Enums"]["promotion_display_format"]
           secondary_color?: string
@@ -349,6 +351,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           payment_settings?: Json | null
+          price_color?: string
           primary_color?: string
           promotion_display_format?: Database["public"]["Enums"]["promotion_display_format"]
           secondary_color?: string
