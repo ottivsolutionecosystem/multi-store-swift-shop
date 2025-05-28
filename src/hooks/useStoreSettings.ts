@@ -12,6 +12,8 @@ export function useStoreSettings() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  console.log('useStoreSettings - services available:', !!services);
+
   const {
     data: storeSettings,
     isLoading,
@@ -19,20 +21,34 @@ export function useStoreSettings() {
   } = useQuery({
     queryKey: ['store-settings'],
     queryFn: async () => {
-      if (!services) return null;
-      return services.storeSettingsService.getStoreSettingsWithDefaults();
+      console.log('useStoreSettings - fetching store settings...');
+      if (!services) {
+        console.log('useStoreSettings - no services available');
+        return null;
+      }
+      
+      try {
+        const settings = await services.storeSettingsService.getStoreSettingsWithDefaults();
+        console.log('useStoreSettings - settings loaded:', settings);
+        return settings;
+      } catch (error) {
+        console.error('useStoreSettings - error loading settings:', error);
+        throw error;
+      }
     },
     enabled: !!services,
   });
 
   const updateMutation = useMutation({
     mutationFn: async (settings: StoreSettingsUpdate) => {
+      console.log('useStoreSettings - updating settings:', settings);
       if (!services) {
         throw new Error('Services not available');
       }
       return services.storeSettingsService.updateStoreSettings(settings);
     },
     onSuccess: () => {
+      console.log('useStoreSettings - settings updated successfully');
       queryClient.invalidateQueries({ queryKey: ['store-settings'] });
       toast({
         title: 'Configurações salvas',

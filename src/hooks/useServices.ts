@@ -7,10 +7,21 @@ export function useServices() {
   const { storeId, loading } = useTenant();
 
   return useMemo(() => {
-    // Retorna null enquanto ainda está carregando ou se não há storeId
-    if (loading || !storeId) {
+    console.log('useServices - storeId:', storeId, 'loading:', loading);
+    
+    // Retorna null enquanto ainda está carregando
+    if (loading) {
+      console.log('useServices - still loading');
       return null;
     }
+    
+    // Se não há storeId após carregar, retorna null
+    if (!storeId) {
+      console.log('useServices - no storeId available');
+      return null;
+    }
+    
+    console.log('useServices - creating services for storeId:', storeId);
     return createServices(storeId);
   }, [storeId, loading]);
 }
