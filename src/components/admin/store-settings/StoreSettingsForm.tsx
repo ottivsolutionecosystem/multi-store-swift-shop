@@ -2,7 +2,6 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
 import { useServices } from '@/hooks/useServices';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -13,22 +12,7 @@ import { Form } from '@/components/ui/form';
 import { VisualSettingsTab } from './VisualSettingsTab';
 import { ProductSettingsTab } from './ProductSettingsTab';
 import { GeneralSettingsTab } from './GeneralSettingsTab';
-
-const storeSettingsSchema = z.object({
-  primary_color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Deve ser uma cor hexadecimal válida'),
-  secondary_color: z.string().regex(/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/, 'Deve ser uma cor hexadecimal válida'),
-  logo_url: z.string().optional(),
-  banner_url: z.string().optional(),
-  store_description: z.string().optional(),
-  show_category: z.boolean(),
-  show_description: z.boolean(),
-  show_stock_quantity: z.boolean(),
-  show_price: z.boolean(),
-  show_promotion_badge: z.boolean(),
-  promotion_display_format: z.enum(['percentage', 'comparison']),
-});
-
-type StoreSettingsFormData = z.infer<typeof storeSettingsSchema>;
+import { storeSettingsSchema, StoreSettingsFormData } from '@/types/store-settings';
 
 export function StoreSettingsForm() {
   const { storeSettings, updateStoreSettings, isUpdating } = useStoreSettings();

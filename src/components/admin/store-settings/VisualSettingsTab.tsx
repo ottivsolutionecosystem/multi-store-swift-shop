@@ -4,20 +4,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-
-interface StoreSettingsFormData {
-  primary_color: string;
-  secondary_color: string;
-  logo_url: string;
-  banner_url: string;
-  store_description: string;
-  show_category: boolean;
-  show_description: boolean;
-  show_stock_quantity: boolean;
-  show_price: boolean;
-  show_promotion_badge: boolean;
-  promotion_display_format: 'percentage' | 'comparison';
-}
+import { StoreSettingsFormData } from '@/types/store-settings';
 
 interface VisualSettingsTabProps {
   form: UseFormReturn<StoreSettingsFormData>;
