@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,6 +21,10 @@ import { ProductShippingSection } from '@/components/admin/product-form/ProductS
 import { ProductSEOSection } from '@/components/admin/product-form/ProductSEOSection';
 import { ArrowLeft } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
+import { ProductVariantsSection } from '@/components/admin/product-form/ProductVariantsSection';
+import { ProductVariantPricingSection } from '@/components/admin/product-form/ProductVariantPricingSection';
+import { VariantData } from '@/services/VariantService';
+import { CombinationWithValues, GroupPriceWithValue } from '@/repositories/VariantRepository';
 
 type Product = Database['public']['Tables']['products']['Row'];
 type Category = Database['public']['Tables']['categories']['Row'];
@@ -71,6 +74,11 @@ export default function ProductFormPage() {
     seo_title: '',
     seo_description: ''
   });
+
+  const [variants, setVariants] = useState<VariantData[]>([]);
+  const [combinations, setCombinations] = useState<CombinationWithValues[]>([]);
+  const [groupPrices, setGroupPrices] = useState<GroupPriceWithValue[]>([]);
+  const [variantsLoading, setVariantsLoading] = useState(false);
 
   useEffect(() => {
     if (!user || profile?.role !== 'admin') {
@@ -138,6 +146,37 @@ export default function ProductFormPage() {
     loadData();
   }, [services, tenantLoading, isEdit, id, toast]);
 
+  useEffect(() => {
+    const loadVariantData = async () => {
+      if (tenantLoading || !services || !isEdit || !id) return;
+
+      try {
+        setVariantsLoading(true);
+        const [variantsData, combinationsData, groupPricesData] = await Promise.all([
+          services.variantService.getProductVariants(id),
+          services.variantService.getProductCombinations(id),
+          services.variantService.getGroupPrices(id)
+        ]);
+
+        // Convert variants to VariantData format
+        const formattedVariants: VariantData[] = variantsData.map(variant => ({
+          name: variant.name,
+          values: variant.values.map(v => v.value)
+        }));
+
+        setVariants(formattedVariants);
+        setCombinations(combinationsData);
+        setGroupPrices(groupPricesData);
+      } catch (error) {
+        console.error('Error loading variant data:', error);
+      } finally {
+        setVariantsLoading(false);
+      }
+    };
+
+    loadVariantData();
+  }, [services, tenantLoading, isEdit, id]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!services) return;
@@ -195,6 +234,110 @@ export default function ProductFormPage() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateCombinations = async () => {
+    if (!services || !variants.length) return;
+
+    try {
+      setVariantsLoading(true);
+      
+      // First save variants if this is a new product or variants changed
+      if (variants.length > 0) {
+        await services.variantService.createProductVariants(
+          isEdit ? id! : 'temp-id', // We'll need the actual product ID after save
+          variants
+        );
+      }
+
+      // Generate all possible combinations
+      const combinationIds = await services.variantService.generateAllCombinations(
+        isEdit ? id! : 'temp-id'
+      );
+
+      // Create combinations with default values
+      for (const valueIds of combinationIds) {
+        await services.variantService.createCombination(
+          isEdit ? id! : 'temp-id',
+          {
+            variantValueIds: valueIds,
+            stockQuantity: 0,
+            isActive: true
+          }
+        );
+      }
+
+      // Reload combinations
+      const newCombinations = await services.variantService.getProductCombinations(
+        isEdit ? id! : 'temp-id'
+      );
+      setCombinations(newCombinations);
+
+      toast({
+        title: 'Sucesso',
+        description: 'Combinações geradas com sucesso',
+      });
+    } catch (error) {
+      console.error('Error generating combinations:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao gerar combinações',
+        variant: 'destructive',
+      });
+    } finally {
+      setVariantsLoading(false);
+    }
+  };
+
+  const handleCombinationUpdate = async (combinationId: string, updates: any) => {
+    if (!services) return;
+
+    try {
+      await services.variantService.updateCombination(combinationId, updates);
+      
+      // Update local state
+      setCombinations(prev => prev.map(combination =>
+        combination.id === combinationId
+          ? { ...combination, ...updates }
+          : combination
+      ));
+    } catch (error) {
+      console.error('Error updating combination:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao atualizar combinação',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleGroupPriceUpdate = async (variantValueId: string, price: number) => {
+    if (!services || !id) return;
+
+    try {
+      await services.variantService.applyGroupPrice(id, variantValueId, price);
+      
+      // Reload data to reflect changes
+      const [newCombinations, newGroupPrices] = await Promise.all([
+        services.variantService.getProductCombinations(id),
+        services.variantService.getGroupPrices(id)
+      ]);
+      
+      setCombinations(newCombinations);
+      setGroupPrices(newGroupPrices);
+
+      toast({
+        title: 'Sucesso',
+        description: 'Preço de grupo aplicado com sucesso',
+      });
+    } catch (error) {
+      console.error('Error applying group price:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao aplicar preço de grupo',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -323,6 +466,38 @@ export default function ProductFormPage() {
                 onSeoTitleChange={(value) => setFormData({...formData, seo_title: value})}
                 onSeoDescriptionChange={(value) => setFormData({...formData, seo_description: value})}
               />
+
+              {/* Variantes */}
+              <ProductVariantsSection
+                variants={variants}
+                onVariantsChange={setVariants}
+              />
+
+              {/* Generate combinations button */}
+              {variants.length > 0 && (
+                <Card>
+                  <CardContent className="pt-6">
+                    <Button
+                      type="button"
+                      onClick={handleGenerateCombinations}
+                      disabled={variantsLoading}
+                      className="w-full"
+                    >
+                      {variantsLoading ? 'Gerando...' : 'Gerar Todas as Combinações'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Variant Pricing */}
+              {combinations.length > 0 && (
+                <ProductVariantPricingSection
+                  combinations={combinations}
+                  groupPrices={groupPrices}
+                  onCombinationUpdate={handleCombinationUpdate}
+                  onGroupPriceUpdate={handleGroupPriceUpdate}
+                />
+              )}
             </div>
 
             {/* Coluna Lateral */}

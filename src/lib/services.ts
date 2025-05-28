@@ -1,38 +1,42 @@
-
-import { ProductRepository } from '@/repositories/ProductRepository';
 import { CategoryRepository } from '@/repositories/CategoryRepository';
-import { OrderRepository } from '@/repositories/OrderRepository';
+import { ProductRepository } from '@/repositories/ProductRepository';
+import { ManufacturerRepository } from '@/repositories/ManufacturerRepository';
 import { PromotionRepository } from '@/repositories/PromotionRepository';
 import { StoreSettingsRepository } from '@/repositories/StoreSettingsRepository';
-import { ManufacturerRepository } from '@/repositories/ManufacturerRepository';
-import { ProductService } from '@/services/ProductService';
 import { CategoryService } from '@/services/CategoryService';
+import { ProductService } from '@/services/ProductService';
+import { ManufacturerService } from '@/services/ManufacturerService';
 import { PromotionService } from '@/services/PromotionService';
 import { StoreSettingsService } from '@/services/StoreSettingsService';
-import { ManufacturerService } from '@/services/ManufacturerService';
-import { ProfileService } from '@/services/ProfileService';
+
+import { VariantRepository } from '@/repositories/VariantRepository';
+import { VariantService } from '@/services/VariantService';
 
 export function createServices(storeId: string) {
-  const productRepository = new ProductRepository(storeId);
+  console.log('Creating services for storeId:', storeId);
+  
+  // Repositories
   const categoryRepository = new CategoryRepository(storeId);
-  const orderRepository = new OrderRepository(storeId);
+  const productRepository = new ProductRepository(storeId);
+  const manufacturerRepository = new ManufacturerRepository(storeId);
   const promotionRepository = new PromotionRepository(storeId);
   const storeSettingsRepository = new StoreSettingsRepository(storeId);
-  const manufacturerRepository = new ManufacturerRepository(storeId);
-  const profileService = new ProfileService();
+  const variantRepository = new VariantRepository(storeId);
+
+  // Services
+  const categoryService = new CategoryService(categoryRepository);
+  const productService = new ProductService(productRepository);
+  const manufacturerService = new ManufacturerService(manufacturerRepository);
+  const promotionService = new PromotionService(promotionRepository);
+  const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
+  const variantService = new VariantService(variantRepository);
 
   return {
-    productService: new ProductService(productRepository),
-    categoryService: new CategoryService(categoryRepository),
-    promotionService: new PromotionService(promotionRepository),
-    storeSettingsService: new StoreSettingsService(storeSettingsRepository),
-    manufacturerService: new ManufacturerService(manufacturerRepository),
-    profileService,
-    productRepository,
-    categoryRepository,
-    orderRepository,
-    promotionRepository,
-    storeSettingsRepository,
-    manufacturerRepository,
+    categoryService,
+    productService,
+    manufacturerService,
+    promotionService,
+    storeSettingsService,
+    variantService
   };
 }
