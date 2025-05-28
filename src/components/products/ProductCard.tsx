@@ -3,24 +3,27 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Database } from '@/integrations/supabase/types';
 import { Package } from 'lucide-react';
 import { ProductWithPromotion } from '@/repositories/ProductRepository';
 import { formatPromotionBadge, formatPrice } from '@/lib/promotionUtils';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
 
 interface ProductCardProps {
   product: ProductWithPromotion;
   onAddToCart?: (product: ProductWithPromotion) => void;
-  promotionDisplayFormat?: 'percentage' | 'comparison';
-  showPromotionBadge?: boolean;
 }
 
-export function ProductCard({ 
-  product, 
-  onAddToCart,
-  promotionDisplayFormat = 'percentage',
-  showPromotionBadge = true
-}: ProductCardProps) {
+export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const { storeSettings } = useStoreSettings();
+  
+  // Use configurações da loja ou padrões
+  const showCategory = storeSettings?.show_category ?? true;
+  const showDescription = storeSettings?.show_description ?? true;
+  const showStockQuantity = storeSettings?.show_stock_quantity ?? true;
+  const showPrice = storeSettings?.show_price ?? true;
+  const showPromotionBadge = storeSettings?.show_promotion_badge ?? true;
+  const promotionDisplayFormat = storeSettings?.promotion_display_format || 'percentage';
+
   const hasPromotion = Boolean(product.promotion);
   const displayPrice = hasPromotion ? product.promotion!.promotional_price : product.price;
   const originalPrice = product.price;
@@ -55,39 +58,46 @@ export function ProductCard({
         </div>
         <div className="p-4 pb-2">
           <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
+          {showCategory && product.category && (
+            <p className="text-sm text-gray-500 mt-1">{product.category.name}</p>
+          )}
         </div>
       </CardHeader>
       
       <CardContent className="flex-1 px-4 pb-2">
-        {product.description && (
+        {showDescription && product.description && (
           <p className="text-gray-600 text-sm mb-4 line-clamp-3">{product.description}</p>
         )}
         
         <div className="flex items-center justify-between">
-          <div className="flex flex-col">
-            {hasPromotion ? (
-              <>
-                <span className="text-sm text-gray-500 line-through">
-                  {formatPrice(originalPrice)}
-                </span>
+          {showPrice && (
+            <div className="flex flex-col">
+              {hasPromotion ? (
+                <>
+                  <span className="text-sm text-gray-500 line-through">
+                    {formatPrice(originalPrice)}
+                  </span>
+                  <span className="text-2xl font-bold text-green-600">
+                    {formatPrice(displayPrice)}
+                  </span>
+                  {promotionDisplayFormat === 'comparison' && (
+                    <span className="text-xs text-red-500 font-medium">
+                      Economia: {formatPrice(originalPrice - displayPrice)}
+                    </span>
+                  )}
+                </>
+              ) : (
                 <span className="text-2xl font-bold text-green-600">
                   {formatPrice(displayPrice)}
                 </span>
-                {promotionDisplayFormat === 'comparison' && (
-                  <span className="text-xs text-red-500 font-medium">
-                    Economia: {formatPrice(originalPrice - displayPrice)}
-                  </span>
-                )}
-              </>
-            ) : (
-              <span className="text-2xl font-bold text-green-600">
-                {formatPrice(displayPrice)}
-              </span>
-            )}
-          </div>
-          <span className="text-sm text-gray-500">
-            Estoque: {product.stock_quantity}
-          </span>
+              )}
+            </div>
+          )}
+          {showStockQuantity && (
+            <span className="text-sm text-gray-500">
+              Estoque: {product.stock_quantity}
+            </span>
+          )}
         </div>
       </CardContent>
       

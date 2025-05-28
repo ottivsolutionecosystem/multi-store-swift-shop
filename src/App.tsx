@@ -10,6 +10,7 @@ import StorePage from "./pages/StorePage";
 import AuthPage from "./pages/AuthPage";
 import AccountPage from "./pages/AccountPage";
 import AdminPage from "./pages/AdminPage";
+import StoreSettingsPage from "./pages/admin/StoreSettingsPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
               <Route path="/auth" element={<AuthPage />} />
               <Route path="/account" element={<AccountPage />} />
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin/store-settings" element={<StoreSettingsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

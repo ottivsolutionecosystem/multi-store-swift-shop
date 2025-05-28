@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Tag, ShoppingCart, ArrowRight, Percent } from 'lucide-react';
+import { Package, Tag, ShoppingCart, ArrowRight, Percent, Settings } from 'lucide-react';
 
 export default function AdminPage() {
   const { user, profile, loading } = useAuth();
@@ -109,6 +109,31 @@ export default function AdminPage() {
                 disabled
               >
                 Em Breve
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5 text-indigo-600" />
+                Configurações
+              </CardTitle>
+              <CardDescription>
+                Configurações da loja
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Personalizar cores, layout e configurações da loja.
+              </p>
+              <Button 
+                onClick={() => navigate('/admin/store-settings')}
+                variant="outline"
+                className="w-full flex items-center justify-center gap-2"
+              >
+                Configurar Loja
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </CardContent>

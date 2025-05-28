@@ -301,46 +301,70 @@ export type Database = {
           },
         ]
       }
-      store_product_card_settings: {
+      store_settings: {
         Row: {
+          banner_url: string | null
+          contact_info: Json | null
           created_at: string
           id: string
+          logo_url: string | null
+          payment_settings: Json | null
+          primary_color: string
           promotion_display_format: string
+          secondary_color: string
+          shipping_settings: Json | null
           show_category: boolean
           show_description: boolean
           show_price: boolean
           show_promotion_badge: boolean
           show_stock_quantity: boolean
+          store_description: string | null
           store_id: string
           updated_at: string
         }
         Insert: {
+          banner_url?: string | null
+          contact_info?: Json | null
           created_at?: string
           id?: string
+          logo_url?: string | null
+          payment_settings?: Json | null
+          primary_color?: string
           promotion_display_format?: string
+          secondary_color?: string
+          shipping_settings?: Json | null
           show_category?: boolean
           show_description?: boolean
           show_price?: boolean
           show_promotion_badge?: boolean
           show_stock_quantity?: boolean
+          store_description?: string | null
           store_id: string
           updated_at?: string
         }
         Update: {
+          banner_url?: string | null
+          contact_info?: Json | null
           created_at?: string
           id?: string
+          logo_url?: string | null
+          payment_settings?: Json | null
+          primary_color?: string
           promotion_display_format?: string
+          secondary_color?: string
+          shipping_settings?: Json | null
           show_category?: boolean
           show_description?: boolean
           show_price?: boolean
           show_promotion_badge?: boolean
           show_stock_quantity?: boolean
+          store_description?: string | null
           store_id?: string
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "store_product_card_settings_store_id_fkey"
+            foreignKeyName: "store_settings_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: true
             referencedRelation: "stores"
