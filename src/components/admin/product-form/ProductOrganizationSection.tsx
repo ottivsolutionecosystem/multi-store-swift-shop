@@ -13,37 +13,20 @@ type Manufacturer = Database['public']['Tables']['manufacturers']['Row'];
 
 interface ProductOrganizationSectionProps {
   manufacturerId: string;
-  collections: string[];
   tags: string[];
   manufacturers: Manufacturer[];
   onManufacturerChange: (value: string) => void;
-  onCollectionsChange: (collections: string[]) => void;
   onTagsChange: (tags: string[]) => void;
 }
 
 export function ProductOrganizationSection({
   manufacturerId,
-  collections,
   tags,
   manufacturers,
   onManufacturerChange,
-  onCollectionsChange,
   onTagsChange
 }: ProductOrganizationSectionProps) {
-  const [newCollection, setNewCollection] = React.useState('');
   const [newTag, setNewTag] = React.useState('');
-
-  const addCollection = () => {
-    if (newCollection.trim() && !collections.includes(newCollection.trim())) {
-      onCollectionsChange([...collections, newCollection.trim()]);
-      setNewCollection('');
-    }
-  };
-
-  const removeCollection = (index: number) => {
-    const newCollections = collections.filter((_, i) => i !== index);
-    onCollectionsChange(newCollections);
-  };
 
   const addTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
@@ -78,32 +61,6 @@ export function ProductOrganizationSection({
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        <div>
-          <Label>Coleções</Label>
-          <div className="flex gap-2 mb-2">
-            <Input
-              placeholder="Nome da coleção"
-              value={newCollection}
-              onChange={(e) => setNewCollection(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && addCollection()}
-            />
-            <Button type="button" onClick={addCollection} size="sm">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {collections.map((collection, index) => (
-              <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                {collection}
-                <X 
-                  className="h-3 w-3 cursor-pointer" 
-                  onClick={() => removeCollection(index)}
-                />
-              </Badge>
-            ))}
-          </div>
         </div>
 
         <div>

@@ -50,7 +50,6 @@ export default function ProductFormPage() {
     // Organização
     category_id: '',
     manufacturer_id: '',
-    collections: [] as string[],
     tags: [] as string[],
     
     // Preços
@@ -107,7 +106,6 @@ export default function ProductFormPage() {
               
               category_id: product.category_id || '',
               manufacturer_id: product.manufacturer_id || '',
-              collections: product.collections || [],
               tags: product.tags || [],
               
               price: product.price.toString(),
@@ -155,7 +153,6 @@ export default function ProductFormPage() {
         
         category_id: formData.category_id || null,
         manufacturer_id: formData.manufacturer_id === 'none' ? null : formData.manufacturer_id || null,
-        collections: formData.collections.length > 0 ? formData.collections : null,
         tags: formData.tags.length > 0 ? formData.tags : null,
         
         price: parseFloat(formData.price),
@@ -283,11 +280,9 @@ export default function ProductFormPage() {
               {/* Organização */}
               <ProductOrganizationSection
                 manufacturerId={formData.manufacturer_id}
-                collections={formData.collections}
                 tags={formData.tags}
                 manufacturers={manufacturers}
                 onManufacturerChange={(value) => setFormData({...formData, manufacturer_id: value})}
-                onCollectionsChange={(collections) => setFormData({...formData, collections})}
                 onTagsChange={(tags) => setFormData({...formData, tags})}
               />
 

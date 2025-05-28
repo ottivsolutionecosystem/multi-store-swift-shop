@@ -188,7 +188,6 @@ export type Database = {
         Row: {
           barcode: string | null
           category_id: string | null
-          collections: string[] | null
           compare_at_price: number | null
           continue_selling_when_out_of_stock: boolean
           cost_per_item: number | null
@@ -215,7 +214,6 @@ export type Database = {
         Insert: {
           barcode?: string | null
           category_id?: string | null
-          collections?: string[] | null
           compare_at_price?: number | null
           continue_selling_when_out_of_stock?: boolean
           cost_per_item?: number | null
@@ -242,7 +240,6 @@ export type Database = {
         Update: {
           barcode?: string | null
           category_id?: string | null
-          collections?: string[] | null
           compare_at_price?: number | null
           continue_selling_when_out_of_stock?: boolean
           cost_per_item?: number | null
