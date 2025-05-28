@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Package } from 'lucide-react';
 import { ProductWithPromotion } from '@/repositories/ProductRepository';
-import { formatPromotionBadge, formatPrice } from '@/lib/promotionUtils';
+import { formatPrice } from '@/lib/promotionUtils';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
 
 interface ProductCardProps {
@@ -58,8 +58,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         </div>
         <div className="p-4 pb-2">
           <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
-          {showCategory && product.category && (
-            <p className="text-sm text-gray-500 mt-1">{product.category.name}</p>
+          {/* Remover referência à category até que seja incluída no tipo ProductWithPromotion */}
+          {showCategory && (
+            <p className="text-sm text-gray-500 mt-1">Categoria</p>
           )}
         </div>
       </CardHeader>

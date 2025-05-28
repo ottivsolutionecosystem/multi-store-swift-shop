@@ -53,7 +53,7 @@ export default function StoreSettingsPage() {
       show_stock_quantity: storeSettings?.show_stock_quantity ?? true,
       show_price: storeSettings?.show_price ?? true,
       show_promotion_badge: storeSettings?.show_promotion_badge ?? true,
-      promotion_display_format: storeSettings?.promotion_display_format || 'percentage',
+      promotion_display_format: (storeSettings?.promotion_display_format as 'percentage' | 'comparison') || 'percentage',
     },
   });
 
@@ -80,7 +80,7 @@ export default function StoreSettingsPage() {
         show_stock_quantity: storeSettings.show_stock_quantity,
         show_price: storeSettings.show_price,
         show_promotion_badge: storeSettings.show_promotion_badge,
-        promotion_display_format: storeSettings.promotion_display_format,
+        promotion_display_format: storeSettings.promotion_display_format as 'percentage' | 'comparison',
       });
     }
   }, [storeSettings, form]);
@@ -365,7 +365,7 @@ export default function StoreSettingsPage() {
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel>Formato de Exibição da Promoção</FormLabel>
-                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <Select onValueChange={field.onChange} value={field.value}>
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue placeholder="Selecione o formato" />

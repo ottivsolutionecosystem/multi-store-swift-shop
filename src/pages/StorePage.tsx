@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { ProductCard } from '@/components/products/ProductCard';
@@ -118,8 +117,6 @@ export default function StorePage() {
                     key={product.id}
                     product={product}
                     onAddToCart={handleAddToCart}
-                    promotionDisplayFormat="percentage"
-                    showPromotionBadge={true}
                   />
                 ))}
               </div>
