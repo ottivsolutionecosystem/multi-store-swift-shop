@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 
@@ -53,7 +54,7 @@ export class ProductRepository {
 
     if (error) throw error;
     
-    return this.processProductsWithPromotions(data || []);
+    return await this.processProductsWithPromotions(data || []);
   }
 
   async findByCategory(categoryId: string): Promise<ProductWithPromotion[]> {
@@ -84,7 +85,7 @@ export class ProductRepository {
 
     if (error) throw error;
     
-    return this.processProductsWithPromotions(data || []);
+    return await this.processProductsWithPromotions(data || []);
   }
 
   async findByCategoryIncludingSubcategories(categoryId: string): Promise<ProductWithPromotion[]> {
@@ -133,7 +134,7 @@ export class ProductRepository {
 
     if (subProdError) throw subProdError;
 
-    const processedSubcategoryProducts = this.processProductsWithPromotions(subcategoryProducts || []);
+    const processedSubcategoryProducts = await this.processProductsWithPromotions(subcategoryProducts || []);
     
     // Combinar produtos da categoria principal com produtos das subcategorias
     return [...mainCategoryProducts, ...processedSubcategoryProducts];
