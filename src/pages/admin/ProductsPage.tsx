@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit, Trash2, Image as ImageIcon, Package } from 'lucide-react';
 import { ViewToggle } from '@/components/admin/products/ViewToggle';
 import { ProductFiltersComponent } from '@/components/admin/products/ProductFilters';
 import { ProductSortComponent } from '@/components/admin/products/ProductSort';
