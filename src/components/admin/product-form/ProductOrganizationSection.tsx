@@ -70,7 +70,7 @@ export function ProductOrganizationSection({
               <SelectValue placeholder="Selecione um fabricante" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Nenhum fabricante</SelectItem>
+              <SelectItem value="none">Nenhum fabricante</SelectItem>
               {manufacturers.map((manufacturer) => (
                 <SelectItem key={manufacturer.id} value={manufacturer.id}>
                   {manufacturer.name}

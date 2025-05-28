@@ -154,7 +154,7 @@ export default function ProductFormPage() {
         gallery_images: formData.gallery_images.length > 0 ? formData.gallery_images : null,
         
         category_id: formData.category_id || null,
-        manufacturer_id: formData.manufacturer_id || null,
+        manufacturer_id: formData.manufacturer_id === 'none' ? null : formData.manufacturer_id || null,
         collections: formData.collections.length > 0 ? formData.collections : null,
         tags: formData.tags.length > 0 ? formData.tags : null,
         
@@ -259,7 +259,7 @@ export default function ProductFormPage() {
                         <SelectValue placeholder="Selecione uma categoria" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhuma categoria</SelectItem>
+                        <SelectItem value="none">Nenhuma categoria</SelectItem>
                         {categories.map((category) => (
                           <SelectItem key={category.id} value={category.id}>
                             {category.name}
