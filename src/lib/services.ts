@@ -1,3 +1,4 @@
+
 import { CategoryRepository } from '@/repositories/CategoryRepository';
 import { ProductRepository } from '@/repositories/ProductRepository';
 import { ManufacturerRepository } from '@/repositories/ManufacturerRepository';
@@ -8,6 +9,7 @@ import { ProductService } from '@/services/ProductService';
 import { ManufacturerService } from '@/services/ManufacturerService';
 import { PromotionService } from '@/services/PromotionService';
 import { StoreSettingsService } from '@/services/StoreSettingsService';
+import { ProfileService } from '@/services/ProfileService';
 
 import { VariantRepository } from '@/repositories/VariantRepository';
 import { VariantService } from '@/services/VariantService';
@@ -30,6 +32,7 @@ export function createServices(storeId: string) {
   const promotionService = new PromotionService(promotionRepository);
   const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
   const variantService = new VariantService(variantRepository);
+  const profileService = new ProfileService();
 
   return {
     categoryService,
@@ -37,6 +40,7 @@ export function createServices(storeId: string) {
     manufacturerService,
     promotionService,
     storeSettingsService,
-    variantService
+    variantService,
+    profileService
   };
 }
