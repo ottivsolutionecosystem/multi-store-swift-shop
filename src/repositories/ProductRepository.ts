@@ -14,6 +14,14 @@ export interface ProductWithPromotion extends Product {
     discount_value: number;
     promotional_price: number;
   } | null;
+  category?: {
+    id: string;
+    name: string;
+    parent_category?: {
+      id: string;
+      name: string;
+    } | null;
+  } | null;
 }
 
 export class ProductRepository {
@@ -33,6 +41,14 @@ export class ProductRepository {
           end_date,
           is_active,
           priority
+        ),
+        categories!left (
+          id,
+          name,
+          parent_category:categories!categories_parent_id_fkey (
+            id,
+            name
+          )
         )
       `)
       .eq('store_id', this.storeId)
@@ -58,6 +74,14 @@ export class ProductRepository {
           end_date,
           is_active,
           priority
+        ),
+        categories!left (
+          id,
+          name,
+          parent_category:categories!categories_parent_id_fkey (
+            id,
+            name
+          )
         )
       `)
       .eq('store_id', this.storeId)
@@ -102,6 +126,14 @@ export class ProductRepository {
           end_date,
           is_active,
           priority
+        ),
+        categories!left (
+          id,
+          name,
+          parent_category:categories!categories_parent_id_fkey (
+            id,
+            name
+          )
         )
       `)
       .eq('store_id', this.storeId)
@@ -165,7 +197,7 @@ export class ProductRepository {
 
   private processProductsWithPromotions(products: any[]): ProductWithPromotion[] {
     return products.map(product => {
-      const { promotions, ...productData } = product;
+      const { promotions, categories, ...productData } = product;
       
       // Encontrar promoção ativa com maior prioridade
       const activePromotion = promotions?.find((promo: any) => {
@@ -193,9 +225,20 @@ export class ProductRepository {
         };
       }
 
+      // Processar categoria
+      let category = null;
+      if (categories) {
+        category = {
+          id: categories.id,
+          name: categories.name,
+          parent_category: categories.parent_category || null
+        };
+      }
+
       return {
         ...productData,
-        promotion
+        promotion,
+        category
       };
     });
   }

@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Package } from 'lucide-react';
 import { ProductWithPromotion } from '@/repositories/ProductRepository';
 import { formatPrice } from '@/lib/promotionUtils';
@@ -27,6 +28,40 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const hasPromotion = Boolean(product.promotion);
   const displayPrice = hasPromotion ? product.promotion!.promotional_price : product.price;
   const originalPrice = product.price;
+
+  const renderCategoryBreadcrumb = () => {
+    if (!showCategory || !product.category) {
+      return null;
+    }
+
+    return (
+      <Breadcrumb>
+        <BreadcrumbList className="text-xs">
+          {product.category.parent_category ? (
+            <>
+              <BreadcrumbItem>
+                <BreadcrumbLink className="text-gray-500 hover:text-gray-700">
+                  {product.category.parent_category.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage className="text-gray-600">
+                  {product.category.name}
+                </BreadcrumbPage>
+              </BreadcrumbItem>
+            </>
+          ) : (
+            <BreadcrumbItem>
+              <BreadcrumbPage className="text-gray-600">
+                {product.category.name}
+              </BreadcrumbPage>
+            </BreadcrumbItem>
+          )}
+        </BreadcrumbList>
+      </Breadcrumb>
+    );
+  };
 
   return (
     <Card className="h-full flex flex-col">
@@ -58,10 +93,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         </div>
         <div className="p-4 pb-2">
           <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
-          {/* Remover referência à category até que seja incluída no tipo ProductWithPromotion */}
-          {showCategory && (
-            <p className="text-sm text-gray-500 mt-1">Categoria</p>
-          )}
+          {renderCategoryBreadcrumb()}
         </div>
       </CardHeader>
       
