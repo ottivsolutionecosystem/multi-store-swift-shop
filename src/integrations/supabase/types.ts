@@ -736,8 +736,16 @@ export type Database = {
         Args: { domain_name: string }
         Returns: string
       }
+      get_user_store_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       is_promotion_current: {
         Args: { p_start_date: string; p_end_date: string; p_is_active: boolean }
+        Returns: boolean
+      }
+      is_user_admin: {
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
     }

@@ -22,6 +22,13 @@ export function useServices() {
     }
     
     console.log('useServices - creating services for storeId:', storeId);
-    return createServices(storeId);
+    const services = createServices(storeId);
+    
+    // Debug user access when services are created
+    if (services.profileService) {
+      services.profileService.debugUserAccess().catch(console.error);
+    }
+    
+    return services;
   }, [storeId, loading]);
 }
