@@ -144,12 +144,6 @@ export class ProfileService {
       console.log('ProfileService - authenticated user:', user?.id);
 
       if (user) {
-        // Test auth.uid() function
-        const { data: authTest, error: authError } = await supabase
-          .rpc('get_current_user_id');
-        
-        console.log('ProfileService - auth.uid() test:', { data: authTest, error: authError });
-
         const profile = await this.getCurrentUserProfile();
         console.log('ProfileService - user profile debug:', {
           id: profile?.id,
