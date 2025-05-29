@@ -6,15 +6,29 @@ type Profile = Database['public']['Tables']['profiles']['Row'];
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
 export class ProfileService {
+  private async waitForAuth(maxRetries = 3): Promise<any> {
+    for (let i = 0; i < maxRetries; i++) {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (user && !error) {
+        console.log('ProfileService - auth verified, user:', user.id);
+        return user;
+      }
+      console.log(`ProfileService - auth attempt ${i + 1}/${maxRetries} failed, retrying...`);
+      await new Promise(resolve => setTimeout(resolve, 200));
+    }
+    throw new Error('Authentication verification failed after retries');
+  }
+
   async getCurrentUserProfile(): Promise<Profile | null> {
     console.log('ProfileService - getting current user profile');
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await this.waitForAuth();
       if (!user) {
         console.log('ProfileService - no authenticated user');
         return null;
       }
 
+      console.log('ProfileService - querying profile for user:', user.id);
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -37,12 +51,13 @@ export class ProfileService {
   async updateProfile(updates: ProfileUpdate): Promise<Profile> {
     console.log('ProfileService - updating profile with:', updates);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await this.waitForAuth();
       if (!user) {
         console.error('ProfileService - user not authenticated for update');
         throw new Error('User not authenticated');
       }
 
+      console.log('ProfileService - updating profile for user:', user.id);
       const { data, error } = await supabase
         .from('profiles')
         .update(updates)
@@ -69,7 +84,32 @@ export class ProfileService {
       const profile = await this.getCurrentUserProfile();
       if (!profile) {
         console.error('ProfileService - user profile not found for store association');
-        throw new Error('User profile not found');
+        
+        // Try to create profile if it doesn't exist
+        const user = await this.waitForAuth();
+        if (user) {
+          console.log('ProfileService - creating missing profile for user:', user.id);
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert([{
+              id: user.id,
+              email: user.email || '',
+              role: 'admin',
+              store_id: storeId
+            }])
+            .select()
+            .single();
+
+          if (createError) {
+            console.error('ProfileService - error creating profile:', createError);
+            throw createError;
+          }
+          
+          console.log('ProfileService - profile created:', newProfile);
+          return;
+        }
+        
+        throw new Error('User profile not found and could not be created');
       }
 
       console.log('ProfileService - current profile:', { 
@@ -100,10 +140,16 @@ export class ProfileService {
   async debugUserAccess(): Promise<void> {
     console.log('ProfileService - debugging user access');
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await this.waitForAuth();
       console.log('ProfileService - authenticated user:', user?.id);
 
       if (user) {
+        // Test auth.uid() function
+        const { data: authTest, error: authError } = await supabase
+          .rpc('get_current_user_id');
+        
+        console.log('ProfileService - auth.uid() test:', { data: authTest, error: authError });
+
         const profile = await this.getCurrentUserProfile();
         console.log('ProfileService - user profile debug:', {
           id: profile?.id,

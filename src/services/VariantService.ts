@@ -1,5 +1,5 @@
-
 import { VariantRepository, VariantWithValues, CombinationWithValues, GroupPriceWithValue } from '@/repositories/VariantRepository';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface VariantData {
   name: string;
@@ -18,6 +18,21 @@ export interface CombinationData {
 
 export class VariantService {
   constructor(private variantRepository: VariantRepository) {}
+
+  private async verifyAuth(): Promise<boolean> {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error || !user) {
+        console.error('VariantService - auth verification failed:', error);
+        return false;
+      }
+      console.log('VariantService - auth verified for user:', user.id);
+      return true;
+    } catch (error) {
+      console.error('VariantService - auth verification error:', error);
+      return false;
+    }
+  }
 
   async getProductVariants(productId: string): Promise<VariantWithValues[]> {
     console.log('VariantService - getting variants for product:', productId);
@@ -97,6 +112,13 @@ export class VariantService {
 
   async updateCombination(combinationId: string, combinationData: Partial<CombinationData>): Promise<void> {
     console.log('VariantService - updating combination:', combinationId, combinationData);
+    
+    // Verify auth before proceeding
+    const authValid = await this.verifyAuth();
+    if (!authValid) {
+      throw new Error('Authentication required for this operation');
+    }
+
     try {
       const updateData: any = {};
       
@@ -108,6 +130,25 @@ export class VariantService {
       if (combinationData.isActive !== undefined) updateData.is_active = combinationData.isActive;
 
       console.log('VariantService - update data prepared:', updateData);
+      
+      // Test if combination exists first
+      const { data: existingCombination, error: checkError } = await supabase
+        .from('product_variant_combinations')
+        .select('id')
+        .eq('id', combinationId)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error('VariantService - error checking combination existence:', checkError);
+        throw checkError;
+      }
+
+      if (!existingCombination) {
+        console.error('VariantService - combination not found:', combinationId);
+        throw new Error('Combination not found');
+      }
+
+      console.log('VariantService - combination exists, proceeding with update');
       await this.variantRepository.updateCombination(combinationId, updateData);
       console.log('VariantService - combination updated successfully');
     } catch (error) {
