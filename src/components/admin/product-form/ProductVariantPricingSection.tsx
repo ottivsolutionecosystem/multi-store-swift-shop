@@ -22,7 +22,7 @@ export function ProductVariantPricingSection({
   onCombinationUpdate,
   onGroupPriceUpdate
 }: ProductVariantPricingSectionProps) {
-  const [groupBy, setGroupBy] = useState<string>('');
+  const [groupBy, setGroupBy] = useState<string>('none');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [groupedCombinations, setGroupedCombinations] = useState<{ [key: string]: CombinationWithValues[] }>({});
 
@@ -39,7 +39,7 @@ export function ProductVariantPricingSection({
 
   // Group combinations by selected variant
   useEffect(() => {
-    if (!groupBy || combinations.length === 0) {
+    if (groupBy === 'none' || !groupBy || combinations.length === 0) {
       setGroupedCombinations({});
       return;
     }
@@ -129,7 +129,7 @@ export function ProductVariantPricingSection({
               <SelectValue placeholder="Selecione uma opção para agrupar" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Não agrupar</SelectItem>
+              <SelectItem value="none">Não agrupar</SelectItem>
               {availableVariants.map(variant => (
                 <SelectItem key={variant} value={variant}>
                   {variant}
@@ -140,7 +140,7 @@ export function ProductVariantPricingSection({
         </div>
 
         {/* Grouped view */}
-        {groupBy && Object.keys(groupedCombinations).length > 0 ? (
+        {groupBy !== 'none' && groupBy && Object.keys(groupedCombinations).length > 0 ? (
           <div className="space-y-4">
             {Object.entries(groupedCombinations).map(([groupValue, groupCombinations]) => (
               <div key={groupValue} className="border rounded-lg">
