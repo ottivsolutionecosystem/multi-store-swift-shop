@@ -1,85 +1,131 @@
 
-import { Database } from '@/integrations/supabase/types';
-import { VariantRepository, CombinationCreateData, CombinationUpdateData } from '@/repositories/VariantRepository';
+import { VariantRepository, VariantWithValues, CombinationWithValues, GroupPriceWithValue } from '@/repositories/VariantRepository';
 
 export interface VariantData {
   name: string;
   values: string[];
 }
 
+export interface CombinationData {
+  variantValueIds: string[];
+  sku?: string;
+  price?: number;
+  compareAtPrice?: number;
+  costPerItem?: number;
+  stockQuantity: number;
+  isActive: boolean;
+}
+
 export class VariantService {
   constructor(private variantRepository: VariantRepository) {}
 
+  async getProductVariants(productId: string): Promise<VariantWithValues[]> {
+    return this.variantRepository.getVariantsByProduct(productId);
+  }
+
   async createProductVariants(productId: string, variants: VariantData[]): Promise<void> {
-    console.log('VariantService.createProductVariants - productId:', productId, 'variants:', variants);
-    return this.variantRepository.createProductVariants(productId, variants);
-  }
+    for (const [index, variantData] of variants.entries()) {
+      const variant = await this.variantRepository.createVariant({
+        product_id: productId,
+        name: variantData.name,
+        position: index
+      });
 
-  async getProductVariants(productId: string) {
-    console.log('VariantService.getProductVariants - productId:', productId);
-    const result = await this.variantRepository.getProductVariants(productId);
-    console.log('VariantService.getProductVariants - result:', result);
-    return result;
-  }
-
-  async getProductCombinations(productId: string) {
-    console.log('VariantService.getProductCombinations - productId:', productId);
-    const result = await this.variantRepository.getProductCombinations(productId);
-    console.log('VariantService.getProductCombinations - result:', result);
-    return result;
-  }
-
-  async getGroupPrices(productId: string) {
-    console.log('VariantService.getGroupPrices - productId:', productId);
-    const result = await this.variantRepository.getGroupPrices(productId);
-    console.log('VariantService.getGroupPrices - result:', result);
-    return result;
-  }
-
-  async generateAllCombinations(productId: string): Promise<string[][]> {
-    console.log('VariantService.generateAllCombinations - productId:', productId);
-    const result = await this.variantRepository.generateAllCombinations(productId);
-    console.log('VariantService.generateAllCombinations - result:', result);
-    return result;
-  }
-
-  async createCombination(productId: string, data: CombinationCreateData) {
-    console.log('VariantService.createCombination - productId:', productId, 'data:', data);
-    const result = await this.variantRepository.createCombination(productId, data);
-    console.log('VariantService.createCombination - result:', result);
-    return result;
-  }
-
-  async updateCombination(combinationId: string, updates: CombinationUpdateData) {
-    console.log('VariantService.updateCombination - combinationId:', combinationId, 'updates:', updates);
-    
-    try {
-      const result = await this.variantRepository.updateCombination(combinationId, updates);
-      console.log('VariantService.updateCombination - success, result:', result);
-      return result;
-    } catch (error) {
-      console.error('VariantService.updateCombination - error:', error);
-      
-      // Log additional debugging info
-      console.log('VariantService.updateCombination - attempting to debug RLS access...');
-      
-      // Try to get current user info for debugging
-      try {
-        const { ProfileService } = await import('./ProfileService');
-        const profileService = new ProfileService();
-        await profileService.debugUserAccess();
-      } catch (debugError) {
-        console.error('VariantService.updateCombination - debug error:', debugError);
+      for (const [valueIndex, value] of variantData.values.entries()) {
+        await this.variantRepository.createVariantValue({
+          variant_id: variant.id,
+          value: value,
+          position: valueIndex
+        });
       }
-      
-      throw error;
     }
   }
 
-  async applyGroupPrice(productId: string, variantValueId: string, price: number) {
-    console.log('VariantService.applyGroupPrice - productId:', productId, 'variantValueId:', variantValueId, 'price:', price);
-    const result = await this.variantRepository.applyGroupPrice(productId, variantValueId, price);
-    console.log('VariantService.applyGroupPrice - result:', result);
-    return result;
+  async generateAllCombinations(productId: string): Promise<string[][]> {
+    const variants = await this.variantRepository.getVariantsByProduct(productId);
+    
+    if (variants.length === 0) return [];
+
+    const allValueIds = variants.map(variant => 
+      variant.values.map(value => value.id)
+    );
+
+    return this.cartesianProduct(allValueIds);
+  }
+
+  async createCombination(productId: string, combinationData: CombinationData): Promise<void> {
+    await this.variantRepository.createCombination({
+      product_id: productId,
+      sku: combinationData.sku || null,
+      price: combinationData.price || null,
+      compare_at_price: combinationData.compareAtPrice || null,
+      cost_per_item: combinationData.costPerItem || null,
+      stock_quantity: combinationData.stockQuantity,
+      is_active: combinationData.isActive
+    }, combinationData.variantValueIds);
+  }
+
+  async updateCombination(combinationId: string, combinationData: Partial<CombinationData>): Promise<void> {
+    const updateData: any = {};
+    
+    if (combinationData.sku !== undefined) updateData.sku = combinationData.sku || null;
+    if (combinationData.price !== undefined) updateData.price = combinationData.price || null;
+    if (combinationData.compareAtPrice !== undefined) updateData.compare_at_price = combinationData.compareAtPrice || null;
+    if (combinationData.costPerItem !== undefined) updateData.cost_per_item = combinationData.costPerItem || null;
+    if (combinationData.stockQuantity !== undefined) updateData.stock_quantity = combinationData.stockQuantity;
+    if (combinationData.isActive !== undefined) updateData.is_active = combinationData.isActive;
+
+    await this.variantRepository.updateCombination(combinationId, updateData);
+  }
+
+  async getProductCombinations(productId: string): Promise<CombinationWithValues[]> {
+    return this.variantRepository.getCombinationsByProduct(productId);
+  }
+
+  async applyGroupPrice(productId: string, variantValueId: string, price: number): Promise<void> {
+    // Set group price
+    await this.variantRepository.upsertGroupPrice({
+      product_id: productId,
+      variant_value_id: variantValueId,
+      group_price: price
+    });
+
+    // Apply to combinations that don't have individual prices
+    const combinations = await this.variantRepository.getCombinationsByProduct(productId);
+    
+    for (const combination of combinations) {
+      const hasThisValue = combination.values.some(v => v.id === variantValueId);
+      const hasIndividualPrice = combination.price !== null;
+      
+      if (hasThisValue && !hasIndividualPrice) {
+        await this.variantRepository.updateCombination(combination.id, {
+          price: price
+        });
+      }
+    }
+  }
+
+  async getGroupPrices(productId: string): Promise<GroupPriceWithValue[]> {
+    return this.variantRepository.getGroupPricesByProduct(productId);
+  }
+
+  async deleteVariant(variantId: string): Promise<void> {
+    await this.variantRepository.deleteVariant(variantId);
+  }
+
+  async deleteCombination(combinationId: string): Promise<void> {
+    await this.variantRepository.deleteCombination(combinationId);
+  }
+
+  private cartesianProduct(arrays: string[][]): string[][] {
+    return arrays.reduce<string[][]>((acc, curr) => {
+      const result: string[][] = [];
+      acc.forEach(a => {
+        curr.forEach(b => {
+          result.push([...a, b]);
+        });
+      });
+      return result;
+    }, [[]]);
   }
 }
