@@ -22,6 +22,15 @@ export function useServices() {
     }
     
     console.log('useServices - creating services for storeId:', storeId);
-    return createServices(storeId);
+    const services = createServices(storeId);
+    
+    // Ensure user is associated with the store when services are created
+    if (services?.profileService) {
+      services.profileService.ensureUserStoreAssociation(storeId).catch(error => {
+        console.error('useServices - error ensuring user store association:', error);
+      });
+    }
+    
+    return services;
   }, [storeId, loading]);
 }

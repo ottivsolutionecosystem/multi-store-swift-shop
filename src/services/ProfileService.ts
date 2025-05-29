@@ -35,13 +35,57 @@ export class ProfileService {
   }
 
   async ensureUserStoreAssociation(storeId: string): Promise<void> {
+    console.log('ProfileService.ensureUserStoreAssociation - storeId:', storeId);
+    
     const profile = await this.getCurrentUserProfile();
-    if (!profile) throw new Error('User profile not found');
+    if (!profile) {
+      console.error('ProfileService.ensureUserStoreAssociation - User profile not found');
+      throw new Error('User profile not found');
+    }
+
+    console.log('ProfileService.ensureUserStoreAssociation - current profile:', profile);
 
     // Se o usuário é admin mas não tem store_id associado, associe à loja
     if (profile.role === 'admin' && !profile.store_id) {
-      console.log('Associating admin user to store:', storeId);
+      console.log('ProfileService.ensureUserStoreAssociation - Associating admin user to store:', storeId);
       await this.updateProfile({ store_id: storeId });
+      console.log('ProfileService.ensureUserStoreAssociation - Association completed');
+    } else if (profile.store_id && profile.store_id !== storeId) {
+      console.warn('ProfileService.ensureUserStoreAssociation - User store_id mismatch:', {
+        userStoreId: profile.store_id,
+        requestedStoreId: storeId
+      });
+    } else {
+      console.log('ProfileService.ensureUserStoreAssociation - User already properly associated');
     }
+  }
+
+  async debugUserAccess(): Promise<void> {
+    console.log('=== DEBUG USER ACCESS ===');
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('Current user:', user?.id);
+    
+    if (user) {
+      const profile = await this.getCurrentUserProfile();
+      console.log('User profile:', profile);
+      
+      // Test RLS functions
+      try {
+        const { data: isAdmin } = await supabase.rpc('is_user_admin');
+        console.log('Is user admin (RPC):', isAdmin);
+      } catch (error) {
+        console.error('Error checking is_user_admin:', error);
+      }
+      
+      try {
+        const { data: userStoreId } = await supabase.rpc('get_user_store_id');
+        console.log('User store ID (RPC):', userStoreId);
+      } catch (error) {
+        console.error('Error getting user_store_id:', error);
+      }
+    }
+    
+    console.log('=== END DEBUG ===');
   }
 }
