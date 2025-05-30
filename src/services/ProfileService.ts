@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { ensureAuthForOperation } from '@/lib/auth-utils';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
@@ -8,13 +9,16 @@ type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 export class ProfileService {
   private async waitForAuth(maxRetries = 3): Promise<any> {
     for (let i = 0; i < maxRetries; i++) {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (user && !error) {
-        console.log('ProfileService - auth verified, user:', user.id);
-        return user;
+      const authValid = await ensureAuthForOperation(`ProfileService-waitForAuth-${i + 1}`);
+      if (authValid) {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (user && !error) {
+          console.log('ProfileService - auth verified, user:', user.id);
+          return user;
+        }
       }
       console.log(`ProfileService - auth attempt ${i + 1}/${maxRetries} failed, retrying...`);
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 500)); // Increased delay
     }
     throw new Error('Authentication verification failed after retries');
   }

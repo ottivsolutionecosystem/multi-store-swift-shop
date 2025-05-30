@@ -3,32 +3,38 @@ import { useMemo, useEffect } from 'react';
 import { useTenant } from '@/contexts/TenantContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { createServices } from '@/lib/services';
-import { testAuthState, forceAuthRefresh } from '@/lib/auth-utils';
+import { testAuthState, forceAuthRefresh, ensureAuthForOperation } from '@/lib/auth-utils';
 
 export function useServices() {
   const { storeId, loading: tenantLoading } = useTenant();
   const { user, session, loading: authLoading } = useAuth();
 
-  // Debug auth state when it changes
+  // Enhanced auth state monitoring
   useEffect(() => {
     if (!authLoading) {
-      console.log('useServices - auth state changed:', {
+      console.log('useServices - enhanced auth state changed:', {
         hasUser: !!user,
         hasSession: !!session,
         userId: user?.id,
-        sessionValid: !!session?.access_token
+        sessionValid: !!session?.access_token,
+        sessionExpiresAt: session?.expires_at
       });
 
-      // Run auth test when user is available
+      // Run enhanced auth test when user is available
       if (user && session) {
         setTimeout(() => {
           testAuthState().then(result => {
-            console.log('useServices - auth test result:', result);
+            console.log('useServices - enhanced auth test result:', result);
             
-            // If auth is failing, try to refresh
-            if (!result.profileAccess && result.session && result.user) {
-              console.log('useServices - auth issue detected, trying refresh...');
-              forceAuthRefresh();
+            // If auth is failing, try comprehensive recovery
+            if (!result.databaseConnection && result.session && result.user) {
+              console.log('useServices - database connection issue detected, trying recovery...');
+              ensureAuthForOperation('useServices-recovery').then(recovered => {
+                console.log('useServices - recovery result:', recovered);
+                if (!recovered) {
+                  console.warn('useServices - auth recovery failed, user may need to re-authenticate');
+                }
+              });
             }
           });
         }, 500);
@@ -37,12 +43,13 @@ export function useServices() {
   }, [user, session, authLoading]);
 
   return useMemo(() => {
-    console.log('useServices - computing services:', {
+    console.log('useServices - computing enhanced services:', {
       storeId,
       tenantLoading,
       authLoading,
       hasUser: !!user,
-      hasSession: !!session
+      hasSession: !!session,
+      sessionExpiresAt: session?.expires_at
     });
     
     // Wait for both tenant and auth to load
@@ -62,14 +69,20 @@ export function useServices() {
       console.log('useServices - no authenticated user/session');
       return null;
     }
+
+    // Check session validity
+    const now = Math.floor(Date.now() / 1000);
+    const expiresAt = session.expires_at || 0;
     
-    console.log('useServices - creating services for storeId:', storeId);
-    const services = createServices(storeId);
-    
-    // Debug user access when services are created
-    if (services.profileService) {
-      services.profileService.debugUserAccess().catch(console.error);
+    if (now >= expiresAt) {
+      console.log('useServices - session expired, services not available');
+      // Trigger refresh in background
+      forceAuthRefresh().catch(console.error);
+      return null;
     }
+    
+    console.log('useServices - creating enhanced services for storeId:', storeId);
+    const services = createServices(storeId);
     
     return services;
   }, [storeId, tenantLoading, authLoading, user, session]);

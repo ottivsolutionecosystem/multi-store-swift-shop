@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, AuthRecoveryUtils } from '@/integrations/supabase/client';
 import { AuthState, Profile } from '@/types/auth';
 
 const AuthContext = createContext<AuthState>({
@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const ensureProfile = async (userId: string) => {
+  const ensureProfile = async (userId: string, userEmail?: string) => {
     console.log('AuthContext - ensuring profile for user:', userId);
     try {
       // Check if profile exists
@@ -51,7 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .from('profiles')
         .insert([{
           id: userId,
-          email: user?.email || '',
+          email: userEmail || '',
           role: 'admin', // Default to admin for now
           store_id: 'bb9e7e18-b166-4fb7-8f73-e431400dfd87' // Demo store ID
         }])
@@ -76,17 +76,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       userId: session?.user?.id,
       email: session?.user?.email,
       accessToken: session?.access_token ? 'present' : 'missing',
-      refreshToken: session?.refresh_token ? 'present' : 'missing'
+      refreshToken: session?.refresh_token ? 'present' : 'missing',
+      expiresAt: session?.expires_at
     });
 
     setSession(session);
     setUser(session?.user ?? null);
 
     if (session?.user) {
+      // Validate session before proceeding
+      const sessionValid = await AuthRecoveryUtils.validateCurrentSession();
+      if (!sessionValid) {
+        console.log('AuthContext - session validation failed, attempting recovery');
+        const recovery = await AuthRecoveryUtils.forceTokenRefresh();
+        if (!recovery) {
+          console.error('AuthContext - session recovery failed');
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+      }
+
       // Defer profile handling to avoid potential deadlocks
       setTimeout(async () => {
         try {
-          const profileData = await ensureProfile(session.user.id);
+          const profileData = await ensureProfile(session.user.id, session.user.email);
           setProfile(profileData);
           console.log('AuthContext - profile set:', profileData);
         } catch (error) {
@@ -102,31 +118,58 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    console.log('AuthContext - initializing');
+    console.log('AuthContext - initializing with enhanced configuration');
     
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
 
-    // Check for existing session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('AuthContext - error getting session:', error);
-        setLoading(false);
-        return;
-      }
-      
-      console.log('AuthContext - initial session check:', {
-        hasSession: !!session,
-        userId: session?.user?.id,
-        email: session?.user?.email
-      });
+    // Check for existing session with enhanced validation
+    const initializeAuth = async () => {
+      try {
+        // First validate any existing session
+        const sessionValid = await AuthRecoveryUtils.validateCurrentSession();
+        console.log('AuthContext - initial session validation:', sessionValid);
 
-      if (session) {
-        handleAuthStateChange('SIGNED_IN', session);
-      } else {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('AuthContext - error getting session:', error);
+          setLoading(false);
+          return;
+        }
+        
+        console.log('AuthContext - initial session check:', {
+          hasSession: !!session,
+          userId: session?.user?.id,
+          email: session?.user?.email,
+          valid: sessionValid
+        });
+
+        if (session && sessionValid) {
+          await handleAuthStateChange('INITIAL_SESSION', session);
+        } else if (session && !sessionValid) {
+          console.log('AuthContext - session exists but invalid, attempting recovery');
+          const recovery = await AuthRecoveryUtils.forceTokenRefresh();
+          if (recovery) {
+            // Get fresh session after recovery
+            const { data: { session: freshSession } } = await supabase.auth.getSession();
+            if (freshSession) {
+              await handleAuthStateChange('RECOVERED_SESSION', freshSession);
+            } else {
+              setLoading(false);
+            }
+          } else {
+            setLoading(false);
+          }
+        } else {
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('AuthContext - initialization error:', error);
         setLoading(false);
       }
-    });
+    };
+
+    initializeAuth();
 
     return () => {
       console.log('AuthContext - cleanup');
@@ -143,7 +186,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       hasProfile: !!profile,
       userId: user?.id,
       profileRole: profile?.role,
-      profileStoreId: profile?.store_id
+      profileStoreId: profile?.store_id,
+      sessionExpiresAt: session?.expires_at
     });
   }, [loading, user, session, profile]);
 
