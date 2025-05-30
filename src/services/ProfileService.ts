@@ -1,38 +1,20 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
-import { ensureAuthForOperation } from '@/lib/auth-utils';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
 
 export class ProfileService {
-  private async waitForAuth(maxRetries = 3): Promise<any> {
-    for (let i = 0; i < maxRetries; i++) {
-      const authValid = await ensureAuthForOperation(`ProfileService-waitForAuth-${i + 1}`);
-      if (authValid) {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (user && !error) {
-          console.log('ProfileService - auth verified, user:', user.id);
-          return user;
-        }
-      }
-      console.log(`ProfileService - auth attempt ${i + 1}/${maxRetries} failed, retrying...`);
-      await new Promise(resolve => setTimeout(resolve, 500)); // Increased delay
-    }
-    throw new Error('Authentication verification failed after retries');
-  }
-
   async getCurrentUserProfile(): Promise<Profile | null> {
     console.log('ProfileService - getting current user profile');
     try {
-      const user = await this.waitForAuth();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.log('ProfileService - no authenticated user');
         return null;
       }
 
-      console.log('ProfileService - querying profile for user:', user.id);
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -55,13 +37,12 @@ export class ProfileService {
   async updateProfile(updates: ProfileUpdate): Promise<Profile> {
     console.log('ProfileService - updating profile with:', updates);
     try {
-      const user = await this.waitForAuth();
+      const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         console.error('ProfileService - user not authenticated for update');
         throw new Error('User not authenticated');
       }
 
-      console.log('ProfileService - updating profile for user:', user.id);
       const { data, error } = await supabase
         .from('profiles')
         .update(updates)
@@ -88,32 +69,7 @@ export class ProfileService {
       const profile = await this.getCurrentUserProfile();
       if (!profile) {
         console.error('ProfileService - user profile not found for store association');
-        
-        // Try to create profile if it doesn't exist
-        const user = await this.waitForAuth();
-        if (user) {
-          console.log('ProfileService - creating missing profile for user:', user.id);
-          const { data: newProfile, error: createError } = await supabase
-            .from('profiles')
-            .insert([{
-              id: user.id,
-              email: user.email || '',
-              role: 'admin',
-              store_id: storeId
-            }])
-            .select()
-            .single();
-
-          if (createError) {
-            console.error('ProfileService - error creating profile:', createError);
-            throw createError;
-          }
-          
-          console.log('ProfileService - profile created:', newProfile);
-          return;
-        }
-        
-        throw new Error('User profile not found and could not be created');
+        throw new Error('User profile not found');
       }
 
       console.log('ProfileService - current profile:', { 
@@ -144,7 +100,7 @@ export class ProfileService {
   async debugUserAccess(): Promise<void> {
     console.log('ProfileService - debugging user access');
     try {
-      const user = await this.waitForAuth();
+      const { data: { user } } = await supabase.auth.getUser();
       console.log('ProfileService - authenticated user:', user?.id);
 
       if (user) {

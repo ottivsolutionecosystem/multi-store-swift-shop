@@ -1,7 +1,5 @@
 
 import { VariantRepository, VariantWithValues, CombinationWithValues, GroupPriceWithValue } from '@/repositories/VariantRepository';
-import { supabase } from '@/integrations/supabase/client';
-import { ensureAuthForOperation } from '@/lib/auth-utils';
 
 export interface VariantData {
   name: string;
@@ -21,27 +19,6 @@ export interface CombinationData {
 export class VariantService {
   constructor(private variantRepository: VariantRepository) {}
 
-  private async verifyAuth(): Promise<boolean> {
-    try {
-      const authValid = await ensureAuthForOperation('VariantService');
-      if (!authValid) {
-        console.error('VariantService - authentication verification failed');
-        return false;
-      }
-      
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        console.error('VariantService - auth verification failed:', error);
-        return false;
-      }
-      console.log('VariantService - auth verified for user:', user.id);
-      return true;
-    } catch (error) {
-      console.error('VariantService - auth verification error:', error);
-      return false;
-    }
-  }
-
   async getProductVariants(productId: string): Promise<VariantWithValues[]> {
     console.log('VariantService - getting variants for product:', productId);
     try {
@@ -56,12 +33,6 @@ export class VariantService {
 
   async createProductVariants(productId: string, variants: VariantData[]): Promise<void> {
     console.log('VariantService - creating variants for product:', productId, variants);
-    
-    const authValid = await this.verifyAuth();
-    if (!authValid) {
-      throw new Error('Authentication required for this operation');
-    }
-
     try {
       for (const [index, variantData] of variants.entries()) {
         const variant = await this.variantRepository.createVariant({
@@ -107,12 +78,6 @@ export class VariantService {
 
   async createCombination(productId: string, combinationData: CombinationData): Promise<void> {
     console.log('VariantService - creating combination for product:', productId, combinationData);
-    
-    const authValid = await this.verifyAuth();
-    if (!authValid) {
-      throw new Error('Authentication required for this operation');
-    }
-
     try {
       await this.variantRepository.createCombination({
         product_id: productId,
@@ -132,13 +97,6 @@ export class VariantService {
 
   async updateCombination(combinationId: string, combinationData: Partial<CombinationData>): Promise<void> {
     console.log('VariantService - updating combination:', combinationId, combinationData);
-    
-    // Enhanced auth verification for critical update operation
-    const authValid = await this.verifyAuth();
-    if (!authValid) {
-      throw new Error('Authentication required for this operation');
-    }
-
     try {
       const updateData: any = {};
       
@@ -150,32 +108,6 @@ export class VariantService {
       if (combinationData.isActive !== undefined) updateData.is_active = combinationData.isActive;
 
       console.log('VariantService - update data prepared:', updateData);
-      
-      // Enhanced pre-update verification
-      const { data: existingCombination, error: checkError } = await supabase
-        .from('product_variant_combinations')
-        .select('id, product_id')
-        .eq('id', combinationId)
-        .maybeSingle();
-
-      if (checkError) {
-        console.error('VariantService - error checking combination existence:', checkError);
-        throw checkError;
-      }
-
-      if (!existingCombination) {
-        console.error('VariantService - combination not found:', combinationId);
-        throw new Error('Combination not found');
-      }
-
-      console.log('VariantService - combination exists, proceeding with update:', existingCombination);
-
-      // Ensure auth is still valid right before the update
-      const authStillValid = await ensureAuthForOperation('updateCombination-final');
-      if (!authStillValid) {
-        throw new Error('Authentication expired during operation');
-      }
-
       await this.variantRepository.updateCombination(combinationId, updateData);
       console.log('VariantService - combination updated successfully');
     } catch (error) {
@@ -198,12 +130,6 @@ export class VariantService {
 
   async applyGroupPrice(productId: string, variantValueId: string, price: number): Promise<void> {
     console.log('VariantService - applying group price:', { productId, variantValueId, price });
-    
-    const authValid = await this.verifyAuth();
-    if (!authValid) {
-      throw new Error('Authentication required for this operation');
-    }
-
     try {
       // Set group price
       await this.variantRepository.upsertGroupPrice({
@@ -246,12 +172,6 @@ export class VariantService {
 
   async deleteVariant(variantId: string): Promise<void> {
     console.log('VariantService - deleting variant:', variantId);
-    
-    const authValid = await this.verifyAuth();
-    if (!authValid) {
-      throw new Error('Authentication required for this operation');
-    }
-
     try {
       await this.variantRepository.deleteVariant(variantId);
       console.log('VariantService - variant deleted successfully');
@@ -263,12 +183,6 @@ export class VariantService {
 
   async deleteCombination(combinationId: string): Promise<void> {
     console.log('VariantService - deleting combination:', combinationId);
-    
-    const authValid = await this.verifyAuth();
-    if (!authValid) {
-      throw new Error('Authentication required for this operation');
-    }
-
     try {
       await this.variantRepository.deleteCombination(combinationId);
       console.log('VariantService - combination deleted successfully');
