@@ -98,7 +98,7 @@ export class ProfileService {
   }
 
   async debugUserAccess(): Promise<void> {
-    console.log('ProfileService - debugging user access');
+    console.log('ProfileService - debugging user access with new RLS policies');
     try {
       const { data: { user } } = await supabase.auth.getUser();
       console.log('ProfileService - authenticated user:', user?.id);
@@ -120,9 +120,47 @@ export class ProfileService {
           .limit(1);
 
         console.log('ProfileService - profile access test:', { data: testQuery, error: testError });
+
+        // Test manufacturers access with new RLS policies
+        if (profile?.store_id) {
+          console.log('ProfileService - testing manufacturers access for store:', profile.store_id);
+          const { data: manufacturersTest, error: manufacturersError } = await supabase
+            .from('manufacturers')
+            .select('id, name, store_id')
+            .limit(3);
+
+          console.log('ProfileService - manufacturers access test:', { 
+            data: manufacturersTest, 
+            error: manufacturersError,
+            count: manufacturersTest?.length || 0
+          });
+        }
       }
     } catch (error) {
       console.error('ProfileService - debug error:', error);
+    }
+  }
+
+  async validateStoreAccess(storeId: string): Promise<boolean> {
+    console.log('ProfileService - validating store access for:', storeId);
+    try {
+      const profile = await this.getCurrentUserProfile();
+      if (!profile) {
+        console.log('ProfileService - no profile found, access denied');
+        return false;
+      }
+
+      const hasAccess = profile.store_id === storeId;
+      console.log('ProfileService - store access validation:', {
+        userStoreId: profile.store_id,
+        requestedStoreId: storeId,
+        hasAccess
+      });
+
+      return hasAccess;
+    } catch (error) {
+      console.error('ProfileService - error validating store access:', error);
+      return false;
     }
   }
 }
