@@ -19,33 +19,37 @@ import CategoryFormPage from "./pages/admin/CategoryFormPage";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <TenantProvider>
-          <AuthProvider>
-            <Routes>
-              <Route path="/" element={<StorePage />} />
-              <Route path="/auth" element={<AuthPage />} />
-              <Route path="/account" element={<AccountPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="/admin/products" element={<ProductsPage />} />
-              <Route path="/admin/products/new" element={<ProductFormPage />} />
-              <Route path="/admin/products/:id/edit" element={<ProductFormPage />} />
-              <Route path="/admin/categories" element={<CategoriesPage />} />
-              <Route path="/admin/categories/new" element={<CategoryFormPage />} />
-              <Route path="/admin/categories/:id/edit" element={<CategoryFormPage />} />
-              <Route path="/admin/store-settings" element={<StoreSettingsPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </TenantProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  console.log('App component loaded');
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <TenantProvider>
+            <AuthProvider>
+              <Routes>
+                <Route path="/" element={<StorePage />} />
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/account" element={<AccountPage />} />
+                <Route path="/admin" element={<AdminPage />} />
+                <Route path="/admin/products" element={<ProductsPage />} />
+                <Route path="/admin/products/new" element={<ProductFormPage />} />
+                <Route path="/admin/products/:id/edit" element={<ProductFormPage />} />
+                <Route path="/admin/categories" element={<CategoriesPage />} />
+                <Route path="/admin/categories/new" element={<CategoryFormPage />} />
+                <Route path="/admin/categories/:id/edit" element={<CategoryFormPage />} />
+                <Route path="/admin/store-settings" element={<StoreSettingsPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          </TenantProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

@@ -15,7 +15,9 @@ import { Database } from '@/integrations/supabase/types';
 
 type Category = Database['public']['Tables']['categories']['Row'];
 
-export default function CategoriesPage() {
+function CategoriesPage() {
+  console.log('CategoriesPage component loaded');
+  
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -264,3 +266,6 @@ export default function CategoriesPage() {
     </div>
   );
 }
+
+// Export as default
+export default CategoriesPage;
