@@ -1,12 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ChevronDown, ChevronRight } from 'lucide-react';
 import { CombinationWithValues, GroupPriceWithValue } from '@/repositories/VariantRepository';
+import { GroupSelector } from './variant-pricing/GroupSelector';
+import { GroupPriceHeader } from './variant-pricing/GroupPriceHeader';
+import { CombinationItem } from './variant-pricing/CombinationItem';
+import { GroupCombinationItem } from './variant-pricing/GroupCombinationItem';
 
 interface ProductVariantPricingSectionProps {
   combinations: CombinationWithValues[];
@@ -91,13 +90,6 @@ export function ProductVariantPricingSection({
     }
   };
 
-  const formatCombinationLabel = (combination: CombinationWithValues) => {
-    return combination.values
-      .filter(v => v.variant_name !== groupBy)
-      .map(v => `${v.variant_name}: ${v.value}`)
-      .join(' / ');
-  };
-
   if (combinations.length === 0) {
     return (
       <Card>
@@ -120,122 +112,35 @@ export function ProductVariantPricingSection({
         <CardTitle>Preços e Estoque das Variantes</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Group by selector */}
-        <div>
-          <Label>Agrupar por</Label>
-          <Select value={groupBy} onValueChange={setGroupBy}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione uma opção para agrupar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Não agrupar</SelectItem>
-              {availableVariants.map(variant => (
-                <SelectItem key={variant} value={variant}>
-                  {variant}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <GroupSelector
+          groupBy={groupBy}
+          availableVariants={availableVariants}
+          onGroupByChange={setGroupBy}
+        />
 
         {/* Grouped view */}
         {groupBy !== 'none' && groupBy && Object.keys(groupedCombinations).length > 0 ? (
           <div className="space-y-4">
             {Object.entries(groupedCombinations).map(([groupValue, groupCombinations]) => (
               <div key={groupValue} className="border rounded-lg">
-                {/* Group header */}
-                <div className="p-4 bg-gray-50 border-b">
-                  <div className="flex items-center justify-between">
-                    <Button
-                      variant="ghost"
-                      onClick={() => toggleGroup(groupValue)}
-                      className="flex items-center gap-2 p-0 h-auto font-medium"
-                    >
-                      {expandedGroups.has(groupValue) ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
-                      )}
-                      {groupBy}: {groupValue}
-                    </Button>
-                    
-                    {/* Group price input */}
-                    <div className="flex items-center gap-2">
-                      <Label className="text-sm">Preço do grupo:</Label>
-                      <Input
-                        type="number"
-                        placeholder="0.00"
-                        value={getGroupPrice(groupValue) || ''}
-                        onChange={(e) => handleGroupPriceChange(groupValue, e.target.value)}
-                        className="w-24"
-                        step="0.01"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                </div>
+                <GroupPriceHeader
+                  groupBy={groupBy}
+                  groupValue={groupValue}
+                  isExpanded={expandedGroups.has(groupValue)}
+                  groupPrice={getGroupPrice(groupValue)}
+                  onToggle={() => toggleGroup(groupValue)}
+                  onGroupPriceChange={(price) => handleGroupPriceChange(groupValue, price)}
+                />
 
-                {/* Group combinations */}
                 {expandedGroups.has(groupValue) && (
                   <div className="p-4 space-y-3">
                     {groupCombinations.map(combination => (
-                      <div key={combination.id} className="flex items-center gap-4 p-3 border rounded">
-                        <div className="flex-1">
-                          <span className="text-sm font-medium">
-                            {formatCombinationLabel(combination) || 'Combinação base'}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <div>
-                            <Label className="text-xs">Preço</Label>
-                            <Input
-                              type="number"
-                              placeholder="Usar preço do grupo"
-                              value={combination.price || ''}
-                              onChange={(e) => {
-                                console.log('Updating price for combination:', combination.id, 'new value:', e.target.value);
-                                onCombinationUpdate(combination.id, { 
-                                  price: e.target.value ? parseFloat(e.target.value) : null 
-                                });
-                              }}
-                              className="w-24"
-                              step="0.01"
-                              min="0"
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label className="text-xs">Estoque</Label>
-                            <Input
-                              type="number"
-                              value={combination.stock_quantity}
-                              onChange={(e) => {
-                                const newValue = parseInt(e.target.value) || 0;
-                                console.log('Updating stock for combination:', combination.id, 'new value:', newValue);
-                                onCombinationUpdate(combination.id, { 
-                                  stock_quantity: newValue
-                                });
-                              }}
-                              className="w-20"
-                              min="0"
-                            />
-                          </div>
-                          
-                          <div className="flex items-center gap-1">
-                            <Switch
-                              checked={combination.is_active}
-                              onCheckedChange={(checked) => {
-                                console.log('Updating active status for combination:', combination.id, 'new value:', checked);
-                                onCombinationUpdate(combination.id, { 
-                                  is_active: checked 
-                                });
-                              }}
-                            />
-                            <Label className="text-xs">Ativo</Label>
-                          </div>
-                        </div>
-                      </div>
+                      <GroupCombinationItem
+                        key={combination.id}
+                        combination={combination}
+                        groupBy={groupBy}
+                        onUpdate={onCombinationUpdate}
+                      />
                     ))}
                   </div>
                 )}
@@ -246,76 +151,12 @@ export function ProductVariantPricingSection({
           /* Ungrouped view */
           <div className="space-y-3">
             {combinations.map(combination => (
-              <div key={combination.id} className="flex items-center gap-4 p-3 border rounded">
-                <div className="flex-1">
-                  <span className="text-sm font-medium">
-                    {combination.values.map(v => `${v.variant_name}: ${v.value}`).join(' / ')}
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <div>
-                    <Label className="text-xs">SKU</Label>
-                    <Input
-                      placeholder="SKU"
-                      value={combination.sku || ''}
-                      onChange={(e) => {
-                        console.log('Updating SKU for combination:', combination.id, 'new value:', e.target.value);
-                        onCombinationUpdate(combination.id, { sku: e.target.value });
-                      }}
-                      className="w-24"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs">Preço</Label>
-                    <Input
-                      type="number"
-                      placeholder="0.00"
-                      value={combination.price || ''}
-                      onChange={(e) => {
-                        console.log('Updating price for combination:', combination.id, 'new value:', e.target.value);
-                        onCombinationUpdate(combination.id, { 
-                          price: e.target.value ? parseFloat(e.target.value) : null 
-                        });
-                      }}
-                      className="w-24"
-                      step="0.01"
-                      min="0"
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label className="text-xs">Estoque</Label>
-                    <Input
-                      type="number"
-                      value={combination.stock_quantity}
-                      onChange={(e) => {
-                        const newValue = parseInt(e.target.value) || 0;
-                        console.log('Updating stock for combination:', combination.id, 'new value:', newValue);
-                        onCombinationUpdate(combination.id, { 
-                          stock_quantity: newValue
-                        });
-                      }}
-                      className="w-20"
-                      min="0"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-1">
-                    <Switch
-                      checked={combination.is_active}
-                      onCheckedChange={(checked) => {
-                        console.log('Updating active status for combination:', combination.id, 'new value:', checked);
-                        onCombinationUpdate(combination.id, { 
-                          is_active: checked 
-                        });
-                      }}
-                    />
-                    <Label className="text-xs">Ativo</Label>
-                  </div>
-                </div>
-              </div>
+              <CombinationItem
+                key={combination.id}
+                combination={combination}
+                showSku={true}
+                onUpdate={onCombinationUpdate}
+              />
             ))}
           </div>
         )}
