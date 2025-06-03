@@ -293,6 +293,8 @@ export default function ProductFormPage() {
   const handleCombinationUpdate = async (combinationId: string, updates: any) => {
     if (!services) return;
 
+    console.log('ProductFormPage - updating combination:', combinationId, 'with updates:', updates);
+    
     try {
       await services.variantService.updateCombination(combinationId, updates);
       
@@ -302,8 +304,10 @@ export default function ProductFormPage() {
           ? { ...combination, ...updates }
           : combination
       ));
+      
+      console.log('ProductFormPage - combination updated successfully');
     } catch (error) {
-      console.error('Error updating combination:', error);
+      console.error('ProductFormPage - error updating combination:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao atualizar combinação',

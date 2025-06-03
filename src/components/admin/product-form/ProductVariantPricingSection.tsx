@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -194,9 +193,12 @@ export function ProductVariantPricingSection({
                               type="number"
                               placeholder="Usar preço do grupo"
                               value={combination.price || ''}
-                              onChange={(e) => onCombinationUpdate(combination.id, { 
-                                price: e.target.value ? parseFloat(e.target.value) : null 
-                              })}
+                              onChange={(e) => {
+                                console.log('Updating price for combination:', combination.id, 'new value:', e.target.value);
+                                onCombinationUpdate(combination.id, { 
+                                  price: e.target.value ? parseFloat(e.target.value) : null 
+                                });
+                              }}
                               className="w-24"
                               step="0.01"
                               min="0"
@@ -208,9 +210,13 @@ export function ProductVariantPricingSection({
                             <Input
                               type="number"
                               value={combination.stock_quantity}
-                              onChange={(e) => onCombinationUpdate(combination.id, { 
-                                stock_quantity: parseInt(e.target.value) || 0 
-                              })}
+                              onChange={(e) => {
+                                const newValue = parseInt(e.target.value) || 0;
+                                console.log('Updating stock for combination:', combination.id, 'new value:', newValue);
+                                onCombinationUpdate(combination.id, { 
+                                  stock_quantity: newValue
+                                });
+                              }}
                               className="w-20"
                               min="0"
                             />
@@ -219,9 +225,12 @@ export function ProductVariantPricingSection({
                           <div className="flex items-center gap-1">
                             <Switch
                               checked={combination.is_active}
-                              onCheckedChange={(checked) => onCombinationUpdate(combination.id, { 
-                                is_active: checked 
-                              })}
+                              onCheckedChange={(checked) => {
+                                console.log('Updating active status for combination:', combination.id, 'new value:', checked);
+                                onCombinationUpdate(combination.id, { 
+                                  is_active: checked 
+                                });
+                              }}
                             />
                             <Label className="text-xs">Ativo</Label>
                           </div>
@@ -250,7 +259,10 @@ export function ProductVariantPricingSection({
                     <Input
                       placeholder="SKU"
                       value={combination.sku || ''}
-                      onChange={(e) => onCombinationUpdate(combination.id, { sku: e.target.value })}
+                      onChange={(e) => {
+                        console.log('Updating SKU for combination:', combination.id, 'new value:', e.target.value);
+                        onCombinationUpdate(combination.id, { sku: e.target.value });
+                      }}
                       className="w-24"
                     />
                   </div>
@@ -261,9 +273,12 @@ export function ProductVariantPricingSection({
                       type="number"
                       placeholder="0.00"
                       value={combination.price || ''}
-                      onChange={(e) => onCombinationUpdate(combination.id, { 
-                        price: e.target.value ? parseFloat(e.target.value) : null 
-                      })}
+                      onChange={(e) => {
+                        console.log('Updating price for combination:', combination.id, 'new value:', e.target.value);
+                        onCombinationUpdate(combination.id, { 
+                          price: e.target.value ? parseFloat(e.target.value) : null 
+                        });
+                      }}
                       className="w-24"
                       step="0.01"
                       min="0"
@@ -275,9 +290,13 @@ export function ProductVariantPricingSection({
                     <Input
                       type="number"
                       value={combination.stock_quantity}
-                      onChange={(e) => onCombinationUpdate(combination.id, { 
-                        stock_quantity: parseInt(e.target.value) || 0 
-                      })}
+                      onChange={(e) => {
+                        const newValue = parseInt(e.target.value) || 0;
+                        console.log('Updating stock for combination:', combination.id, 'new value:', newValue);
+                        onCombinationUpdate(combination.id, { 
+                          stock_quantity: newValue
+                        });
+                      }}
                       className="w-20"
                       min="0"
                     />
@@ -286,9 +305,12 @@ export function ProductVariantPricingSection({
                   <div className="flex items-center gap-1">
                     <Switch
                       checked={combination.is_active}
-                      onCheckedChange={(checked) => onCombinationUpdate(combination.id, { 
-                        is_active: checked 
-                      })}
+                      onCheckedChange={(checked) => {
+                        console.log('Updating active status for combination:', combination.id, 'new value:', checked);
+                        onCombinationUpdate(combination.id, { 
+                          is_active: checked 
+                        });
+                      }}
                     />
                     <Label className="text-xs">Ativo</Label>
                   </div>

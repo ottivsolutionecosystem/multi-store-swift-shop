@@ -96,10 +96,11 @@ export class VariantService {
   }
 
   async updateCombination(combinationId: string, combinationData: Partial<CombinationData>): Promise<void> {
-    console.log('VariantService - updating combination:', combinationId, combinationData);
+    console.log('VariantService - updating combination:', combinationId, 'with data:', combinationData);
     try {
       const updateData: any = {};
       
+      // Handle both camelCase (from frontend) and snake_case (database) properties
       if (combinationData.sku !== undefined) updateData.sku = combinationData.sku || null;
       if (combinationData.price !== undefined) updateData.price = combinationData.price || null;
       if (combinationData.compareAtPrice !== undefined) updateData.compare_at_price = combinationData.compareAtPrice || null;
@@ -107,9 +108,22 @@ export class VariantService {
       if (combinationData.stockQuantity !== undefined) updateData.stock_quantity = combinationData.stockQuantity;
       if (combinationData.isActive !== undefined) updateData.is_active = combinationData.isActive;
 
+      // Handle snake_case properties directly (in case they come from the frontend)
+      if ((combinationData as any).stock_quantity !== undefined) updateData.stock_quantity = (combinationData as any).stock_quantity;
+      if ((combinationData as any).is_active !== undefined) updateData.is_active = (combinationData as any).is_active;
+      if ((combinationData as any).compare_at_price !== undefined) updateData.compare_at_price = (combinationData as any).compare_at_price;
+      if ((combinationData as any).cost_per_item !== undefined) updateData.cost_per_item = (combinationData as any).cost_per_item;
+
       console.log('VariantService - update data prepared:', updateData);
-      await this.variantRepository.updateCombination(combinationId, updateData);
-      console.log('VariantService - combination updated successfully');
+      
+      // Validate that we have data to update
+      if (Object.keys(updateData).length === 0) {
+        console.warn('VariantService - no valid update data provided:', combinationData);
+        throw new Error('No valid data provided for update');
+      }
+
+      const result = await this.variantRepository.updateCombination(combinationId, updateData);
+      console.log('VariantService - combination updated successfully:', result);
     } catch (error) {
       console.error('VariantService - error updating combination:', error);
       throw error;
