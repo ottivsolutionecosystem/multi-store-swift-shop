@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,7 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CategoryDrawer } from '@/components/admin/categories/CategoryDrawer';
 import { CategoryCard } from '@/components/admin/categories/CategoryCard';
-import { Plus, Search, Tag, Grid, List } from 'lucide-react';
+import { CategoryBreadcrumb } from '@/components/admin/categories/CategoryBreadcrumb';
+import { Plus, Search, Tag, Grid, List, ArrowLeft } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
 type Category = Database['public']['Tables']['categories']['Row'];
@@ -25,6 +27,7 @@ function CategoriesPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+  const [currentParentId, setCurrentParentId] = useState<string | null>(null);
 
   const { user, profile } = useAuth();
   const services = useServices();
@@ -68,7 +71,6 @@ function CategoriesPage() {
         const categoriesData = await services.categoryService.getAllCategories();
         console.log('Categorias carregadas:', categoriesData);
         setCategories(categoriesData);
-        setFilteredCategories(categoriesData);
       } catch (error) {
         console.error('Error loading categories:', error);
         toast({
@@ -85,12 +87,25 @@ function CategoriesPage() {
   }, [services, tenantLoading, storeId, toast]);
 
   useEffect(() => {
-    const filtered = categories.filter(category =>
+    // Filter categories based on current navigation level
+    let categoriesToFilter = categories;
+    
+    if (currentParentId) {
+      // Show subcategories of the selected parent
+      categoriesToFilter = categories.filter(cat => cat.parent_id === currentParentId);
+    } else {
+      // Show only main categories (no parent_id)
+      categoriesToFilter = categories.filter(cat => !cat.parent_id);
+    }
+
+    // Apply search filter
+    const filtered = categoriesToFilter.filter(category =>
       category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+    
     setFilteredCategories(filtered);
-  }, [searchTerm, categories]);
+  }, [searchTerm, categories, currentParentId]);
 
   const handleDelete = async (categoryId: string) => {
     if (!services || !confirm('Tem certeza que deseja excluir esta categoria?')) return;
@@ -142,9 +157,29 @@ function CategoriesPage() {
     }
   };
 
-  const mainCategories = filteredCategories.filter(c => !c.parent_id);
+  const handleNavigateToCategory = (categoryId: string) => {
+    setCurrentParentId(categoryId);
+    setSearchTerm(''); // Clear search when navigating
+  };
+
+  const handleNavigateToRoot = () => {
+    setCurrentParentId(null);
+    setSearchTerm(''); // Clear search when going back to root
+  };
+
+  const getCurrentCategory = () => {
+    return currentParentId ? categories.find(cat => cat.id === currentParentId) : undefined;
+  };
+
   const getSubcategories = (parentId: string) => 
-    filteredCategories.filter(c => c.parent_id === parentId);
+    categories.filter(c => c.parent_id === parentId);
+
+  const getDisplayCategories = () => {
+    return filteredCategories.map(category => ({
+      category,
+      subcategories: getSubcategories(category.id)
+    }));
+  };
 
   if (loading) {
     return (
@@ -164,14 +199,45 @@ function CategoriesPage() {
     );
   }
 
+  const currentCategory = getCurrentCategory();
+  const displayCategories = getDisplayCategories();
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumb navigation */}
+        <CategoryBreadcrumb 
+          currentCategory={currentCategory}
+          onNavigateToRoot={handleNavigateToRoot}
+        />
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Gerenciar Categorias</h1>
-            <p className="text-gray-600 mt-1">Organize seus produtos em categorias</p>
+            <div className="flex items-center gap-4">
+              {currentParentId && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleNavigateToRoot}
+                  className="flex items-center gap-2"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Voltar
+                </Button>
+              )}
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  {currentCategory ? `Subcategorias de ${currentCategory.name}` : 'Gerenciar Categorias'}
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  {currentCategory 
+                    ? 'Gerencie as subcategorias desta categoria'
+                    : 'Organize seus produtos em categorias'
+                  }
+                </p>
+              </div>
+            </div>
             {!storeId && (
               <p className="text-red-600 mt-1 text-sm">
                 ⚠️ Store não configurada. Algumas funcionalidades podem não estar disponíveis.
@@ -222,17 +288,24 @@ function CategoriesPage() {
             <CardContent className="text-center py-12">
               <Tag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {searchTerm ? 'Nenhuma categoria encontrada' : 'Nenhuma categoria cadastrada'}
+                {searchTerm 
+                  ? 'Nenhuma categoria encontrada' 
+                  : currentCategory 
+                    ? 'Nenhuma subcategoria cadastrada'
+                    : 'Nenhuma categoria cadastrada'
+                }
               </h3>
               <p className="text-gray-500 mb-4">
                 {searchTerm 
                   ? 'Tente buscar com outros termos' 
-                  : 'Comece criando sua primeira categoria para organizar seus produtos'
+                  : currentCategory
+                    ? `Comece criando a primeira subcategoria para ${currentCategory.name}`
+                    : 'Comece criando sua primeira categoria para organizar seus produtos'
                 }
               </p>
               {!searchTerm && storeId && (
                 <Button onClick={handleNew} variant="outline">
-                  Criar primeira categoria
+                  {currentCategory ? 'Criar primeira subcategoria' : 'Criar primeira categoria'}
                 </Button>
               )}
             </CardContent>
@@ -243,13 +316,15 @@ function CategoriesPage() {
               ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
               : 'grid-cols-1'
           }`}>
-            {mainCategories.map((category) => (
+            {displayCategories.map(({ category, subcategories }) => (
               <CategoryCard
                 key={category.id}
                 category={category}
-                subcategories={getSubcategories(category.id)}
+                subcategories={subcategories}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onNavigate={!currentParentId ? handleNavigateToCategory : undefined}
+                parentCategory={currentCategory}
               />
             ))}
           </div>
@@ -267,5 +342,4 @@ function CategoriesPage() {
   );
 }
 
-// Export as default
 export default CategoriesPage;
