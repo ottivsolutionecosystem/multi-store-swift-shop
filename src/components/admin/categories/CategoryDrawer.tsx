@@ -28,7 +28,7 @@ export function CategoryDrawer({ open, onOpenChange, category, categories, onSav
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    parent_id: '',
+    parent_id: 'none', // Changed from empty string to 'none'
     image_url: ''
   });
 
@@ -37,14 +37,14 @@ export function CategoryDrawer({ open, onOpenChange, category, categories, onSav
       setFormData({
         name: category.name,
         description: category.description || '',
-        parent_id: category.parent_id || '',
+        parent_id: category.parent_id || 'none', // Changed from empty string to 'none'
         image_url: category.image_url || ''
       });
     } else {
       setFormData({
         name: '',
         description: '',
-        parent_id: '',
+        parent_id: 'none', // Changed from empty string to 'none'
         image_url: ''
       });
     }
@@ -59,7 +59,7 @@ export function CategoryDrawer({ open, onOpenChange, category, categories, onSav
       const categoryData = {
         name: formData.name,
         description: formData.description || null,
-        parent_id: formData.parent_id || null,
+        parent_id: formData.parent_id === 'none' ? null : formData.parent_id, // Convert 'none' back to null
         image_url: formData.image_url || null
       };
 
@@ -139,7 +139,7 @@ export function CategoryDrawer({ open, onOpenChange, category, categories, onSav
                   <SelectValue placeholder="Selecione uma categoria pai (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma (Categoria Principal)</SelectItem>
+                  <SelectItem value="none">Nenhuma (Categoria Principal)</SelectItem>
                   {mainCategories.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.name}
