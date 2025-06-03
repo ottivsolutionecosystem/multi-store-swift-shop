@@ -32,7 +32,7 @@ export default function CategoryFormPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    parent_id: '',
+    parent_id: 'none', // Changed from empty string to 'none'
     image_url: ''
   });
 
@@ -61,7 +61,7 @@ export default function CategoryFormPage() {
             setFormData({
               name: category.name,
               description: category.description || '',
-              parent_id: category.parent_id || '',
+              parent_id: category.parent_id || 'none', // Changed from empty string to 'none'
               image_url: category.image_url || ''
             });
           }
@@ -88,7 +88,7 @@ export default function CategoryFormPage() {
       const categoryData = {
         name: formData.name,
         description: formData.description || null,
-        parent_id: formData.parent_id || null,
+        parent_id: formData.parent_id === 'none' ? null : formData.parent_id, // Convert 'none' back to null
         image_url: formData.image_url || null
       };
 
@@ -174,7 +174,7 @@ export default function CategoryFormPage() {
                       <SelectValue placeholder="Selecione uma categoria pai (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhuma (Categoria Principal)</SelectItem>
+                      <SelectItem value="none">Nenhuma (Categoria Principal)</SelectItem>
                       {categories
                         .filter(c => c.id !== id) // Evitar selecionar a própria categoria
                         .map((category) => (
