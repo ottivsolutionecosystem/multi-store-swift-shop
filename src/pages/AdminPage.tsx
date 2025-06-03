@@ -31,6 +31,11 @@ export default function AdminPage() {
     navigate('/admin/products');
   };
 
+  const handlePromotionsClick = () => {
+    console.log('Navegando para promoções...');
+    navigate('/admin/promotions');
+  };
+
   const handleStoreSettingsClick = () => {
     console.log('Navegando para configurações...');
     navigate('/admin/store-settings');
@@ -119,11 +124,11 @@ export default function AdminPage() {
                 Criar e gerenciar promoções para impulsionar vendas.
               </p>
               <Button 
+                onClick={handlePromotionsClick}
                 variant="secondary"
                 className="w-full flex items-center justify-center gap-2"
-                disabled
               >
-                Em Breve
+                Gerenciar Promoções
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </CardContent>
