@@ -1,6 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { VariantValueRepository } from './VariantValueRepository';
+import { VariantCombinationRepository, CombinationWithValues } from './VariantCombinationRepository';
+import { VariantGroupPriceRepository, GroupPriceWithValue } from './VariantGroupPriceRepository';
 
 type ProductVariant = Database['public']['Tables']['product_variants']['Row'];
 type ProductVariantInsert = Database['public']['Tables']['product_variants']['Insert'];
@@ -15,33 +18,24 @@ type ProductVariantCombinationUpdate = Database['public']['Tables']['product_var
 
 type ProductVariantGroupPrice = Database['public']['Tables']['product_variant_group_prices']['Row'];
 type ProductVariantGroupPriceInsert = Database['public']['Tables']['product_variant_group_prices']['Insert'];
-type ProductVariantGroupPriceUpdate = Database['public']['Tables']['product_variant_group_prices']['Update'];
 
 export interface VariantWithValues extends ProductVariant {
   values: ProductVariantValue[];
 }
 
-export interface CombinationWithValues extends ProductVariantCombination {
-  values: Array<{
-    id: string;
-    variant_name: string;
-    value: string;
-  }>;
-}
-
-export interface GroupPriceWithValue extends ProductVariantGroupPrice {
-  variant_value: {
-    id: string;
-    value: string;
-    variant: {
-      id: string;
-      name: string;
-    };
-  };
-}
+// Re-export interfaces for backward compatibility
+export type { CombinationWithValues, GroupPriceWithValue };
 
 export class VariantRepository {
-  constructor(private storeId: string) {}
+  private variantValueRepository: VariantValueRepository;
+  private variantCombinationRepository: VariantCombinationRepository;
+  private variantGroupPriceRepository: VariantGroupPriceRepository;
+
+  constructor(private storeId: string) {
+    this.variantValueRepository = new VariantValueRepository(storeId);
+    this.variantCombinationRepository = new VariantCombinationRepository(storeId);
+    this.variantGroupPriceRepository = new VariantGroupPriceRepository(storeId);
+  }
 
   // Variants CRUD
   async getVariantsByProduct(productId: string): Promise<VariantWithValues[]> {
@@ -96,148 +90,45 @@ export class VariantRepository {
     if (error) throw error;
   }
 
-  // Variant Values CRUD
+  // Variant Values CRUD - Delegate to specialized repository
   async createVariantValue(value: Omit<ProductVariantValueInsert, 'id'>): Promise<ProductVariantValue> {
-    const { data, error } = await supabase
-      .from('product_variant_values')
-      .insert(value)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return this.variantValueRepository.createVariantValue(value);
   }
 
   async deleteVariantValue(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('product_variant_values')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    return this.variantValueRepository.deleteVariantValue(id);
   }
 
-  // Combinations CRUD
+  // Combinations CRUD - Delegate to specialized repository
   async getCombinationsByProduct(productId: string): Promise<CombinationWithValues[]> {
-    const { data, error } = await supabase
-      .from('product_variant_combinations')
-      .select(`
-        *,
-        combination_values:product_variant_combination_values (
-          variant_value:product_variant_values (
-            id,
-            value,
-            variant:product_variants (
-              id,
-              name
-            )
-          )
-        )
-      `)
-      .eq('product_id', productId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    return data.map(combination => ({
-      ...combination,
-      values: combination.combination_values.map((cv: any) => ({
-        id: cv.variant_value.id,
-        variant_name: cv.variant_value.variant.name,
-        value: cv.variant_value.value
-      }))
-    }));
+    return this.variantCombinationRepository.getCombinationsByProduct(productId);
   }
 
   async createCombination(
     combination: Omit<ProductVariantCombinationInsert, 'id'>,
     variantValueIds: string[]
   ): Promise<ProductVariantCombination> {
-    const { data: combinationData, error: combinationError } = await supabase
-      .from('product_variant_combinations')
-      .insert(combination)
-      .select()
-      .single();
-
-    if (combinationError) throw combinationError;
-
-    // Create combination values relationships
-    const combinationValues = variantValueIds.map(valueId => ({
-      combination_id: combinationData.id,
-      variant_value_id: valueId
-    }));
-
-    const { error: valuesError } = await supabase
-      .from('product_variant_combination_values')
-      .insert(combinationValues);
-
-    if (valuesError) throw valuesError;
-
-    return combinationData;
+    return this.variantCombinationRepository.createCombination(combination, variantValueIds);
   }
 
   async updateCombination(id: string, combination: ProductVariantCombinationUpdate): Promise<ProductVariantCombination> {
-    const { data, error } = await supabase
-      .from('product_variant_combinations')
-      .update(combination)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return this.variantCombinationRepository.updateCombination(id, combination);
   }
 
   async deleteCombination(id: string): Promise<void> {
-    const { error } = await supabase
-      .from('product_variant_combinations')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw error;
+    return this.variantCombinationRepository.deleteCombination(id);
   }
 
-  // Group Prices CRUD
+  // Group Prices CRUD - Delegate to specialized repository
   async getGroupPricesByProduct(productId: string): Promise<GroupPriceWithValue[]> {
-    const { data, error } = await supabase
-      .from('product_variant_group_prices')
-      .select(`
-        *,
-        variant_value:product_variant_values (
-          id,
-          value,
-          variant:product_variants (
-            id,
-            name
-          )
-        )
-      `)
-      .eq('product_id', productId);
-
-    if (error) throw error;
-    return data as GroupPriceWithValue[];
+    return this.variantGroupPriceRepository.getGroupPricesByProduct(productId);
   }
 
   async upsertGroupPrice(groupPrice: ProductVariantGroupPriceInsert): Promise<ProductVariantGroupPrice> {
-    const { data, error } = await supabase
-      .from('product_variant_group_prices')
-      .upsert(groupPrice, {
-        onConflict: 'product_id,variant_value_id'
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+    return this.variantGroupPriceRepository.upsertGroupPrice(groupPrice);
   }
 
   async deleteGroupPrice(productId: string, variantValueId: string): Promise<void> {
-    const { error } = await supabase
-      .from('product_variant_group_prices')
-      .delete()
-      .eq('product_id', productId)
-      .eq('variant_value_id', variantValueId);
-
-    if (error) throw error;
+    return this.variantGroupPriceRepository.deleteGroupPrice(productId, variantValueId);
   }
 }
