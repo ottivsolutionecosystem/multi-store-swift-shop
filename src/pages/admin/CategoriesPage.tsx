@@ -7,16 +7,24 @@ import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/hooks/use-toast';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Trash2, Tag } from 'lucide-react';
+import { CategoryDrawer } from '@/components/admin/categories/CategoryDrawer';
+import { CategoryCard } from '@/components/admin/categories/CategoryCard';
+import { Plus, Search, Tag, Grid, List } from 'lucide-react';
 import { Database } from '@/integrations/supabase/types';
 
 type Category = Database['public']['Tables']['categories']['Row'];
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
+
   const { user, profile } = useAuth();
   const services = useServices();
   const { loading: tenantLoading } = useTenant();
@@ -37,6 +45,7 @@ export default function CategoriesPage() {
       try {
         const categoriesData = await services.categoryService.getAllCategories();
         setCategories(categoriesData);
+        setFilteredCategories(categoriesData);
       } catch (error) {
         console.error('Error loading categories:', error);
         toast({
@@ -51,6 +60,14 @@ export default function CategoriesPage() {
 
     loadCategories();
   }, [services, tenantLoading, toast]);
+
+  useEffect(() => {
+    const filtered = categories.filter(category =>
+      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+    setFilteredCategories(filtered);
+  }, [searchTerm, categories]);
 
   const handleDelete = async (categoryId: string) => {
     if (!services || !confirm('Tem certeza que deseja excluir esta categoria?')) return;
@@ -72,6 +89,32 @@ export default function CategoriesPage() {
     }
   };
 
+  const handleEdit = (category: Category) => {
+    setSelectedCategory(category);
+    setDrawerOpen(true);
+  };
+
+  const handleNew = () => {
+    setSelectedCategory(null);
+    setDrawerOpen(true);
+  };
+
+  const handleSave = async () => {
+    // Recarregar categorias após salvar
+    try {
+      const categoriesData = await services?.categoryService.getAllCategories();
+      if (categoriesData) {
+        setCategories(categoriesData);
+      }
+    } catch (error) {
+      console.error('Error reloading categories:', error);
+    }
+  };
+
+  const mainCategories = filteredCategories.filter(c => !c.parent_id);
+  const getSubcategories = (parentId: string) => 
+    filteredCategories.filter(c => c.parent_id === parentId);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -79,7 +122,11 @@ export default function CategoriesPage() {
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-200 rounded w-48 mb-6"></div>
-            <div className="bg-white rounded-lg h-64"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="bg-white rounded-lg h-32"></div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -90,94 +137,95 @@ export default function CategoriesPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Gerenciar Categorias</h1>
-          <Button onClick={() => navigate('/admin/categories/new')} className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Gerenciar Categorias</h1>
+            <p className="text-gray-600 mt-1">Organize seus produtos em categorias</p>
+          </div>
+          <Button onClick={handleNew} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Nova Categoria
           </Button>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Categorias Cadastradas</CardTitle>
-            <CardDescription>
-              Gerencie as categorias dos seus produtos
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {categories.length === 0 ? (
-              <div className="text-center py-8">
-                <Tag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500">Nenhuma categoria cadastrada</p>
-                <Button 
-                  onClick={() => navigate('/admin/categories/new')} 
-                  className="mt-4"
-                  variant="outline"
+        {/* Filtros e busca */}
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Buscar categorias..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
                 >
-                  Criar primeira categoria
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <List className="h-4 w-4" />
                 </Button>
               </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Imagem</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Descrição</TableHead>
-                    <TableHead>Categoria Pai</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {categories.map((category) => (
-                    <TableRow key={category.id}>
-                      <TableCell>
-                        {category.image_url ? (
-                          <img 
-                            src={category.image_url} 
-                            alt={category.name}
-                            className="h-12 w-12 object-cover rounded"
-                          />
-                        ) : (
-                          <div className="h-12 w-12 bg-gray-100 rounded flex items-center justify-center">
-                            <Tag className="h-6 w-6 text-gray-400" />
-                          </div>
-                        )}
-                      </TableCell>
-                      <TableCell className="font-medium">{category.name}</TableCell>
-                      <TableCell>{category.description || '-'}</TableCell>
-                      <TableCell>
-                        {category.parent_id ? 
-                          categories.find(c => c.id === category.parent_id)?.name || 'N/A' 
-                          : 'Categoria Principal'
-                        }
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => navigate(`/admin/categories/${category.id}/edit`)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="destructive"
-                            onClick={() => handleDelete(category.id)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
+            </div>
           </CardContent>
         </Card>
+
+        {filteredCategories.length === 0 ? (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Tag className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                {searchTerm ? 'Nenhuma categoria encontrada' : 'Nenhuma categoria cadastrada'}
+              </h3>
+              <p className="text-gray-500 mb-4">
+                {searchTerm 
+                  ? 'Tente buscar com outros termos' 
+                  : 'Comece criando sua primeira categoria para organizar seus produtos'
+                }
+              </p>
+              {!searchTerm && (
+                <Button onClick={handleNew} variant="outline">
+                  Criar primeira categoria
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className={`grid gap-4 ${
+            viewMode === 'grid' 
+              ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' 
+              : 'grid-cols-1'
+          }`}>
+            {mainCategories.map((category) => (
+              <CategoryCard
+                key={category.id}
+                category={category}
+                subcategories={getSubcategories(category.id)}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            ))}
+          </div>
+        )}
+
+        <CategoryDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          category={selectedCategory}
+          categories={categories}
+          onSave={handleSave}
+        />
       </main>
     </div>
   );

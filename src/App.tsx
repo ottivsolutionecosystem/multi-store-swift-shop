@@ -14,6 +14,8 @@ import StoreSettingsPage from "./pages/admin/StoreSettingsPage";
 import NotFound from "./pages/NotFound";
 import ProductsPage from "./pages/admin/ProductsPage";
 import ProductFormPage from "./pages/admin/ProductFormPage";
+import CategoriesPage from "./pages/admin/CategoriesPage";
+import CategoryFormPage from "./pages/admin/CategoryFormPage";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +35,9 @@ const App = () => (
               <Route path="/admin/products" element={<ProductsPage />} />
               <Route path="/admin/products/new" element={<ProductFormPage />} />
               <Route path="/admin/products/:id/edit" element={<ProductFormPage />} />
+              <Route path="/admin/categories" element={<CategoriesPage />} />
+              <Route path="/admin/categories/new" element={<CategoryFormPage />} />
+              <Route path="/admin/categories/:id/edit" element={<CategoryFormPage />} />
               <Route path="/admin/store-settings" element={<StoreSettingsPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
