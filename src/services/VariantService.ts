@@ -97,28 +97,62 @@ export class VariantService {
 
   async updateCombination(combinationId: string, combinationData: Partial<CombinationData>): Promise<void> {
     console.log('VariantService - updating combination:', combinationId, 'with data:', combinationData);
+    console.log('VariantService - available properties:', Object.keys(combinationData));
+    
     try {
       const updateData: any = {};
       
-      // Handle both camelCase (from frontend) and snake_case (database) properties
-      if (combinationData.sku !== undefined) updateData.sku = combinationData.sku || null;
-      if (combinationData.price !== undefined) updateData.price = combinationData.price || null;
-      if (combinationData.compareAtPrice !== undefined) updateData.compare_at_price = combinationData.compareAtPrice || null;
-      if (combinationData.costPerItem !== undefined) updateData.cost_per_item = combinationData.costPerItem || null;
-      if (combinationData.stockQuantity !== undefined) updateData.stock_quantity = combinationData.stockQuantity;
-      if (combinationData.isActive !== undefined) updateData.is_active = combinationData.isActive;
+      // Check for properties in the data object (both camelCase and snake_case)
+      const data = combinationData as any;
+      
+      // Handle all possible property mappings
+      if ('sku' in data && data.sku !== undefined) {
+        updateData.sku = data.sku || null;
+      }
+      
+      if ('price' in data && data.price !== undefined) {
+        updateData.price = data.price || null;
+      }
+      
+      if ('compareAtPrice' in data && data.compareAtPrice !== undefined) {
+        updateData.compare_at_price = data.compareAtPrice || null;
+      }
+      
+      if ('costPerItem' in data && data.costPerItem !== undefined) {
+        updateData.cost_per_item = data.costPerItem || null;
+      }
+      
+      if ('stockQuantity' in data && data.stockQuantity !== undefined) {
+        updateData.stock_quantity = data.stockQuantity;
+      }
+      
+      if ('isActive' in data && data.isActive !== undefined) {
+        updateData.is_active = data.isActive;
+      }
 
-      // Handle snake_case properties directly (in case they come from the frontend)
-      if ((combinationData as any).stock_quantity !== undefined) updateData.stock_quantity = (combinationData as any).stock_quantity;
-      if ((combinationData as any).is_active !== undefined) updateData.is_active = (combinationData as any).is_active;
-      if ((combinationData as any).compare_at_price !== undefined) updateData.compare_at_price = (combinationData as any).compare_at_price;
-      if ((combinationData as any).cost_per_item !== undefined) updateData.cost_per_item = (combinationData as any).cost_per_item;
+      // Handle snake_case properties directly
+      if ('stock_quantity' in data && data.stock_quantity !== undefined) {
+        updateData.stock_quantity = data.stock_quantity;
+      }
+      
+      if ('is_active' in data && data.is_active !== undefined) {
+        updateData.is_active = data.is_active;
+      }
+      
+      if ('compare_at_price' in data && data.compare_at_price !== undefined) {
+        updateData.compare_at_price = data.compare_at_price;
+      }
+      
+      if ('cost_per_item' in data && data.cost_per_item !== undefined) {
+        updateData.cost_per_item = data.cost_per_item;
+      }
 
-      console.log('VariantService - update data prepared:', updateData);
+      console.log('VariantService - final update data:', updateData);
+      console.log('VariantService - update data keys:', Object.keys(updateData));
       
       // Validate that we have data to update
       if (Object.keys(updateData).length === 0) {
-        console.warn('VariantService - no valid update data provided:', combinationData);
+        console.warn('VariantService - no valid update data provided. Original data:', combinationData);
         throw new Error('No valid data provided for update');
       }
 
