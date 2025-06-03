@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -27,9 +26,11 @@ export default function CategoriesPage() {
 
   const { user, profile } = useAuth();
   const services = useServices();
-  const { loading: tenantLoading } = useTenant();
+  const { loading: tenantLoading, storeId } = useTenant();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  console.log('CategoriesPage - storeId:', storeId, 'services:', !!services, 'tenantLoading:', tenantLoading);
 
   useEffect(() => {
     if (!user || profile?.role !== 'admin') {
@@ -40,10 +41,30 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     const loadCategories = async () => {
-      if (tenantLoading || !services) return;
+      console.log('Tentando carregar categorias...', { tenantLoading, services: !!services, storeId });
+      
+      if (tenantLoading) {
+        console.log('Ainda carregando tenant...');
+        return;
+      }
+
+      if (!storeId) {
+        console.log('Nenhum storeId disponível, carregando array vazio');
+        setCategories([]);
+        setFilteredCategories([]);
+        setLoading(false);
+        return;
+      }
+
+      if (!services) {
+        console.log('Serviços não disponíveis ainda...');
+        return;
+      }
 
       try {
+        console.log('Carregando categorias para store:', storeId);
         const categoriesData = await services.categoryService.getAllCategories();
+        console.log('Categorias carregadas:', categoriesData);
         setCategories(categoriesData);
         setFilteredCategories(categoriesData);
       } catch (error) {
@@ -59,7 +80,7 @@ export default function CategoriesPage() {
     };
 
     loadCategories();
-  }, [services, tenantLoading, toast]);
+  }, [services, tenantLoading, storeId, toast]);
 
   useEffect(() => {
     const filtered = categories.filter(category =>
@@ -95,6 +116,14 @@ export default function CategoriesPage() {
   };
 
   const handleNew = () => {
+    if (!storeId) {
+      toast({
+        title: 'Erro',
+        description: 'Store não disponível. Verifique a configuração.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setSelectedCategory(null);
     setDrawerOpen(true);
   };
@@ -141,8 +170,13 @@ export default function CategoriesPage() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Gerenciar Categorias</h1>
             <p className="text-gray-600 mt-1">Organize seus produtos em categorias</p>
+            {!storeId && (
+              <p className="text-red-600 mt-1 text-sm">
+                ⚠️ Store não configurada. Algumas funcionalidades podem não estar disponíveis.
+              </p>
+            )}
           </div>
-          <Button onClick={handleNew} className="flex items-center gap-2">
+          <Button onClick={handleNew} className="flex items-center gap-2" disabled={!storeId}>
             <Plus className="h-4 w-4" />
             Nova Categoria
           </Button>
@@ -194,7 +228,7 @@ export default function CategoriesPage() {
                   : 'Comece criando sua primeira categoria para organizar seus produtos'
                 }
               </p>
-              {!searchTerm && (
+              {!searchTerm && storeId && (
                 <Button onClick={handleNew} variant="outline">
                   Criar primeira categoria
                 </Button>

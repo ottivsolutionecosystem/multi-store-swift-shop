@@ -21,6 +21,21 @@ export default function AdminPage() {
     }
   }, [user, profile, loading, navigate]);
 
+  const handleCategoriesClick = () => {
+    console.log('Navegando para categorias...');
+    navigate('/admin/categories');
+  };
+
+  const handleProductsClick = () => {
+    console.log('Navegando para produtos...');
+    navigate('/admin/products');
+  };
+
+  const handleStoreSettingsClick = () => {
+    console.log('Navegando para configurações...');
+    navigate('/admin/store-settings');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -55,7 +70,7 @@ export default function AdminPage() {
                 Adicionar, editar e remover produtos do catálogo com imagens.
               </p>
               <Button 
-                onClick={() => navigate('/admin/products')}
+                onClick={handleProductsClick}
                 className="w-full flex items-center justify-center gap-2"
               >
                 Gerenciar Produtos
@@ -79,7 +94,7 @@ export default function AdminPage() {
                 Organizar produtos em categorias com imagens ilustrativas.
               </p>
               <Button 
-                onClick={() => navigate('/admin/categories')}
+                onClick={handleCategoriesClick}
                 variant="outline"
                 className="w-full flex items-center justify-center gap-2"
               >
@@ -129,7 +144,7 @@ export default function AdminPage() {
                 Personalizar cores, layout e configurações da loja.
               </p>
               <Button 
-                onClick={() => navigate('/admin/store-settings')}
+                onClick={handleStoreSettingsClick}
                 variant="outline"
                 className="w-full flex items-center justify-center gap-2"
               >
