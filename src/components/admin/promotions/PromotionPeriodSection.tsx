@@ -8,23 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-
-interface PromotionFormData {
-  name: string;
-  description?: string;
-  promotion_type: 'product' | 'category' | 'global';
-  discount_type: 'percentage' | 'fixed_amount';
-  discount_value: number;
-  start_date: Date;
-  end_date: Date;
-  product_id?: string;
-  category_id?: string;
-  minimum_purchase_amount?: number;
-  usage_limit?: number;
-  usage_limit_per_customer?: number;
-  priority: number;
-  is_active: boolean;
-}
+import { PromotionFormData } from '@/types/promotion';
 
 interface PromotionPeriodSectionProps {
   register: UseFormRegister<PromotionFormData>;
@@ -114,7 +98,7 @@ export function PromotionPeriodSection({
       {/* Seleção Condicional */}
       {promotionType === 'product' && (
         <div className="space-y-2">
-          <Label htmlFor="product_id">Produto</Label>
+          <Label htmlFor="product_id">Produto *</Label>
           <select
             id="product_id"
             {...register('product_id')}
@@ -127,12 +111,15 @@ export function PromotionPeriodSection({
               </option>
             ))}
           </select>
+          {errors.product_id && (
+            <p className="text-sm text-red-600">{errors.product_id.message}</p>
+          )}
         </div>
       )}
 
       {promotionType === 'category' && (
         <div className="space-y-2">
-          <Label htmlFor="category_id">Categoria</Label>
+          <Label htmlFor="category_id">Categoria *</Label>
           <select
             id="category_id"
             {...register('category_id')}
@@ -145,6 +132,17 @@ export function PromotionPeriodSection({
               </option>
             ))}
           </select>
+          {errors.category_id && (
+            <p className="text-sm text-red-600">{errors.category_id.message}</p>
+          )}
+        </div>
+      )}
+
+      {promotionType === 'global' && (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+          <p className="text-blue-800 text-sm">
+            <strong>Promoção Global:</strong> Será aplicada a todos os produtos da loja que não possuem promoções específicas ativas.
+          </p>
         </div>
       )}
     </div>

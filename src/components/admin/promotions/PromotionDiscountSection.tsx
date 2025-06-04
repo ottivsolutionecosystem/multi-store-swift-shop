@@ -3,23 +3,7 @@ import React from 'react';
 import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-
-interface PromotionFormData {
-  name: string;
-  description?: string;
-  promotion_type: 'product' | 'category' | 'global';
-  discount_type: 'percentage' | 'fixed_amount';
-  discount_value: number;
-  start_date: Date;
-  end_date: Date;
-  product_id?: string;
-  category_id?: string;
-  minimum_purchase_amount?: number;
-  usage_limit?: number;
-  usage_limit_per_customer?: number;
-  priority: number;
-  is_active: boolean;
-}
+import { PromotionFormData } from '@/types/promotion';
 
 interface PromotionDiscountSectionProps {
   register: UseFormRegister<PromotionFormData>;

@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { calculateBestPromotion } from '@/lib/promotionHierarchy';
 
 type Product = Database['public']['Tables']['products']['Row'];
 type ProductInsert = Database['public']['Tables']['products']['Insert'];
@@ -13,6 +14,7 @@ export interface ProductWithPromotion extends Product {
     discount_type: string;
     discount_value: number;
     promotional_price: number;
+    promotion_type: 'global' | 'category' | 'product';
   } | null;
   category?: {
     id: string;
@@ -32,16 +34,6 @@ export class ProductRepository {
       .from('products')
       .select(`
         *,
-        promotions!left (
-          id,
-          name,
-          discount_type,
-          discount_value,
-          start_date,
-          end_date,
-          is_active,
-          priority
-        ),
         categories!left (
           id,
           name,
@@ -62,16 +54,6 @@ export class ProductRepository {
       .from('products')
       .select(`
         *,
-        promotions!left (
-          id,
-          name,
-          discount_type,
-          discount_value,
-          start_date,
-          end_date,
-          is_active,
-          priority
-        ),
         categories!left (
           id,
           name,
@@ -111,16 +93,6 @@ export class ProductRepository {
       .from('products')
       .select(`
         *,
-        promotions!left (
-          id,
-          name,
-          discount_type,
-          discount_value,
-          start_date,
-          end_date,
-          is_active,
-          priority
-        ),
         categories!left (
           id,
           name,
@@ -187,6 +159,22 @@ export class ProductRepository {
   }
 
   private async processProductsWithPromotions(products: any[]): Promise<ProductWithPromotion[]> {
+    if (products.length === 0) return [];
+
+    // Buscar todas as promoções ativas da loja
+    const { data: allPromotions, error: promoError } = await supabase
+      .from('promotions')
+      .select('*')
+      .eq('store_id', this.storeId)
+      .eq('is_active', true);
+
+    if (promoError) throw promoError;
+
+    // Separar promoções por tipo
+    const globalPromotions = allPromotions.filter(p => p.promotion_type === 'global');
+    const categoryPromotions = allPromotions.filter(p => p.promotion_type === 'category');
+    const productPromotions = allPromotions.filter(p => p.promotion_type === 'product');
+
     // Primeiro, coletar todos os parent_ids únicos das categorias
     const parentIds = [...new Set(
       products
@@ -211,33 +199,24 @@ export class ProductRepository {
     }
 
     return products.map(product => {
-      const { promotions, categories, ...productData } = product;
+      const { categories, ...productData } = product;
       
-      // Encontrar promoção ativa com maior prioridade
-      const activePromotion = promotions?.find((promo: any) => {
-        if (!promo.is_active) return false;
-        const now = new Date();
-        const startDate = new Date(promo.start_date);
-        const endDate = new Date(promo.end_date);
-        return now >= startDate && now <= endDate;
-      });
+      // Buscar promoções específicas para este produto
+      const specificProductPromotions = productPromotions.filter(p => p.product_id === productData.id);
+      
+      // Buscar promoções para a categoria do produto
+      const specificCategoryPromotions = productData.category_id 
+        ? categoryPromotions.filter(p => p.category_id === productData.category_id)
+        : [];
 
-      let promotion = null;
-      if (activePromotion) {
-        const promotionalPrice = this.calculatePromotionalPrice(
-          productData.price,
-          activePromotion.discount_type,
-          activePromotion.discount_value
-        );
-
-        promotion = {
-          id: activePromotion.id,
-          name: activePromotion.name,
-          discount_type: activePromotion.discount_type,
-          discount_value: activePromotion.discount_value,
-          promotional_price: promotionalPrice
-        };
-      }
+      // Aplicar hierarquia de promoções
+      const bestPromotion = calculateBestPromotion(
+        productData.price,
+        productData.compare_at_price,
+        specificProductPromotions,
+        specificCategoryPromotions,
+        globalPromotions
+      );
 
       // Processar categoria com parent
       let category = null;
@@ -253,18 +232,9 @@ export class ProductRepository {
 
       return {
         ...productData,
-        promotion,
+        promotion: bestPromotion,
         category
       };
     });
-  }
-
-  private calculatePromotionalPrice(originalPrice: number, discountType: string, discountValue: number): number {
-    if (discountType === 'percentage') {
-      return originalPrice * (1 - discountValue / 100);
-    } else if (discountType === 'fixed_amount') {
-      return Math.max(0, originalPrice - discountValue);
-    }
-    return originalPrice;
   }
 }

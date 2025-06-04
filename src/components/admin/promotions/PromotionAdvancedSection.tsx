@@ -4,23 +4,7 @@ import { UseFormRegister, UseFormSetValue } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-
-interface PromotionFormData {
-  name: string;
-  description?: string;
-  promotion_type: 'product' | 'category' | 'global';
-  discount_type: 'percentage' | 'fixed_amount';
-  discount_value: number;
-  start_date: Date;
-  end_date: Date;
-  product_id?: string;
-  category_id?: string;
-  minimum_purchase_amount?: number;
-  usage_limit?: number;
-  usage_limit_per_customer?: number;
-  priority: number;
-  is_active: boolean;
-}
+import { PromotionFormData } from '@/types/promotion';
 
 interface PromotionAdvancedSectionProps {
   register: UseFormRegister<PromotionFormData>;
@@ -78,7 +62,7 @@ export function PromotionAdvancedSection({ register, setValue }: PromotionAdvanc
             {...register('priority', { valueAsNumber: true })}
             placeholder="0"
           />
-          <p className="text-sm text-gray-600">Maior valor = maior prioridade</p>
+          <p className="text-sm text-gray-600">Maior valor = maior prioridade (para desempates dentro do mesmo tipo)</p>
         </div>
 
         <div className="flex items-center space-x-2">

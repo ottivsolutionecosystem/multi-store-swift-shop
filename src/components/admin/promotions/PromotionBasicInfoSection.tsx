@@ -4,23 +4,7 @@ import { UseFormRegister, FieldErrors } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-
-interface PromotionFormData {
-  name: string;
-  description?: string;
-  promotion_type: 'product' | 'category' | 'global';
-  discount_type: 'percentage' | 'fixed_amount';
-  discount_value: number;
-  start_date: Date;
-  end_date: Date;
-  product_id?: string;
-  category_id?: string;
-  minimum_purchase_amount?: number;
-  usage_limit?: number;
-  usage_limit_per_customer?: number;
-  priority: number;
-  is_active: boolean;
-}
+import { PromotionFormData } from '@/types/promotion';
 
 interface PromotionBasicInfoSectionProps {
   register: UseFormRegister<PromotionFormData>;
@@ -56,6 +40,9 @@ export function PromotionBasicInfoSection({ register, errors }: PromotionBasicIn
             <option value="category">Categoria</option>
             <option value="global">Global</option>
           </select>
+          <p className="text-xs text-gray-500">
+            Hierarquia: Global &gt; Categoria &gt; Produto Específico
+          </p>
         </div>
       </div>
 
