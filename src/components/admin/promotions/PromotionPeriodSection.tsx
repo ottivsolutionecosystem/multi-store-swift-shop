@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -35,76 +35,101 @@ export function PromotionPeriodSection({
   const selectedProductIds = watch('product_ids') || [];
   const selectedCategoryIds = watch('category_ids') || [];
 
-  // Memoizar dados seguros para evitar re-renderizações desnecessárias
+  // Dados seguros com verificações mais robustas
   const safeProducts = useMemo(() => {
-    const result = Array.isArray(products) ? products : [];
-    console.log('📝 PromotionPeriod - Safe products:', result);
+    if (!Array.isArray(products)) {
+      console.warn('⚠️ PromotionPeriod - Products is not an array:', products);
+      return [];
+    }
+    const result = products.filter(p => p && p.id && p.name);
+    console.log('🔧 PromotionPeriod - Safe products count:', result.length);
     return result;
   }, [products]);
 
   const safeCategories = useMemo(() => {
-    const result = Array.isArray(categories) ? categories : [];
-    console.log('📝 PromotionPeriod - Safe categories:', result);
+    if (!Array.isArray(categories)) {
+      console.warn('⚠️ PromotionPeriod - Categories is not an array:', categories);
+      return [];
+    }
+    const result = categories.filter(c => c && c.id && c.name);
+    console.log('🔧 PromotionPeriod - Safe categories count:', result.length);
     return result;
   }, [categories]);
 
   const productOptions = useMemo(() => {
-    if (!safeProducts.length) {
-      console.log('📝 PromotionPeriod - No products available');
-      return [];
-    }
-    const result = safeProducts
-      .filter(product => product && product.id && product.name)
-      .map(product => ({
-        value: product.id,
-        label: product.name
-      }));
-    console.log('📝 PromotionPeriod - Product options:', result);
-    return result;
+    const options = safeProducts.map(product => ({
+      value: product.id,
+      label: product.name
+    }));
+    console.log('🔧 PromotionPeriod - Product options created:', options.length);
+    return options;
   }, [safeProducts]);
 
   const categoryOptions = useMemo(() => {
-    if (!safeCategories.length) {
-      console.log('📝 PromotionPeriod - No categories available');
-      return [];
-    }
-    const result = safeCategories
-      .filter(category => category && category.id && category.name)
-      .map(category => ({
-        value: category.id,
-        label: category.name
-      }));
-    console.log('📝 PromotionPeriod - Category options:', result);
-    return result;
+    const options = safeCategories.map(category => ({
+      value: category.id,
+      label: category.name
+    }));
+    console.log('🔧 PromotionPeriod - Category options created:', options.length);
+    return options;
   }, [safeCategories]);
 
-  // Garantir que os valores selecionados sejam sempre arrays
+  // IDs selecionados sempre como arrays
   const safeSelectedProductIds = useMemo(() => {
     const result = Array.isArray(selectedProductIds) ? selectedProductIds : [];
-    console.log('📝 PromotionPeriod - Safe selected product IDs:', result);
+    console.log('🔧 PromotionPeriod - Safe product IDs:', result);
     return result;
   }, [selectedProductIds]);
 
   const safeSelectedCategoryIds = useMemo(() => {
     const result = Array.isArray(selectedCategoryIds) ? selectedCategoryIds : [];
-    console.log('📝 PromotionPeriod - Safe selected category IDs:', result);
+    console.log('🔧 PromotionPeriod - Safe category IDs:', result);
     return result;
   }, [selectedCategoryIds]);
 
-  const handleProductSelection = (selected: string[]) => {
-    console.log('📝 PromotionPeriod - Product selection changed:', selected);
-    setValue('product_ids', selected);
-  };
+  // Handlers com validação mais robusta
+  const handleProductSelection = useCallback((selected: string[]) => {
+    console.log('🔧 PromotionPeriod - Product selection handler called:', selected);
+    
+    try {
+      if (!Array.isArray(selected)) {
+        console.error('❌ PromotionPeriod - Invalid product selection:', selected);
+        return;
+      }
+      
+      const validSelection = selected.filter(id => typeof id === 'string' && id.trim());
+      console.log('🔧 PromotionPeriod - Setting product_ids:', validSelection);
+      
+      setValue('product_ids', validSelection, { shouldValidate: true });
+    } catch (error) {
+      console.error('❌ PromotionPeriod - Error in product selection:', error);
+    }
+  }, [setValue]);
 
-  const handleCategorySelection = (selected: string[]) => {
-    console.log('📝 PromotionPeriod - Category selection changed:', selected);
-    setValue('category_ids', selected);
-  };
+  const handleCategorySelection = useCallback((selected: string[]) => {
+    console.log('🔧 PromotionPeriod - Category selection handler called:', selected);
+    
+    try {
+      if (!Array.isArray(selected)) {
+        console.error('❌ PromotionPeriod - Invalid category selection:', selected);
+        return;
+      }
+      
+      const validSelection = selected.filter(id => typeof id === 'string' && id.trim());
+      console.log('🔧 PromotionPeriod - Setting category_ids:', validSelection);
+      
+      setValue('category_ids', validSelection, { shouldValidate: true });
+    } catch (error) {
+      console.error('❌ PromotionPeriod - Error in category selection:', error);
+    }
+  }, [setValue]);
 
-  // Debug logs
-  console.log('📝 PromotionPeriod render - promotion type:', promotionType);
-  console.log('📝 PromotionPeriod render - products:', safeProducts);
-  console.log('📝 PromotionPeriod render - categories:', safeCategories);
+  // Logs de debug para renderização
+  console.log('🔧 PromotionPeriod render - promotion type:', promotionType);
+  console.log('🔧 PromotionPeriod render - data ready:', {
+    productsReady: safeProducts.length > 0,
+    categoriesReady: safeCategories.length > 0
+  });
 
   return (
     <Card>
@@ -175,18 +200,24 @@ export function PromotionPeriodSection({
           </div>
         </div>
 
-        {/* Seleção Condicional */}
+        {/* Seleção de Produtos */}
         {promotionType === 'product' && (
           <div className="space-y-2">
             <Label htmlFor="product_ids">Produtos *</Label>
-            <MultiSelect
-              options={productOptions}
-              selected={safeSelectedProductIds}
-              onSelectionChange={handleProductSelection}
-              placeholder="Selecione os produtos..."
-              searchPlaceholder="Buscar produtos..."
-              emptyText="Nenhum produto encontrado"
-            />
+            {productOptions.length > 0 ? (
+              <MultiSelect
+                options={productOptions}
+                selected={safeSelectedProductIds}
+                onSelectionChange={handleProductSelection}
+                placeholder="Selecione os produtos..."
+                searchPlaceholder="Buscar produtos..."
+                emptyText="Nenhum produto encontrado"
+              />
+            ) : (
+              <div className="p-4 text-center text-gray-500 border rounded-md">
+                Carregando produtos...
+              </div>
+            )}
             {errors.product_ids && (
               <p className="text-sm text-red-600">{errors.product_ids.message}</p>
             )}
@@ -196,17 +227,24 @@ export function PromotionPeriodSection({
           </div>
         )}
 
+        {/* Seleção de Categorias */}
         {promotionType === 'category' && (
           <div className="space-y-2">
             <Label htmlFor="category_ids">Categorias *</Label>
-            <MultiSelect
-              options={categoryOptions}
-              selected={safeSelectedCategoryIds}
-              onSelectionChange={handleCategorySelection}
-              placeholder="Selecione as categorias..."
-              searchPlaceholder="Buscar categorias..."
-              emptyText="Nenhuma categoria encontrada"
-            />
+            {categoryOptions.length > 0 ? (
+              <MultiSelect
+                options={categoryOptions}
+                selected={safeSelectedCategoryIds}
+                onSelectionChange={handleCategorySelection}
+                placeholder="Selecione as categorias..."
+                searchPlaceholder="Buscar categorias..."
+                emptyText="Nenhuma categoria encontrada"
+              />
+            ) : (
+              <div className="p-4 text-center text-gray-500 border rounded-md">
+                Carregando categorias...
+              </div>
+            )}
             {errors.category_ids && (
               <p className="text-sm text-red-600">{errors.category_ids.message}</p>
             )}
