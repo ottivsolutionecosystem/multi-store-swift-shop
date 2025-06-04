@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -24,7 +25,7 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
       promotion_type: 'product',
       discount_type: 'percentage',
       priority: 0,
-      is_active: true,
+      status: 'draft',
       usage_limit_per_customer: 1,
     },
   });
@@ -59,7 +60,7 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
               usage_limit: promotion.usage_limit || undefined,
               usage_limit_per_customer: promotion.usage_limit_per_customer || 1,
               priority: promotion.priority,
-              is_active: promotion.is_active,
+              status: promotion.status,
             });
           }
         }
@@ -97,7 +98,7 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
         usage_limit: data.usage_limit || null,
         usage_limit_per_customer: data.usage_limit_per_customer || 1,
         priority: data.priority,
-        is_active: data.is_active,
+        status: data.status,
       };
 
       if (promotionId) {
