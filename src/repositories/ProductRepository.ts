@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Product, ProductInsert, ProductUpdate, ProductWithPromotion } from '@/types/product';
 import { ProductQueryService } from '@/services/ProductQueryService';
 
-export { ProductWithPromotion } from '@/types/product';
+export type { ProductWithPromotion } from '@/types/product';
 
 export class ProductRepository {
   private queryService: ProductQueryService;
