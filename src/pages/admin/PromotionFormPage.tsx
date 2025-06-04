@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-react';
+import { PromotionForm } from '@/components/admin/promotions/PromotionForm';
 
 export default function PromotionFormPage() {
   const { user, profile, loading } = useAuth();
@@ -24,6 +25,10 @@ export default function PromotionFormPage() {
   }, [user, profile, loading, navigate]);
 
   const handleBack = () => {
+    navigate('/admin/promotions');
+  };
+
+  const handleSuccess = () => {
     navigate('/admin/promotions');
   };
 
@@ -66,9 +71,7 @@ export default function PromotionFormPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-12 text-gray-500">
-              Formulário de promoção será implementado em breve...
-            </div>
+            <PromotionForm promotionId={id} onSuccess={handleSuccess} />
           </CardContent>
         </Card>
       </main>
