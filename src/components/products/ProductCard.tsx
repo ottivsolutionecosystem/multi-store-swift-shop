@@ -30,6 +30,62 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const displayPrice = hasPromotion ? product.promotion!.promotional_price : product.price;
   const originalPrice = product.price;
 
+  const getPromotionBadgeVariant = (promotionType: string) => {
+    switch (promotionType) {
+      case 'global':
+        return 'destructive'; // Vermelho
+      case 'category':
+        return 'secondary'; // Cinza/Laranja
+      case 'product':
+        return 'default'; // Azul
+      default:
+        return 'outline'; // Verde para preço comparativo
+    }
+  };
+
+  const getPromotionBadgeText = () => {
+    if (!product.promotion) return '';
+
+    const { promotion_type, name } = product.promotion;
+    
+    if (promotionDisplayFormat === 'percentage') {
+      const percentage = Math.round(((originalPrice - displayPrice) / originalPrice) * 100);
+      let typeLabel = '';
+      
+      switch (promotion_type) {
+        case 'global':
+          typeLabel = 'GLOBAL';
+          break;
+        case 'category':
+          typeLabel = 'CATEGORIA';
+          break;
+        case 'product':
+          typeLabel = 'PRODUTO';
+          break;
+        default:
+          typeLabel = 'OFERTA';
+      }
+      
+      return `${typeLabel} ${percentage}% ↓`;
+    } else {
+      // Para formato de comparação, usar o nome da promoção ou tipo
+      return name || promotion_type?.toUpperCase() || 'PROMOÇÃO';
+    }
+  };
+
+  const getPromotionBadgeClassName = (promotionType: string) => {
+    switch (promotionType) {
+      case 'global':
+        return 'bg-red-500 text-white hover:bg-red-600';
+      case 'category':
+        return 'bg-orange-500 text-white hover:bg-orange-600';
+      case 'product':
+        return 'bg-blue-500 text-white hover:bg-blue-600';
+      default:
+        return 'bg-green-500 text-white hover:bg-green-600';
+    }
+  };
+
   const renderCategoryBreadcrumb = () => {
     if (!showCategory || !product.category) {
       return null;
@@ -64,6 +120,19 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     );
   };
 
+  const handleAddToCartClick = () => {
+    // Usar o preço correto baseado na hierarquia de promoções
+    const finalPrice = hasPromotion ? product.promotion!.promotional_price : product.price;
+    
+    // Criar uma versão do produto com o preço final para o carrinho
+    const productForCart = {
+      ...product,
+      finalPrice, // Adicionar preço final calculado
+    };
+    
+    onAddToCart?.(productForCart);
+  };
+
   return (
     <Card className="h-full flex flex-col">
       <CardHeader className="p-0">
@@ -83,11 +152,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {/* Badge de promoção */}
           {hasPromotion && showPromotionBadge && (
             <div className="absolute top-2 left-2">
-              <Badge variant="destructive" className="bg-red-500 text-white">
-                {promotionDisplayFormat === 'percentage' 
-                  ? `${Math.round(((originalPrice - displayPrice) / originalPrice) * 100)}% ↓`
-                  : 'PROMOÇÃO'
-                }
+              <Badge 
+                className={getPromotionBadgeClassName(product.promotion!.promotion_type)}
+              >
+                {getPromotionBadgeText()}
               </Badge>
             </div>
           )}
@@ -144,7 +212,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       <CardFooter className="p-4 pt-2">
         <Button 
           className="w-full" 
-          onClick={() => onAddToCart?.(product)}
+          onClick={handleAddToCartClick}
           disabled={product.stock_quantity === 0}
         >
           {product.stock_quantity === 0 ? 'Fora de Estoque' : 'Adicionar ao Carrinho'}
