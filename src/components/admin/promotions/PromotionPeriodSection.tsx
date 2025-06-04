@@ -26,8 +26,8 @@ export function PromotionPeriodSection({
   errors, 
   setValue, 
   watch, 
-  products, 
-  categories 
+  products = [], 
+  categories = [] 
 }: PromotionPeriodSectionProps) {
   const promotionType = watch('promotion_type');
   const startDate = watch('start_date');
@@ -35,12 +35,16 @@ export function PromotionPeriodSection({
   const selectedProductIds = watch('product_ids') || [];
   const selectedCategoryIds = watch('category_ids') || [];
 
-  const productOptions = products.map(product => ({
+  // Garantir que products e categories sejam arrays válidos
+  const safeProducts = Array.isArray(products) ? products : [];
+  const safeCategories = Array.isArray(categories) ? categories : [];
+
+  const productOptions = safeProducts.map(product => ({
     value: product.id,
     label: product.name
   }));
 
-  const categoryOptions = categories.map(category => ({
+  const categoryOptions = safeCategories.map(category => ({
     value: category.id,
     label: category.name
   }));

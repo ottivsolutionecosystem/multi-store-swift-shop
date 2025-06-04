@@ -42,21 +42,27 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
           services.categoryService.getAllCategories(),
         ]);
 
-        setProducts(productsData);
-        setCategories(categoriesData);
+        // Garantir que sempre tenhamos arrays válidos
+        setProducts(Array.isArray(productsData) ? productsData : []);
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
 
         if (promotionId) {
           const promotion = await services.promotionService.getPromotionById(promotionId);
           if (promotion) {
             // Migrar dados antigos para novos campos se necessário
-            let productIds = promotion.product_ids as string[] || [];
-            let categoryIds = promotion.category_ids as string[] || [];
+            let productIds: string[] = [];
+            let categoryIds: string[] = [];
 
-            // Se ainda usa campos antigos, migrar para arrays
-            if (promotion.product_id && productIds.length === 0) {
+            // Garantir que temos arrays válidos
+            if (Array.isArray(promotion.product_ids)) {
+              productIds = promotion.product_ids as string[];
+            } else if (promotion.product_id) {
               productIds = [promotion.product_id];
             }
-            if (promotion.category_id && categoryIds.length === 0) {
+
+            if (Array.isArray(promotion.category_ids)) {
+              categoryIds = promotion.category_ids as string[];
+            } else if (promotion.category_id) {
               categoryIds = [promotion.category_id];
             }
 
@@ -85,6 +91,9 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
           description: 'Erro ao carregar dados necessários',
           variant: 'destructive',
         });
+        // Garantir que temos arrays vazios em caso de erro
+        setProducts([]);
+        setCategories([]);
       } finally {
         setIsDataLoading(false);
       }
@@ -121,6 +130,10 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
         return;
       }
 
+      // Garantir que os arrays sejam válidos
+      const productIds = Array.isArray(data.product_ids) ? data.product_ids : [];
+      const categoryIds = Array.isArray(data.category_ids) ? data.category_ids : [];
+
       const promotionData = {
         name: data.name,
         description: data.description || null,
@@ -129,8 +142,8 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
         discount_value: data.discount_value,
         start_date: data.start_date.toISOString(),
         end_date: data.end_date.toISOString(),
-        product_ids: data.promotion_type === 'product' ? data.product_ids || [] : [],
-        category_ids: data.promotion_type === 'category' ? data.category_ids || [] : [],
+        product_ids: data.promotion_type === 'product' ? productIds : [],
+        category_ids: data.promotion_type === 'category' ? categoryIds : [],
         minimum_purchase_amount: data.minimum_purchase_amount || 0,
         usage_limit: data.usage_limit || null,
         usage_limit_per_customer: data.usage_limit_per_customer || 1,
