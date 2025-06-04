@@ -32,31 +32,54 @@ export class PromotionRepository {
     return data || [];
   }
 
-  async findByProductId(productId: string): Promise<Promotion[]> {
+  async findByProductIds(productIds: string[]): Promise<Promotion[]> {
     const { data, error } = await supabase
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
-      .eq('product_id', productId)
+      .or(`product_ids.cs.["${productIds.join('","')}"],promotion_type.eq.global`)
       .order('priority', { ascending: false });
 
     if (error) throw error;
     return data || [];
   }
 
-  async findActiveByProductId(productId: string): Promise<Promotion | null> {
+  async findActiveByProductId(productId: string): Promise<Promotion[]> {
     const { data, error } = await supabase
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
-      .eq('product_id', productId)
       .eq('status', 'active')
-      .order('priority', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .or(`product_ids.cs.["${productId}"],promotion_type.eq.global`)
+      .order('priority', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return data || [];
+  }
+
+  async findByCategoryIds(categoryIds: string[]): Promise<Promotion[]> {
+    const { data, error } = await supabase
+      .from('promotions')
+      .select('*')
+      .eq('store_id', this.storeId)
+      .or(`category_ids.cs.["${categoryIds.join('","')}"],promotion_type.eq.global`)
+      .order('priority', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  }
+
+  async findActiveByCategoryId(categoryId: string): Promise<Promotion[]> {
+    const { data, error } = await supabase
+      .from('promotions')
+      .select('*')
+      .eq('store_id', this.storeId)
+      .eq('status', 'active')
+      .or(`category_ids.cs.["${categoryId}"],promotion_type.eq.global`)
+      .order('priority', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
   }
 
   async findById(id: string): Promise<Promotion | null> {

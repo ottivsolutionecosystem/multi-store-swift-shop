@@ -27,6 +27,8 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
       priority: 0,
       status: 'draft',
       usage_limit_per_customer: 1,
+      product_ids: [],
+      category_ids: [],
     },
   });
 
@@ -46,6 +48,18 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
         if (promotionId) {
           const promotion = await services.promotionService.getPromotionById(promotionId);
           if (promotion) {
+            // Migrar dados antigos para novos campos se necessário
+            let productIds = promotion.product_ids as string[] || [];
+            let categoryIds = promotion.category_ids as string[] || [];
+
+            // Se ainda usa campos antigos, migrar para arrays
+            if (promotion.product_id && productIds.length === 0) {
+              productIds = [promotion.product_id];
+            }
+            if (promotion.category_id && categoryIds.length === 0) {
+              categoryIds = [promotion.category_id];
+            }
+
             form.reset({
               name: promotion.name,
               description: promotion.description || '',
@@ -54,8 +68,8 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
               discount_value: Number(promotion.discount_value),
               start_date: new Date(promotion.start_date),
               end_date: new Date(promotion.end_date),
-              product_id: promotion.product_id || undefined,
-              category_id: promotion.category_id || undefined,
+              product_ids: productIds,
+              category_ids: categoryIds,
               minimum_purchase_amount: promotion.minimum_purchase_amount ? Number(promotion.minimum_purchase_amount) : undefined,
               usage_limit: promotion.usage_limit || undefined,
               usage_limit_per_customer: promotion.usage_limit_per_customer || 1,
@@ -115,8 +129,8 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
         discount_value: data.discount_value,
         start_date: data.start_date.toISOString(),
         end_date: data.end_date.toISOString(),
-        product_id: data.promotion_type === 'product' ? data.product_id || null : null,
-        category_id: data.promotion_type === 'category' ? data.category_id || null : null,
+        product_ids: data.promotion_type === 'product' ? data.product_ids || [] : [],
+        category_ids: data.promotion_type === 'category' ? data.category_ids || [] : [],
         minimum_purchase_amount: data.minimum_purchase_amount || 0,
         usage_limit: data.usage_limit || null,
         usage_limit_per_customer: data.usage_limit_per_customer || 1,

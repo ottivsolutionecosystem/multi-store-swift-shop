@@ -18,11 +18,11 @@ export class PromotionService {
   }
 
   async getPromotionsByProduct(productId: string): Promise<Promotion[]> {
-    return this.promotionRepository.findByProductId(productId);
+    return this.promotionRepository.findActiveByProductId(productId);
   }
 
-  async getActivePromotionByProduct(productId: string): Promise<Promotion | null> {
-    return this.promotionRepository.findActiveByProductId(productId);
+  async getPromotionsByCategory(categoryId: string): Promise<Promotion[]> {
+    return this.promotionRepository.findActiveByCategoryId(categoryId);
   }
 
   async getPromotionById(id: string): Promise<Promotion | null> {
@@ -45,6 +45,21 @@ export class PromotionService {
 
     if (new Date(promotion.end_date) <= new Date(promotion.start_date)) {
       throw new Error('End date must be after start date');
+    }
+
+    // Validar seleções baseadas no tipo de promoção
+    if (promotion.promotion_type === 'product') {
+      const productIds = promotion.product_ids as string[] || [];
+      if (productIds.length === 0) {
+        throw new Error('At least one product must be selected for product promotions');
+      }
+    }
+
+    if (promotion.promotion_type === 'category') {
+      const categoryIds = promotion.category_ids as string[] || [];
+      if (categoryIds.length === 0) {
+        throw new Error('At least one category must be selected for category promotions');
+      }
     }
 
     // Determinar status baseado nas datas se não foi fornecido

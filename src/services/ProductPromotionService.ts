@@ -14,7 +14,7 @@ export class ProductPromotionService {
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
-      .eq('is_active', true);
+      .eq('status', 'active');
 
     if (promoError) throw promoError;
 
@@ -49,12 +49,18 @@ export class ProductPromotionService {
     return products.map(product => {
       const { categories, ...productData } = product;
       
-      // Buscar promoções específicas para este produto
-      const specificProductPromotions = productPromotions.filter(p => p.product_id === productData.id);
+      // Buscar promoções específicas para este produto usando JSONB arrays
+      const specificProductPromotions = productPromotions.filter(p => {
+        const productIds = p.product_ids as string[] || [];
+        return productIds.includes(productData.id);
+      });
       
-      // Buscar promoções para a categoria do produto
+      // Buscar promoções para a categoria do produto usando JSONB arrays
       const specificCategoryPromotions = productData.category_id 
-        ? categoryPromotions.filter(p => p.category_id === productData.category_id)
+        ? categoryPromotions.filter(p => {
+            const categoryIds = p.category_ids as string[] || [];
+            return categoryIds.includes(productData.category_id);
+          })
         : [];
 
       // Aplicar hierarquia de promoções

@@ -703,6 +703,7 @@ export type Database = {
       promotions: {
         Row: {
           category_id: string | null
+          category_ids: Json | null
           created_at: string
           description: string | null
           discount_type: Database["public"]["Enums"]["discount_type"]
@@ -714,6 +715,7 @@ export type Database = {
           name: string
           priority: number
           product_id: string | null
+          product_ids: Json | null
           promotion_type: string | null
           start_date: string
           status: Database["public"]["Enums"]["promotion_status"]
@@ -724,6 +726,7 @@ export type Database = {
         }
         Insert: {
           category_id?: string | null
+          category_ids?: Json | null
           created_at?: string
           description?: string | null
           discount_type?: Database["public"]["Enums"]["discount_type"]
@@ -735,6 +738,7 @@ export type Database = {
           name: string
           priority?: number
           product_id?: string | null
+          product_ids?: Json | null
           promotion_type?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["promotion_status"]
@@ -745,6 +749,7 @@ export type Database = {
         }
         Update: {
           category_id?: string | null
+          category_ids?: Json | null
           created_at?: string
           description?: string | null
           discount_type?: Database["public"]["Enums"]["discount_type"]
@@ -756,6 +761,7 @@ export type Database = {
           name?: string
           priority?: number
           product_id?: string | null
+          product_ids?: Json | null
           promotion_type?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["promotion_status"]
