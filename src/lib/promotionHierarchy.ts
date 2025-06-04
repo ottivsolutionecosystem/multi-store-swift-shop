@@ -55,7 +55,8 @@ export function calculateBestPromotion(
       discount_value: Number(best.discount_value),
       promotional_price: promotionalPrice,
       promotion_type: type,
-      priority: best.priority
+      priority: best.priority,
+      compare_at_price: null
     };
   };
 
@@ -86,9 +87,10 @@ export function calculateBestPromotion(
       name: 'Preço Promocional',
       discount_type: 'fixed_amount',
       discount_value: compareAtPrice - originalPrice,
-      promotional_price: originalPrice,
+      promotional_price: originalPrice, // O preço atual é o preço promocional
       promotion_type: 'product',
-      priority: -1
+      priority: -1,
+      compare_at_price: compareAtPrice // Armazenar o preço comparativo original
     };
   }
 

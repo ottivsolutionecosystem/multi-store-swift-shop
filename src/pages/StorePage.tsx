@@ -50,25 +50,37 @@ export default function StorePage() {
   }, [services, tenantLoading, selectedCategoryId, toast]);
 
   const handleAddToCart = (product: ProductWithPromotion & { finalPrice?: number }) => {
-    // Usar o preço final se disponível, senão calcular baseado na promoção
-    const price = product.finalPrice || 
-                 (product.promotion ? product.promotion.promotional_price : product.price);
-    
-    // Determinar o tipo de promoção para exibir no toast
+    // Calcular o preço correto baseado na hierarquia de promoções
+    let finalPrice: number;
     let promotionInfo = '';
-    if (product.promotion) {
-      const typeLabel = {
-        'global': 'Promoção Global',
-        'category': 'Promoção de Categoria',
-        'product': 'Promoção do Produto'
-      }[product.promotion.promotion_type] || 'Promoção';
-      
-      promotionInfo = ` (${typeLabel})`;
+    
+    if (product.finalPrice) {
+      // Se o finalPrice foi calculado no ProductCard, usar ele
+      finalPrice = product.finalPrice;
+    } else if (product.promotion) {
+      if (product.promotion.compare_at_price) {
+        // Caso: Preço Comparativo - usar o preço atual do produto
+        finalPrice = product.price;
+        promotionInfo = ' (Oferta Especial)';
+      } else {
+        // Caso: Promoção ativa - usar o preço promocional
+        finalPrice = product.promotion.promotional_price;
+        const typeLabel = {
+          'global': 'Promoção Global',
+          'category': 'Promoção de Categoria',
+          'product': 'Promoção do Produto'
+        }[product.promotion.promotion_type] || 'Promoção';
+        
+        promotionInfo = ` (${typeLabel})`;
+      }
+    } else {
+      // Caso: Sem promoção - usar preço normal
+      finalPrice = product.price;
     }
 
     toast({
       title: 'Produto adicionado',
-      description: `${product.name} foi adicionado ao carrinho por ${price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}${promotionInfo}`,
+      description: `${product.name} foi adicionado ao carrinho por ${finalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}${promotionInfo}`,
     });
   };
 

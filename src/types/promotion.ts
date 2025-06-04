@@ -58,4 +58,5 @@ export interface PromotionWithPriority {
   promotional_price: number;
   promotion_type: 'global' | 'category' | 'product';
   priority: number;
+  compare_at_price?: number | null;
 }

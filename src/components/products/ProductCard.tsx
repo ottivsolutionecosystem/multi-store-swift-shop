@@ -8,6 +8,10 @@ import { Package } from 'lucide-react';
 import { ProductWithPromotion } from '@/repositories/ProductRepository';
 import { formatPrice } from '@/lib/promotionUtils';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { 
+  getPromotionBadgeClassName, 
+  formatPromotionBadgeText 
+} from '@/lib/promotionBadgeUtils';
 
 interface ProductCardProps {
   product: ProductWithPromotion;
@@ -27,64 +31,29 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   const priceColor = storeSettings?.price_color || '#16a34a';
 
   const hasPromotion = Boolean(product.promotion);
-  const displayPrice = hasPromotion ? product.promotion!.promotional_price : product.price;
-  const originalPrice = product.price;
-
-  const getPromotionBadgeVariant = (promotionType: string) => {
-    switch (promotionType) {
-      case 'global':
-        return 'destructive'; // Vermelho
-      case 'category':
-        return 'secondary'; // Cinza/Laranja
-      case 'product':
-        return 'default'; // Azul
-      default:
-        return 'outline'; // Verde para preço comparativo
-    }
-  };
-
-  const getPromotionBadgeText = () => {
-    if (!product.promotion) return '';
-
-    const { promotion_type, name } = product.promotion;
-    
-    if (promotionDisplayFormat === 'percentage') {
-      const percentage = Math.round(((originalPrice - displayPrice) / originalPrice) * 100);
-      let typeLabel = '';
-      
-      switch (promotion_type) {
-        case 'global':
-          typeLabel = 'GLOBAL';
-          break;
-        case 'category':
-          typeLabel = 'CATEGORIA';
-          break;
-        case 'product':
-          typeLabel = 'PRODUTO';
-          break;
-        default:
-          typeLabel = 'OFERTA';
-      }
-      
-      return `${typeLabel} ${percentage}% ↓`;
+  
+  // Lógica para preços baseada no tipo de promoção
+  let displayPrice: number;
+  let originalPrice: number;
+  let savings: number = 0;
+  
+  if (hasPromotion && product.promotion) {
+    if (product.promotion.compare_at_price) {
+      // Caso: Preço Comparativo
+      displayPrice = product.price; // Preço atual (promocional)
+      originalPrice = product.promotion.compare_at_price; // Preço "de"
+      savings = originalPrice - displayPrice;
     } else {
-      // Para formato de comparação, usar o nome da promoção ou tipo
-      return name || promotion_type?.toUpperCase() || 'PROMOÇÃO';
+      // Caso: Promoção ativa (global, categoria, produto)
+      displayPrice = product.promotion.promotional_price;
+      originalPrice = product.price;
+      savings = originalPrice - displayPrice;
     }
-  };
-
-  const getPromotionBadgeClassName = (promotionType: string) => {
-    switch (promotionType) {
-      case 'global':
-        return 'bg-red-500 text-white hover:bg-red-600';
-      case 'category':
-        return 'bg-orange-500 text-white hover:bg-orange-600';
-      case 'product':
-        return 'bg-blue-500 text-white hover:bg-blue-600';
-      default:
-        return 'bg-green-500 text-white hover:bg-green-600';
-    }
-  };
+  } else {
+    // Caso: Sem promoção
+    displayPrice = product.price;
+    originalPrice = product.price;
+  }
 
   const renderCategoryBreadcrumb = () => {
     if (!showCategory || !product.category) {
@@ -121,13 +90,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   };
 
   const handleAddToCartClick = () => {
-    // Usar o preço correto baseado na hierarquia de promoções
-    const finalPrice = hasPromotion ? product.promotion!.promotional_price : product.price;
-    
-    // Criar uma versão do produto com o preço final para o carrinho
+    // Usar o preço de exibição correto para o carrinho
     const productForCart = {
       ...product,
-      finalPrice, // Adicionar preço final calculado
+      finalPrice: displayPrice,
     };
     
     onAddToCart?.(productForCart);
@@ -150,12 +116,18 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           )}
           
           {/* Badge de promoção */}
-          {hasPromotion && showPromotionBadge && (
+          {hasPromotion && showPromotionBadge && product.promotion && (
             <div className="absolute top-2 left-2">
               <Badge 
-                className={getPromotionBadgeClassName(product.promotion!.promotion_type)}
+                className={getPromotionBadgeClassName(product.promotion.promotion_type)}
               >
-                {getPromotionBadgeText()}
+                {formatPromotionBadgeText(
+                  product.promotion.promotion_type,
+                  product.promotion.name,
+                  originalPrice,
+                  displayPrice,
+                  promotionDisplayFormat
+                )}
               </Badge>
             </div>
           )}
@@ -174,7 +146,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         <div className="flex items-center justify-between">
           {showPrice && (
             <div className="flex flex-col">
-              {hasPromotion ? (
+              {hasPromotion && savings > 0 ? (
                 <>
                   <span className="text-sm text-gray-500 line-through">
                     {formatPrice(originalPrice)}
@@ -187,7 +159,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                   </span>
                   {promotionDisplayFormat === 'comparison' && (
                     <span className="text-xs text-red-500 font-medium">
-                      Economia: {formatPrice(originalPrice - displayPrice)}
+                      Economia: {formatPrice(savings)}
                     </span>
                   )}
                 </>
