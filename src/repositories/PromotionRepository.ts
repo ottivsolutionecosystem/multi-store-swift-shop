@@ -25,9 +25,7 @@ export class PromotionRepository {
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
-      .eq('is_active', true)
-      .lte('start_date', new Date().toISOString())
-      .gte('end_date', new Date().toISOString())
+      .eq('status', 'active')
       .order('priority', { ascending: false });
 
     if (error) throw error;
@@ -52,9 +50,7 @@ export class PromotionRepository {
       .select('*')
       .eq('store_id', this.storeId)
       .eq('product_id', productId)
-      .eq('is_active', true)
-      .lte('start_date', new Date().toISOString())
-      .gte('end_date', new Date().toISOString())
+      .eq('status', 'active')
       .order('priority', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -107,5 +103,25 @@ export class PromotionRepository {
       .eq('store_id', this.storeId);
 
     if (error) throw error;
+  }
+
+  async updateStatusByDate(): Promise<void> {
+    const now = new Date().toISOString();
+    
+    // Ativar promoções agendadas que chegaram na data de início
+    await supabase
+      .from('promotions')
+      .update({ status: 'active' })
+      .eq('store_id', this.storeId)
+      .eq('status', 'scheduled')
+      .lte('start_date', now);
+
+    // Expirar promoções ativas que passaram da data de fim
+    await supabase
+      .from('promotions')
+      .update({ status: 'expired' })
+      .eq('store_id', this.storeId)
+      .eq('status', 'active')
+      .lt('end_date', now);
   }
 }

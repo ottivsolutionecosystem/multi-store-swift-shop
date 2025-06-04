@@ -716,6 +716,7 @@ export type Database = {
           product_id: string | null
           promotion_type: string | null
           start_date: string
+          status: Database["public"]["Enums"]["promotion_status"]
           store_id: string
           updated_at: string
           usage_limit: number | null
@@ -736,6 +737,7 @@ export type Database = {
           product_id?: string | null
           promotion_type?: string | null
           start_date: string
+          status?: Database["public"]["Enums"]["promotion_status"]
           store_id: string
           updated_at?: string
           usage_limit?: number | null
@@ -756,6 +758,7 @@ export type Database = {
           product_id?: string | null
           promotion_type?: string | null
           start_date?: string
+          status?: Database["public"]["Enums"]["promotion_status"]
           store_id?: string
           updated_at?: string
           usage_limit?: number | null
@@ -1043,6 +1046,12 @@ export type Database = {
     Enums: {
       discount_type: "percentage" | "fixed_amount"
       promotion_display_format: "percentage" | "comparison"
+      promotion_status:
+        | "draft"
+        | "scheduled"
+        | "active"
+        | "expired"
+        | "inactive"
       user_role: "user" | "admin"
     }
     CompositeTypes: {
@@ -1161,6 +1170,7 @@ export const Constants = {
     Enums: {
       discount_type: ["percentage", "fixed_amount"],
       promotion_display_format: ["percentage", "comparison"],
+      promotion_status: ["draft", "scheduled", "active", "expired", "inactive"],
       user_role: ["user", "admin"],
     },
   },

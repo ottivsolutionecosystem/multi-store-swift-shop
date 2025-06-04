@@ -1,7 +1,7 @@
 
 import { z } from 'zod';
 
-// Schema atualizado com validação condicional
+// Schema atualizado com status enum
 export const promotionSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
@@ -16,7 +16,7 @@ export const promotionSchema = z.object({
   usage_limit: z.number().min(1, 'Limite deve ser maior que 0').optional(),
   usage_limit_per_customer: z.number().min(1, 'Limite deve ser maior que 0').optional(),
   priority: z.number().min(0, 'Prioridade deve ser positiva').default(0),
-  is_active: z.boolean().default(true),
+  status: z.enum(['draft', 'scheduled', 'active', 'expired', 'inactive']).default('draft'),
 }).refine((data) => {
   if (data.discount_type === 'percentage' && data.discount_value > 100) {
     return false;
@@ -60,3 +60,5 @@ export interface PromotionWithPriority {
   priority: number;
   compare_at_price?: number | null;
 }
+
+export type PromotionStatus = 'draft' | 'scheduled' | 'active' | 'expired' | 'inactive';

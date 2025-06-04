@@ -47,6 +47,21 @@ export class PromotionService {
       throw new Error('End date must be after start date');
     }
 
+    // Determinar status baseado nas datas se não foi fornecido
+    const now = new Date();
+    const startDate = new Date(promotion.start_date);
+    const endDate = new Date(promotion.end_date);
+    
+    if (!promotion.status) {
+      if (startDate > now) {
+        promotion.status = 'scheduled';
+      } else if (startDate <= now && endDate >= now) {
+        promotion.status = 'active';
+      } else {
+        promotion.status = 'expired';
+      }
+    }
+
     return this.promotionRepository.create(promotion);
   }
 

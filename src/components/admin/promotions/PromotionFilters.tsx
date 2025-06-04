@@ -3,7 +3,7 @@ import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search, X, Calendar, Tag, Percent } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { PromotionFilters } from '@/types/promotion-management';
 
 interface PromotionFiltersProps {
@@ -60,8 +60,9 @@ export function PromotionFiltersComponent({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os status</SelectItem>
-            <SelectItem value="active">Ativas</SelectItem>
+            <SelectItem value="draft">Rascunho</SelectItem>
             <SelectItem value="scheduled">Agendadas</SelectItem>
+            <SelectItem value="active">Ativas</SelectItem>
             <SelectItem value="expired">Expiradas</SelectItem>
             <SelectItem value="inactive">Inativas</SelectItem>
           </SelectContent>

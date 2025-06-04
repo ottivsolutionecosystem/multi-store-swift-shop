@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -58,17 +57,9 @@ export default function PromotionsPage() {
         const promotionsData = await services.promotionService.getAllPromotions();
         setPromotions(promotionsData);
 
-        // Calculate stats
-        const now = new Date();
-        const activeCount = promotionsData.filter(p => 
-          p.is_active && 
-          new Date(p.start_date) <= now && 
-          new Date(p.end_date) >= now
-        ).length;
-
-        const scheduledCount = promotionsData.filter(p => 
-          p.is_active && new Date(p.start_date) > now
-        ).length;
+        // Calculate stats usando o campo status
+        const activeCount = promotionsData.filter(p => p.status === 'active').length;
+        const scheduledCount = promotionsData.filter(p => p.status === 'scheduled').length;
 
         setStats({
           active: activeCount,

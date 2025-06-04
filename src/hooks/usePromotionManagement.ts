@@ -28,25 +28,9 @@ export function usePromotionManagement(promotions: Promotion[]) {
         return false;
       }
 
-      // Status filter
-      if (filters.status !== 'all') {
-        const startDate = new Date(promotion.start_date);
-        const endDate = new Date(promotion.end_date);
-        
-        switch (filters.status) {
-          case 'active':
-            if (!promotion.is_active || startDate > now || endDate < now) return false;
-            break;
-          case 'scheduled':
-            if (!promotion.is_active || startDate <= now) return false;
-            break;
-          case 'expired':
-            if (!promotion.is_active || endDate >= now) return false;
-            break;
-          case 'inactive':
-            if (promotion.is_active) return false;
-            break;
-        }
+      // Status filter - agora usa o campo status diretamente
+      if (filters.status !== 'all' && promotion.status !== filters.status) {
+        return false;
       }
 
       // Promotion type filter
@@ -99,7 +83,7 @@ export function usePromotionManagement(promotions: Promotion[]) {
       }
 
       // Handle string fields
-      if (sort.field === 'name') {
+      if (sort.field === 'name' || sort.field === 'status') {
         aValue = aValue.toLowerCase();
         bValue = bValue.toLowerCase();
       }
