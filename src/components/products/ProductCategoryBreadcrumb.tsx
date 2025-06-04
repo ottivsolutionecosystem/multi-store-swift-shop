@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { ProductWithPromotion } from '@/repositories/ProductRepository';
+import { ProductWithPromotion } from '@/types/product';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
 
 interface ProductCategoryBreadcrumbProps {

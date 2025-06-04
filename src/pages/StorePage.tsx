@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { ProductCard } from '@/components/products/ProductCard';
@@ -5,7 +6,7 @@ import { CategoryNav } from '@/components/categories/CategoryNav';
 import { useServices } from '@/hooks/useServices';
 import { useTenant } from '@/contexts/TenantContext';
 import { useToast } from '@/hooks/use-toast';
-import { ProductWithPromotion } from '@/repositories/ProductRepository';
+import { ProductWithPromotion } from '@/types/product';
 
 export default function StorePage() {
   const [products, setProducts] = useState<ProductWithPromotion[]>([]);

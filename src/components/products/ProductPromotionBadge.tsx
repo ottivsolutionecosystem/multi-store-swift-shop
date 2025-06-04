@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { ProductWithPromotion } from '@/repositories/ProductRepository';
+import { ProductWithPromotion } from '@/types/product';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
 import { 
   getPromotionBadgeClassName, 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { ProductWithPromotion } from '@/repositories/ProductRepository';
+import { ProductWithPromotion } from '@/types/product';
 import { formatPrice } from '@/lib/promotionUtils';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
 

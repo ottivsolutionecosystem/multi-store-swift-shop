@@ -1,6 +1,6 @@
 
 import { useState, useMemo } from 'react';
-import { ProductWithPromotion } from '@/repositories/ProductRepository';
+import { ProductWithPromotion } from '@/types/product';
 import { ProductFilters, ProductSort, ViewMode } from '@/types/product-management';
 
 const defaultFilters: ProductFilters = {
