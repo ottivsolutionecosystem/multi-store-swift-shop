@@ -81,6 +81,17 @@ export function PromotionAdvancedSection({ register, setValue }: PromotionAdvanc
             </p>
           </div>
         </div>
+
+        <div className="p-3 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-700">
+            <strong>Dica:</strong><br />
+            • <strong>Valor Mínimo</strong>: O carrinho deve atingir este valor para a promoção ser válida<br />
+            • <strong>Prioridade</strong>: Quando múltiplas promoções se aplicam, a de maior número tem preferência<br />
+            • <strong>Limite Total</strong>: Quantas vezes a promoção pode ser usada no total (deixe vazio para ilimitado)<br />
+            • <strong>Limite por Cliente</strong>: Quantas vezes cada cliente individual pode usar a promoção<br /><br />
+            Exemplo: Uma promoção com prioridade 10 será aplicada antes de uma com prioridade 5.
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
