@@ -3,13 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useServices } from '@/hooks/useServices';
+import { usePromotionManagement } from '@/hooks/usePromotionManagement';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Percent, Calendar, TrendingUp, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, Percent, Calendar, TrendingUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { PromotionFiltersComponent } from '@/components/admin/promotions/PromotionFilters';
+import { PromotionViewToggle } from '@/components/admin/promotions/PromotionViewToggle';
+import { PromotionListView } from '@/components/admin/promotions/PromotionListView';
+import { PromotionTableView } from '@/components/admin/promotions/PromotionTableView';
 
 export default function PromotionsPage() {
   const { user, profile, loading } = useAuth();
@@ -18,6 +21,19 @@ export default function PromotionsPage() {
   const { toast } = useToast();
   const [promotions, setPromotions] = useState<any[]>([]);
   const [isLoadingPromotions, setIsLoadingPromotions] = useState(true);
+
+  const {
+    viewMode,
+    setViewMode,
+    filters,
+    setFilters,
+    sort,
+    setSort,
+    filteredPromotions,
+    totalPromotions,
+    filteredCount,
+  } = usePromotionManagement(promotions);
+
   const [stats, setStats] = useState({
     active: 0,
     scheduled: 0,
@@ -104,35 +120,6 @@ export default function PromotionsPage() {
     }
   };
 
-  const getStatusBadge = (promotion: any) => {
-    const now = new Date();
-    const startDate = new Date(promotion.start_date);
-    const endDate = new Date(promotion.end_date);
-
-    if (!promotion.is_active) {
-      return <Badge variant="secondary">Inativa</Badge>;
-    }
-
-    if (startDate > now) {
-      return <Badge variant="outline">Agendada</Badge>;
-    }
-
-    if (endDate < now) {
-      return <Badge variant="destructive">Expirada</Badge>;
-    }
-
-    return <Badge variant="default">Ativa</Badge>;
-  };
-
-  const formatPromotionType = (type: string) => {
-    const types = {
-      'product': 'Produto',
-      'category': 'Categoria', 
-      'global': 'Global'
-    };
-    return types[type as keyof typeof types] || type;
-  };
-
   if (loading || isLoadingPromotions) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -190,14 +177,61 @@ export default function PromotionsPage() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{promotions.length}</div>
+              <div className="text-2xl font-bold">{totalPromotions}</div>
               <p className="text-xs text-muted-foreground">promoções criadas</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Promotions List */}
-        {promotions.length === 0 ? (
+        {/* Filters and Controls */}
+        <div className="mb-6">
+          <PromotionFiltersComponent
+            filters={filters}
+            onFiltersChange={setFilters}
+            filteredCount={filteredCount}
+            totalCount={totalPromotions}
+          />
+        </div>
+
+        {/* View Toggle and Content */}
+        {promotions.length > 0 && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Suas Promoções</CardTitle>
+                  <CardDescription>
+                    Gerencie todas as suas promoções criadas
+                  </CardDescription>
+                </div>
+                <PromotionViewToggle
+                  viewMode={viewMode}
+                  onViewModeChange={setViewMode}
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {viewMode === 'table' ? (
+                <PromotionTableView
+                  promotions={filteredPromotions}
+                  sort={sort}
+                  onSortChange={setSort}
+                  onEdit={handleEditPromotion}
+                  onDelete={handleDeletePromotion}
+                />
+              ) : (
+                <PromotionListView
+                  promotions={filteredPromotions}
+                  onEdit={handleEditPromotion}
+                  onDelete={handleDeletePromotion}
+                />
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Empty State */}
+        {promotions.length === 0 && (
           <Card>
             <CardContent className="text-center py-12">
               <Percent className="h-16 w-16 text-gray-400 mx-auto mb-4" />
@@ -211,67 +245,6 @@ export default function PromotionsPage() {
                 <Plus className="h-4 w-4" />
                 Criar Primeira Promoção
               </Button>
-            </CardContent>
-          </Card>
-        ) : (
-          <Card>
-            <CardHeader>
-              <CardTitle>Suas Promoções</CardTitle>
-              <CardDescription>
-                Gerencie todas as suas promoções criadas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {promotions.map((promotion) => (
-                  <div key={promotion.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="font-semibold">{promotion.name}</h3>
-                        {getStatusBadge(promotion)}
-                        <Badge variant="outline">
-                          {formatPromotionType(promotion.promotion_type)}
-                        </Badge>
-                      </div>
-                      
-                      <div className="text-sm text-gray-600 space-y-1">
-                        <p>
-                          <strong>Desconto:</strong> {' '}
-                          {promotion.discount_type === 'percentage' 
-                            ? `${promotion.discount_value}%` 
-                            : `R$ ${Number(promotion.discount_value).toFixed(2)}`
-                          }
-                        </p>
-                        <p>
-                          <strong>Período:</strong> {' '}
-                          {format(new Date(promotion.start_date), 'dd/MM/yyyy')} até {' '}
-                          {format(new Date(promotion.end_date), 'dd/MM/yyyy')}
-                        </p>
-                        {promotion.description && (
-                          <p className="text-gray-500">{promotion.description}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleEditPromotion(promotion.id)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleDeletePromotion(promotion.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </CardContent>
           </Card>
         )}
