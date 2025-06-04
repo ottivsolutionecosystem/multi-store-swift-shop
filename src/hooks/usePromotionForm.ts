@@ -84,6 +84,29 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
 
     setIsLoading(true);
     try {
+      // Validações baseadas no status
+      const now = new Date();
+      const startDate = new Date(data.start_date);
+      const endDate = new Date(data.end_date);
+
+      if (data.status === 'scheduled' && startDate <= now) {
+        toast({
+          title: 'Erro de Validação',
+          description: 'Promoções agendadas devem ter data de início no futuro',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      if (data.status === 'active' && (startDate > now || endDate < now)) {
+        toast({
+          title: 'Erro de Validação',
+          description: 'Promoções ativas devem estar dentro do período de validade',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       const promotionData = {
         name: data.name,
         description: data.description || null,

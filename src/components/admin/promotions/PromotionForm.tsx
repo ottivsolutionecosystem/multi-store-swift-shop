@@ -3,6 +3,7 @@ import React from 'react';
 import { Loader2 } from 'lucide-react';
 import { usePromotionForm } from '@/hooks/usePromotionForm';
 import { PromotionBasicInfoSection } from './PromotionBasicInfoSection';
+import { PromotionStatusSection } from './PromotionStatusSection';
 import { PromotionDiscountSection } from './PromotionDiscountSection';
 import { PromotionPeriodSection } from './PromotionPeriodSection';
 import { PromotionAdvancedSection } from './PromotionAdvancedSection';
@@ -46,6 +47,13 @@ export function PromotionForm({ promotionId, onSuccess }: PromotionFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       <PromotionBasicInfoSection register={register} errors={errors} />
+      
+      <PromotionStatusSection 
+        register={register} 
+        errors={errors} 
+        setValue={setValue} 
+        watch={watch}
+      />
       
       <PromotionDiscountSection register={register} errors={errors} />
       
