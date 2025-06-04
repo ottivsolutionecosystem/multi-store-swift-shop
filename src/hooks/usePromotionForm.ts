@@ -19,59 +19,89 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
   const [isLoading, setIsLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(true);
 
+  // Valores padrão sempre com arrays válidos
+  const defaultValues: PromotionFormData = {
+    promotion_type: 'product',
+    discount_type: 'percentage',
+    priority: 0,
+    status: 'draft',
+    usage_limit_per_customer: 1,
+    product_ids: [],
+    category_ids: [],
+    name: '',
+    start_date: new Date(),
+    end_date: new Date(),
+    discount_value: 0,
+  };
+
   const form = useForm<PromotionFormData>({
     resolver: zodResolver(promotionSchema),
-    defaultValues: {
-      promotion_type: 'product',
-      discount_type: 'percentage',
-      priority: 0,
-      status: 'draft',
-      usage_limit_per_customer: 1,
-      product_ids: [],
-      category_ids: [],
-    },
+    defaultValues,
+    mode: 'onChange',
   });
 
   useEffect(() => {
     const loadData = async () => {
-      if (!services) return;
+      if (!services) {
+        console.log('📝 Services not available yet');
+        return;
+      }
 
+      console.log('📝 Starting data load...');
+      
       try {
+        console.log('📝 Loading products and categories...');
         const [productsData, categoriesData] = await Promise.all([
           services.productService.getAllProducts(),
           services.categoryService.getAllCategories(),
         ]);
 
-        // Garantir que sempre tenhamos arrays válidos
-        setProducts(Array.isArray(productsData) ? productsData : []);
-        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+        console.log('📝 Raw products data:', productsData);
+        console.log('📝 Raw categories data:', categoriesData);
+
+        // Garantir que sempre tenhamos arrays válidos, mesmo se a API retornar algo inesperado
+        const safeProducts = Array.isArray(productsData) ? productsData : [];
+        const safeCategories = Array.isArray(categoriesData) ? categoriesData : [];
+
+        console.log('📝 Safe products:', safeProducts);
+        console.log('📝 Safe categories:', safeCategories);
+
+        setProducts(safeProducts);
+        setCategories(safeCategories);
 
         if (promotionId) {
+          console.log('📝 Loading promotion for edit:', promotionId);
           const promotion = await services.promotionService.getPromotionById(promotionId);
           if (promotion) {
-            // Migrar dados antigos para novos campos se necessário
+            console.log('📝 Loaded promotion:', promotion);
+            
+            // Garantir arrays válidos para IDs
             let productIds: string[] = [];
             let categoryIds: string[] = [];
 
-            // Garantir que temos arrays válidos
+            // Verificar e converter product_ids
             if (Array.isArray(promotion.product_ids)) {
               productIds = promotion.product_ids as string[];
             } else if (promotion.product_id) {
               productIds = [promotion.product_id];
             }
 
+            // Verificar e converter category_ids
             if (Array.isArray(promotion.category_ids)) {
               categoryIds = promotion.category_ids as string[];
             } else if (promotion.category_id) {
               categoryIds = [promotion.category_id];
             }
 
-            form.reset({
-              name: promotion.name,
+            console.log('📝 Product IDs:', productIds);
+            console.log('📝 Category IDs:', categoryIds);
+
+            const formData = {
+              name: promotion.name || '',
               description: promotion.description || '',
-              promotion_type: promotion.promotion_type as any,
-              discount_type: promotion.discount_type,
-              discount_value: Number(promotion.discount_value),
+              promotion_type: promotion.promotion_type as any || 'product',
+              discount_type: promotion.discount_type || 'percentage',
+              discount_value: Number(promotion.discount_value) || 0,
               start_date: new Date(promotion.start_date),
               end_date: new Date(promotion.end_date),
               product_ids: productIds,
@@ -79,32 +109,44 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
               minimum_purchase_amount: promotion.minimum_purchase_amount ? Number(promotion.minimum_purchase_amount) : undefined,
               usage_limit: promotion.usage_limit || undefined,
               usage_limit_per_customer: promotion.usage_limit_per_customer || 1,
-              priority: promotion.priority,
-              status: promotion.status,
-            });
+              priority: promotion.priority || 0,
+              status: promotion.status || 'draft',
+            };
+
+            console.log('📝 Form data to reset:', formData);
+            form.reset(formData);
           }
+        } else {
+          console.log('📝 New promotion, using defaults');
+          // Para nova promoção, garantir que os valores padrão sejam aplicados
+          form.reset(defaultValues);
         }
       } catch (error) {
-        console.error('Erro ao carregar dados:', error);
+        console.error('❌ Error loading data:', error);
         toast({
           title: 'Erro',
           description: 'Erro ao carregar dados necessários',
           variant: 'destructive',
         });
-        // Garantir que temos arrays vazios em caso de erro
+        // Em caso de erro, garantir arrays vazios
         setProducts([]);
         setCategories([]);
+        // Reset para valores seguros
+        form.reset(defaultValues);
       } finally {
         setIsDataLoading(false);
+        console.log('📝 Data loading completed');
       }
     };
 
     loadData();
-  }, [services, promotionId, form.reset, toast]);
+  }, [services, promotionId, form, toast]);
 
   const onSubmit = async (data: PromotionFormData) => {
     if (!services) return;
 
+    console.log('📝 Form submission data:', data);
+    
     setIsLoading(true);
     try {
       // Validações baseadas no status
@@ -130,9 +172,12 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
         return;
       }
 
-      // Garantir que os arrays sejam válidos
+      // Garantir que os arrays sejam válidos e logs para debug
       const productIds = Array.isArray(data.product_ids) ? data.product_ids : [];
       const categoryIds = Array.isArray(data.category_ids) ? data.category_ids : [];
+
+      console.log('📝 Processed product IDs:', productIds);
+      console.log('📝 Processed category IDs:', categoryIds);
 
       const promotionData = {
         name: data.name,
@@ -151,6 +196,8 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
         status: data.status,
       };
 
+      console.log('📝 Final promotion data:', promotionData);
+
       if (promotionId) {
         await services.promotionService.updatePromotion(promotionId, promotionData);
         toast({
@@ -167,7 +214,7 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
 
       onSuccess();
     } catch (error: any) {
-      console.error('Erro ao salvar promoção:', error);
+      console.error('❌ Error saving promotion:', error);
       toast({
         title: 'Erro',
         description: error.message || 'Erro ao salvar promoção',
@@ -180,8 +227,8 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
 
   return {
     form,
-    products,
-    categories,
+    products: Array.isArray(products) ? products : [],
+    categories: Array.isArray(categories) ? categories : [],
     isLoading,
     isDataLoading,
     onSubmit,

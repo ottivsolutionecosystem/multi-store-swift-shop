@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Check, ChevronsUpDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -43,24 +43,52 @@ export function MultiSelect({
 }: MultiSelectProps) {
   const [open, setOpen] = useState(false);
 
-  // Garantir que selected seja sempre um array válido
-  const safeSelected = Array.isArray(selected) ? selected : [];
-  // Garantir que options seja sempre um array válido
-  const safeOptions = Array.isArray(options) ? options : [];
+  // Memoizar os valores seguros para evitar re-renderizações desnecessárias
+  const safeSelected = useMemo(() => {
+    const result = Array.isArray(selected) ? selected : [];
+    console.log('📝 MultiSelect - Safe selected:', result);
+    return result;
+  }, [selected]);
+
+  const safeOptions = useMemo(() => {
+    const result = Array.isArray(options) ? options : [];
+    console.log('📝 MultiSelect - Safe options:', result);
+    return result;
+  }, [options]);
+
+  const selectedOptions = useMemo(() => {
+    if (!safeOptions.length || !safeSelected.length) {
+      return [];
+    }
+    return safeOptions.filter((option) => safeSelected.includes(option.value));
+  }, [safeOptions, safeSelected]);
 
   const handleSelect = (value: string) => {
+    console.log('📝 MultiSelect - Selecting value:', value);
+    console.log('📝 MultiSelect - Current selected:', safeSelected);
+    
+    let newSelected: string[];
     if (safeSelected.includes(value)) {
-      onSelectionChange(safeSelected.filter((item) => item !== value));
+      newSelected = safeSelected.filter((item) => item !== value);
     } else {
-      onSelectionChange([...safeSelected, value]);
+      newSelected = [...safeSelected, value];
     }
+    
+    console.log('📝 MultiSelect - New selected:', newSelected);
+    onSelectionChange(newSelected);
   };
 
   const handleRemove = (value: string) => {
-    onSelectionChange(safeSelected.filter((item) => item !== value));
+    console.log('📝 MultiSelect - Removing value:', value);
+    const newSelected = safeSelected.filter((item) => item !== value);
+    console.log('📝 MultiSelect - After removal:', newSelected);
+    onSelectionChange(newSelected);
   };
 
-  const selectedOptions = safeOptions.filter((option) => safeSelected.includes(option.value));
+  // Debug logs
+  console.log('📝 MultiSelect render - options:', safeOptions);
+  console.log('📝 MultiSelect render - selected:', safeSelected);
+  console.log('📝 MultiSelect render - selectedOptions:', selectedOptions);
 
   return (
     <div className={cn("w-full", className)}>

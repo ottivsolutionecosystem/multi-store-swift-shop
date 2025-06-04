@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -35,19 +35,76 @@ export function PromotionPeriodSection({
   const selectedProductIds = watch('product_ids') || [];
   const selectedCategoryIds = watch('category_ids') || [];
 
-  // Garantir que products e categories sejam arrays válidos
-  const safeProducts = Array.isArray(products) ? products : [];
-  const safeCategories = Array.isArray(categories) ? categories : [];
+  // Memoizar dados seguros para evitar re-renderizações desnecessárias
+  const safeProducts = useMemo(() => {
+    const result = Array.isArray(products) ? products : [];
+    console.log('📝 PromotionPeriod - Safe products:', result);
+    return result;
+  }, [products]);
 
-  const productOptions = safeProducts.map(product => ({
-    value: product.id,
-    label: product.name
-  }));
+  const safeCategories = useMemo(() => {
+    const result = Array.isArray(categories) ? categories : [];
+    console.log('📝 PromotionPeriod - Safe categories:', result);
+    return result;
+  }, [categories]);
 
-  const categoryOptions = safeCategories.map(category => ({
-    value: category.id,
-    label: category.name
-  }));
+  const productOptions = useMemo(() => {
+    if (!safeProducts.length) {
+      console.log('📝 PromotionPeriod - No products available');
+      return [];
+    }
+    const result = safeProducts
+      .filter(product => product && product.id && product.name)
+      .map(product => ({
+        value: product.id,
+        label: product.name
+      }));
+    console.log('📝 PromotionPeriod - Product options:', result);
+    return result;
+  }, [safeProducts]);
+
+  const categoryOptions = useMemo(() => {
+    if (!safeCategories.length) {
+      console.log('📝 PromotionPeriod - No categories available');
+      return [];
+    }
+    const result = safeCategories
+      .filter(category => category && category.id && category.name)
+      .map(category => ({
+        value: category.id,
+        label: category.name
+      }));
+    console.log('📝 PromotionPeriod - Category options:', result);
+    return result;
+  }, [safeCategories]);
+
+  // Garantir que os valores selecionados sejam sempre arrays
+  const safeSelectedProductIds = useMemo(() => {
+    const result = Array.isArray(selectedProductIds) ? selectedProductIds : [];
+    console.log('📝 PromotionPeriod - Safe selected product IDs:', result);
+    return result;
+  }, [selectedProductIds]);
+
+  const safeSelectedCategoryIds = useMemo(() => {
+    const result = Array.isArray(selectedCategoryIds) ? selectedCategoryIds : [];
+    console.log('📝 PromotionPeriod - Safe selected category IDs:', result);
+    return result;
+  }, [selectedCategoryIds]);
+
+  const handleProductSelection = (selected: string[]) => {
+    console.log('📝 PromotionPeriod - Product selection changed:', selected);
+    setValue('product_ids', selected);
+  };
+
+  const handleCategorySelection = (selected: string[]) => {
+    console.log('📝 PromotionPeriod - Category selection changed:', selected);
+    setValue('category_ids', selected);
+  };
+
+  // Debug logs
+  console.log('📝 PromotionPeriod render - promotion type:', promotionType);
+  console.log('📝 PromotionPeriod render - products:', safeProducts);
+  console.log('📝 PromotionPeriod render - categories:', safeCategories);
 
   return (
     <Card>
@@ -124,8 +181,8 @@ export function PromotionPeriodSection({
             <Label htmlFor="product_ids">Produtos *</Label>
             <MultiSelect
               options={productOptions}
-              selected={selectedProductIds}
-              onSelectionChange={(selected) => setValue('product_ids', selected)}
+              selected={safeSelectedProductIds}
+              onSelectionChange={handleProductSelection}
               placeholder="Selecione os produtos..."
               searchPlaceholder="Buscar produtos..."
               emptyText="Nenhum produto encontrado"
@@ -144,8 +201,8 @@ export function PromotionPeriodSection({
             <Label htmlFor="category_ids">Categorias *</Label>
             <MultiSelect
               options={categoryOptions}
-              selected={selectedCategoryIds}
-              onSelectionChange={(selected) => setValue('category_ids', selected)}
+              selected={safeSelectedCategoryIds}
+              onSelectionChange={handleCategorySelection}
               placeholder="Selecione as categorias..."
               searchPlaceholder="Buscar categorias..."
               emptyText="Nenhuma categoria encontrada"
