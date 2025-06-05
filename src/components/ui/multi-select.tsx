@@ -1,36 +1,11 @@
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { Check, ChevronsUpDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-
-interface Option {
-  value: string;
-  label: string;
-}
-
-interface MultiSelectProps {
-  options: Option[];
-  selected: string[];
-  onSelectionChange: (selected: string[]) => void;
-  placeholder?: string;
-  searchPlaceholder?: string;
-  emptyText?: string;
-  className?: string;
-}
+import { Popover, PopoverTrigger } from '@/components/ui/popover';
+import { MultiSelectTrigger } from './multi-select/MultiSelectTrigger';
+import { MultiSelectDropdown } from './multi-select/MultiSelectDropdown';
+import { validateMultiSelectProps, validateNewSelection } from './multi-select/MultiSelectValidation';
+import { MultiSelectProps } from './multi-select/MultiSelectTypes';
 
 export function MultiSelect({
   options,
@@ -41,60 +16,28 @@ export function MultiSelect({
   emptyText = "Nenhum item encontrado",
   className,
 }: MultiSelectProps) {
-  // Early return validation - validação crítica no início
-  if (!Array.isArray(options) || !Array.isArray(selected)) {
-    console.error('❌ MultiSelect - Invalid props:', { 
-      options: typeof options, 
-      selected: typeof selected,
-      optionsIsArray: Array.isArray(options),
-      selectedIsArray: Array.isArray(selected)
-    });
+  const [open, setOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Validate props early
+  const validation = useMemo(() => validateMultiSelectProps(options, selected), [options, selected]);
+
+  // Early return for invalid props
+  if (!validation.isValid) {
     return (
       <div className={cn("w-full p-4 border rounded-md bg-red-50 text-red-700", className)}>
         <p className="text-sm font-medium">Erro: Props inválidas no MultiSelect</p>
-        <p className="text-xs mt-1">Options ou Selected não são arrays válidos</p>
+        <p className="text-xs mt-1">{validation.errorMessage}</p>
       </div>
     );
   }
 
-  const [open, setOpen] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { safeOptions, safeSelected } = validation;
 
   console.log('🔧 MultiSelect render - Props validation passed:', {
-    optionsCount: options.length,
-    selectedCount: selected.length
+    optionsCount: safeOptions.length,
+    selectedCount: safeSelected.length
   });
-
-  // Garantir arrays seguros sempre
-  const safeSelected = useMemo(() => {
-    try {
-      const result = Array.isArray(selected) ? selected.filter(item => 
-        typeof item === 'string' && item.trim()
-      ) : [];
-      console.log('🔧 MultiSelect - Safe selected processed:', result);
-      return result;
-    } catch (error) {
-      console.error('❌ MultiSelect - Error processing selected:', error);
-      return [];
-    }
-  }, [selected]);
-
-  const safeOptions = useMemo(() => {
-    try {
-      const result = Array.isArray(options) ? options.filter(option => 
-        option && 
-        typeof option.value === 'string' && 
-        typeof option.label === 'string' &&
-        option.value.trim() &&
-        option.label.trim()
-      ) : [];
-      console.log('🔧 MultiSelect - Safe options processed:', result.length);
-      return result;
-    } catch (error) {
-      console.error('❌ MultiSelect - Error processing options:', error);
-      return [];
-    }
-  }, [options]);
 
   const selectedOptions = useMemo(() => {
     try {
@@ -117,14 +60,6 @@ export function MultiSelect({
 
   // Função com validação robusta
   const handleSelectionChange = useCallback((newSelected: string[]) => {
-    console.log('🔧 MultiSelect - Selection change requested:', newSelected);
-    
-    // Validações básicas
-    if (!Array.isArray(newSelected)) {
-      console.error('❌ MultiSelect - Invalid selection type:', typeof newSelected);
-      return;
-    }
-
     if (isProcessing) {
       console.log('⏳ MultiSelect - Already processing, skipping...');
       return;
@@ -133,12 +68,7 @@ export function MultiSelect({
     setIsProcessing(true);
     
     try {
-      // Filtrar apenas valores válidos
-      const validSelection = newSelected.filter(value => 
-        typeof value === 'string' && value.trim().length > 0
-      );
-      
-      console.log('🔧 MultiSelect - Valid selection processed:', validSelection);
+      const validSelection = validateNewSelection(newSelected, safeOptions);
       onSelectionChange(validSelection);
     } catch (error) {
       console.error('❌ MultiSelect - Error in selection change:', error);
@@ -146,7 +76,7 @@ export function MultiSelect({
       // Resetar processing após um pequeno delay
       setTimeout(() => setIsProcessing(false), 100);
     }
-  }, [onSelectionChange, isProcessing]);
+  }, [onSelectionChange, isProcessing, safeOptions]);
 
   const handleSelect = useCallback((value: string) => {
     console.log('🔧 MultiSelect - Item selected:', value, 'Current selected:', safeSelected);
@@ -209,65 +139,20 @@ export function MultiSelect({
     <div className={cn("w-full", className)}>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-full justify-between min-h-10 h-auto"
-            disabled={isProcessing}
-          >
-            <div className="flex flex-wrap gap-1 flex-1">
-              {safeSelected.length === 0 ? (
-                <span className="text-muted-foreground">{placeholder}</span>
-              ) : (
-                selectedOptions.map((option) => (
-                  <Badge
-                    key={`badge-${option.value}`}
-                    variant="secondary"
-                    className="text-xs"
-                  >
-                    {option.label}
-                    <X
-                      className="ml-1 h-3 w-3 cursor-pointer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemove(option.value);
-                      }}
-                    />
-                  </Badge>
-                ))
-              )}
-            </div>
-            <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-          </Button>
+          <MultiSelectTrigger
+            selectedOptions={selectedOptions}
+            placeholder={placeholder}
+            isProcessing={isProcessing}
+            onRemove={handleRemove}
+          />
         </PopoverTrigger>
-        <PopoverContent className="w-full p-0 bg-white border shadow-md z-50" align="start">
-          <Command>
-            <CommandInput placeholder={searchPlaceholder} />
-            <CommandEmpty>{emptyText}</CommandEmpty>
-            <CommandGroup className="max-h-64 overflow-auto">
-              {safeOptions.map((option) => {
-                const isSelected = safeSelected.includes(option.value);
-                
-                return (
-                  <CommandItem
-                    key={`option-${option.value}`}
-                    onSelect={() => handleSelect(option.value)}
-                    className="cursor-pointer"
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        isSelected ? "opacity-100" : "opacity-0"
-                      )}
-                    />
-                    {option.label}
-                  </CommandItem>
-                );
-              })}
-            </CommandGroup>
-          </Command>
-        </PopoverContent>
+        <MultiSelectDropdown
+          options={safeOptions}
+          selected={safeSelected}
+          onSelect={handleSelect}
+          searchPlaceholder={searchPlaceholder}
+          emptyText={emptyText}
+        />
       </Popover>
     </div>
   );
