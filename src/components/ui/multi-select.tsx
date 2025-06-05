@@ -33,45 +33,89 @@ interface MultiSelectProps {
 }
 
 export function MultiSelect({
-  options = [],
-  selected = [],
+  options,
+  selected,
   onSelectionChange,
   placeholder = "Selecione itens...",
   searchPlaceholder = "Buscar...",
   emptyText = "Nenhum item encontrado",
   className,
 }: MultiSelectProps) {
+  // Early return validation - validação crítica no início
+  if (!Array.isArray(options) || !Array.isArray(selected)) {
+    console.error('❌ MultiSelect - Invalid props:', { 
+      options: typeof options, 
+      selected: typeof selected,
+      optionsIsArray: Array.isArray(options),
+      selectedIsArray: Array.isArray(selected)
+    });
+    return (
+      <div className={cn("w-full p-4 border rounded-md bg-red-50 text-red-700", className)}>
+        <p className="text-sm font-medium">Erro: Props inválidas no MultiSelect</p>
+        <p className="text-xs mt-1">Options ou Selected não são arrays válidos</p>
+      </div>
+    );
+  }
+
   const [open, setOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
 
+  console.log('🔧 MultiSelect render - Props validation passed:', {
+    optionsCount: options.length,
+    selectedCount: selected.length
+  });
+
   // Garantir arrays seguros sempre
   const safeSelected = useMemo(() => {
-    const result = Array.isArray(selected) ? selected : [];
-    console.log('🔧 MultiSelect - Safe selected:', result);
-    return result;
+    try {
+      const result = Array.isArray(selected) ? selected.filter(item => 
+        typeof item === 'string' && item.trim()
+      ) : [];
+      console.log('🔧 MultiSelect - Safe selected processed:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ MultiSelect - Error processing selected:', error);
+      return [];
+    }
   }, [selected]);
 
   const safeOptions = useMemo(() => {
-    const result = Array.isArray(options) ? options : [];
-    console.log('🔧 MultiSelect - Safe options count:', result.length);
-    return result;
+    try {
+      const result = Array.isArray(options) ? options.filter(option => 
+        option && 
+        typeof option.value === 'string' && 
+        typeof option.label === 'string' &&
+        option.value.trim() &&
+        option.label.trim()
+      ) : [];
+      console.log('🔧 MultiSelect - Safe options processed:', result.length);
+      return result;
+    } catch (error) {
+      console.error('❌ MultiSelect - Error processing options:', error);
+      return [];
+    }
   }, [options]);
 
   const selectedOptions = useMemo(() => {
-    if (!safeOptions.length || !safeSelected.length) {
+    try {
+      if (!safeOptions.length || !safeSelected.length) {
+        return [];
+      }
+      
+      const result = safeOptions.filter((option) => {
+        const isSelected = safeSelected.includes(option.value);
+        return isSelected;
+      });
+      
+      console.log('🔧 MultiSelect - Selected options matched:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ MultiSelect - Error matching selected options:', error);
       return [];
     }
-    
-    const result = safeOptions.filter((option) => {
-      const isSelected = safeSelected.includes(option.value);
-      return isSelected;
-    });
-    
-    console.log('🔧 MultiSelect - Selected options:', result);
-    return result;
   }, [safeOptions, safeSelected]);
 
-  // Função com debounce e validação robusta
+  // Função com validação robusta
   const handleSelectionChange = useCallback((newSelected: string[]) => {
     console.log('🔧 MultiSelect - Selection change requested:', newSelected);
     
@@ -94,7 +138,7 @@ export function MultiSelect({
         typeof value === 'string' && value.trim().length > 0
       );
       
-      console.log('🔧 MultiSelect - Valid selection:', validSelection);
+      console.log('🔧 MultiSelect - Valid selection processed:', validSelection);
       onSelectionChange(validSelection);
     } catch (error) {
       console.error('❌ MultiSelect - Error in selection change:', error);
@@ -112,16 +156,20 @@ export function MultiSelect({
       return;
     }
     
-    let newSelected: string[];
-    if (safeSelected.includes(value)) {
-      newSelected = safeSelected.filter((item) => item !== value);
-      console.log('🔧 MultiSelect - Removing item:', value);
-    } else {
-      newSelected = [...safeSelected, value];
-      console.log('🔧 MultiSelect - Adding item:', value);
+    try {
+      let newSelected: string[];
+      if (safeSelected.includes(value)) {
+        newSelected = safeSelected.filter((item) => item !== value);
+        console.log('🔧 MultiSelect - Removing item:', value);
+      } else {
+        newSelected = [...safeSelected, value];
+        console.log('🔧 MultiSelect - Adding item:', value);
+      }
+      
+      handleSelectionChange(newSelected);
+    } catch (error) {
+      console.error('❌ MultiSelect - Error in handleSelect:', error);
     }
-    
-    handleSelectionChange(newSelected);
   }, [safeSelected, handleSelectionChange]);
 
   const handleRemove = useCallback((value: string) => {
@@ -132,14 +180,30 @@ export function MultiSelect({
       return;
     }
     
-    const newSelected = safeSelected.filter((item) => item !== value);
-    handleSelectionChange(newSelected);
+    try {
+      const newSelected = safeSelected.filter((item) => item !== value);
+      handleSelectionChange(newSelected);
+    } catch (error) {
+      console.error('❌ MultiSelect - Error in handleRemove:', error);
+    }
   }, [safeSelected, handleSelectionChange]);
 
-  // Logs de debug para renderização
-  console.log('🔧 MultiSelect render - options count:', safeOptions.length);
-  console.log('🔧 MultiSelect render - selected count:', safeSelected.length);
-  console.log('🔧 MultiSelect render - isProcessing:', isProcessing);
+  // Validação final antes de renderizar
+  if (safeOptions.length === 0 && options.length > 0) {
+    return (
+      <div className={cn("w-full p-4 border rounded-md bg-yellow-50 text-yellow-700", className)}>
+        <p className="text-sm font-medium">Aviso: Nenhuma opção válida encontrada</p>
+        <p className="text-xs mt-1">Verifique se as opções têm value e label válidos</p>
+      </div>
+    );
+  }
+
+  console.log('🔧 MultiSelect final render - counts:', {
+    safeOptionsCount: safeOptions.length,
+    safeSelectedCount: safeSelected.length,
+    selectedOptionsCount: selectedOptions.length,
+    isProcessing
+  });
 
   return (
     <div className={cn("w-full", className)}>
