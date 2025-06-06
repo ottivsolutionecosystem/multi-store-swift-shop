@@ -1,18 +1,25 @@
-
 import { CategoryRepository } from '@/repositories/CategoryRepository';
-import { ProductRepository } from '@/repositories/ProductRepository';
 import { ManufacturerRepository } from '@/repositories/ManufacturerRepository';
+import { ProductRepository } from '@/repositories/ProductRepository';
+import { VariantRepository } from '@/repositories/VariantRepository';
+import { VariantValueRepository } from '@/repositories/VariantValueRepository';
+import { VariantCombinationRepository } from '@/repositories/VariantCombinationRepository';
+import { VariantGroupPriceRepository } from '@/repositories/VariantGroupPriceRepository';
 import { PromotionRepository } from '@/repositories/PromotionRepository';
 import { StoreSettingsRepository } from '@/repositories/StoreSettingsRepository';
 import { CategoryService } from '@/services/CategoryService';
 import { ProductService } from '@/services/ProductService';
 import { ManufacturerService } from '@/services/ManufacturerService';
+import { VariantService } from '@/services/VariantService';
+import { CombinationService } from '@/services/CombinationService';
+import { GroupPricingService } from '@/services/GroupPricingService';
+import { VariantManagementService } from '@/services/VariantManagementService';
+import { ProductQueryService } from '@/services/ProductQueryService';
 import { PromotionService } from '@/services/PromotionService';
+import { ProductPromotionService } from '@/services/ProductPromotionService';
 import { StoreSettingsService } from '@/services/StoreSettingsService';
 import { ProfileService } from '@/services/ProfileService';
-
-import { VariantRepository } from '@/repositories/VariantRepository';
-import { VariantService } from '@/services/VariantService';
+import { UserService } from '@/services/UserService';
 
 export function createServices(storeId: string) {
   console.log('Creating services for storeId:', storeId);
@@ -21,26 +28,42 @@ export function createServices(storeId: string) {
   const categoryRepository = new CategoryRepository(storeId);
   const productRepository = new ProductRepository(storeId);
   const manufacturerRepository = new ManufacturerRepository(storeId);
+  const variantRepository = new VariantRepository(storeId);
+  const variantValueRepository = new VariantValueRepository(storeId);
+  const variantCombinationRepository = new VariantCombinationRepository(storeId);
+  const variantGroupPriceRepository = new VariantGroupPriceRepository(storeId);
   const promotionRepository = new PromotionRepository(storeId);
   const storeSettingsRepository = new StoreSettingsRepository(storeId);
-  const variantRepository = new VariantRepository(storeId);
-
+  
   // Services
   const categoryService = new CategoryService(categoryRepository);
-  const productService = new ProductService(productRepository);
+  const productService = new ProductService(productRepository, categoryRepository);
   const manufacturerService = new ManufacturerService(manufacturerRepository);
+  const variantService = new VariantService(variantRepository, variantValueRepository);
+  const combinationService = new CombinationService(variantCombinationRepository);
+  const groupPricingService = new GroupPricingService(variantGroupPriceRepository);
+  const variantManagementService = new VariantManagementService(variantService, combinationService, groupPricingService);
+  const productQueryService = new ProductQueryService(productRepository, categoryRepository);
   const promotionService = new PromotionService(promotionRepository);
+  const productPromotionService = new ProductPromotionService(productRepository, promotionRepository);
   const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
-  const variantService = new VariantService(variantRepository);
-  const profileService = new ProfileService();
-
+  
+  // Add UserService
+  const userService = new UserService(storeId);
+  
   return {
     categoryService,
     productService,
     manufacturerService,
-    promotionService,
-    storeSettingsService,
     variantService,
-    profileService
+    combinationService,
+    groupPricingService,
+    variantManagementService,
+    productQueryService,
+    promotionService,
+    productPromotionService,
+    storeSettingsService,
+    userService, // Add to exports
+    profileService: new ProfileService(), // Keep for backward compatibility
   };
 }
