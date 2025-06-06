@@ -1,5 +1,4 @@
 
-
 import { CategoryRepository } from '@/repositories/CategoryRepository';
 import { ManufacturerRepository } from '@/repositories/ManufacturerRepository';
 import { ProductRepository } from '@/repositories/ProductRepository';
@@ -44,7 +43,7 @@ export function createServices(storeId: string) {
   const variantService = new VariantService(variantRepository);
   const combinationService = new CombinationService(variantRepository);
   const groupPricingService = new GroupPricingService(variantRepository);
-  const variantManagementService = new VariantManagementService(variantService);
+  const variantManagementService = new VariantManagementService(variantRepository);
   const productQueryService = new ProductQueryService(storeId);
   const promotionService = new PromotionService(promotionRepository);
   const productPromotionService = new ProductPromotionService(storeId);
