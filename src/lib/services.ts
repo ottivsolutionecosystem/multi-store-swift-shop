@@ -45,9 +45,9 @@ export function createServices(storeId: string) {
   const combinationService = new CombinationService(variantRepository);
   const groupPricingService = new GroupPricingService(variantRepository);
   const variantManagementService = new VariantManagementService(variantService);
-  const productQueryService = new ProductQueryService(productRepository);
+  const productQueryService = new ProductQueryService(storeId);
   const promotionService = new PromotionService(promotionRepository);
-  const productPromotionService = new ProductPromotionService(productRepository);
+  const productPromotionService = new ProductPromotionService(storeId);
   const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
   
   // Add UserService
