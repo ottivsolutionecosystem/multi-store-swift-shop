@@ -1,4 +1,5 @@
 
+
 import { CategoryRepository } from '@/repositories/CategoryRepository';
 import { ManufacturerRepository } from '@/repositories/ManufacturerRepository';
 import { ProductRepository } from '@/repositories/ProductRepository';
@@ -36,17 +37,17 @@ export function createServices(storeId: string) {
   const promotionRepository = new PromotionRepository(storeId);
   const storeSettingsRepository = new StoreSettingsRepository(storeId);
   
-  // Services
+  // Services - fix constructor arguments
   const categoryService = new CategoryService(categoryRepository);
-  const productService = new ProductService(productRepository, categoryRepository);
+  const productService = new ProductService(productRepository);
   const manufacturerService = new ManufacturerService(manufacturerRepository);
-  const variantService = new VariantService(variantRepository, variantValueRepository);
+  const variantService = new VariantService(variantRepository);
   const combinationService = new CombinationService(variantRepository);
   const groupPricingService = new GroupPricingService(variantRepository);
-  const variantManagementService = new VariantManagementService(variantService, combinationService, groupPricingService);
-  const productQueryService = new ProductQueryService(productRepository, categoryRepository);
+  const variantManagementService = new VariantManagementService(variantService);
+  const productQueryService = new ProductQueryService(productRepository);
   const promotionService = new PromotionService(promotionRepository);
-  const productPromotionService = new ProductPromotionService(productRepository, promotionRepository);
+  const productPromotionService = new ProductPromotionService(productRepository);
   const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
   
   // Add UserService
