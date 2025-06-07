@@ -48,19 +48,15 @@ export function createServices(storeId: string) {
   const promotionService = new PromotionService(promotionRepository);
   const orderService = new OrderService(orderRepository);
   const userService = new UserService(userRepository);
-  const profileService = new ProfileService(userRepository);
+  const profileService = new ProfileService(); // ProfileService doesn't take parameters
   const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
   const manufacturerService = new ManufacturerService(manufacturerRepository);
-  const variantService = new VariantService(variantRepository, variantValueRepository);
-  const variantManagementService = new VariantManagementService(
-    variantRepository,
-    variantValueRepository,
-    variantCombinationRepository
-  );
-  const combinationService = new CombinationService(variantCombinationRepository, variantValueRepository);
-  const groupPricingService = new GroupPricingService(variantGroupPriceRepository);
-  const productPromotionService = new ProductPromotionService(productRepository, promotionRepository);
-  const productQueryService = new ProductQueryService(productRepository, categoryRepository, promotionRepository);
+  const variantService = new VariantService(variantRepository); // VariantService takes only VariantRepository
+  const variantManagementService = new VariantManagementService(variantRepository); // Takes only VariantRepository
+  const combinationService = new CombinationService(variantRepository); // Takes only VariantRepository
+  const groupPricingService = new GroupPricingService(variantRepository); // Takes VariantRepository, not VariantGroupPriceRepository
+  const productPromotionService = new ProductPromotionService(productRepository); // Takes only ProductRepository
+  const productQueryService = new ProductQueryService(productRepository); // Takes only ProductRepository
 
   return {
     productService,
