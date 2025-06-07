@@ -4,21 +4,26 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Button } from '@/components/ui/button';
 import { ProductWithPromotion } from '@/types/product';
 import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { useCart } from '@/contexts/CartContext';
+import { useToast } from '@/hooks/use-toast';
 import { ProductImage } from './ProductImage';
 import { ProductPromotionBadge } from './ProductPromotionBadge';
 import { ProductCategoryBreadcrumb } from './ProductCategoryBreadcrumb';
 import { ProductPrice } from './ProductPrice';
+import { Check, Plus } from 'lucide-react';
 
 interface ProductCardProps {
   product: ProductWithPromotion;
-  onAddToCart?: (product: ProductWithPromotion & { finalPrice?: number }) => void;
 }
 
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export function ProductCard({ product }: ProductCardProps) {
   const { storeSettings } = useStoreSettings();
+  const { addItem, getItemQuantity } = useCart();
+  const { toast } = useToast();
   
   const showDescription = storeSettings?.show_description ?? true;
   const showStockQuantity = storeSettings?.show_stock_quantity ?? true;
+  const itemQuantity = getItemQuantity(product.id);
 
   const handleAddToCartClick = () => {
     // Calcular o preço final correto para o carrinho
@@ -39,12 +44,28 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       finalPrice = product.price;
     }
     
-    const productForCart = {
-      ...product,
-      finalPrice,
-    };
+    addItem(product, finalPrice);
     
-    onAddToCart?.(productForCart);
+    // Calcular informação da promoção para o toast
+    let promotionInfo = '';
+    if (product.promotion) {
+      if (product.promotion.compare_at_price) {
+        promotionInfo = ' (Oferta Especial)';
+      } else {
+        const typeLabel = {
+          'global': 'Promoção Global',
+          'category': 'Promoção de Categoria',
+          'product': 'Promoção do Produto'
+        }[product.promotion.promotion_type] || 'Promoção';
+        
+        promotionInfo = ` (${typeLabel})`;
+      }
+    }
+
+    toast({
+      title: 'Produto adicionado',
+      description: `${product.name} foi adicionado ao carrinho por ${finalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}${promotionInfo}`,
+    });
   };
 
   return (
@@ -80,8 +101,21 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           className="w-full" 
           onClick={handleAddToCartClick}
           disabled={product.stock_quantity === 0}
+          variant={itemQuantity > 0 ? "secondary" : "default"}
         >
-          {product.stock_quantity === 0 ? 'Fora de Estoque' : 'Adicionar ao Carrinho'}
+          {product.stock_quantity === 0 ? (
+            'Fora de Estoque'
+          ) : itemQuantity > 0 ? (
+            <>
+              <Check className="h-4 w-4 mr-2" />
+              No Carrinho ({itemQuantity})
+            </>
+          ) : (
+            <>
+              <Plus className="h-4 w-4 mr-2" />
+              Adicionar ao Carrinho
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>
