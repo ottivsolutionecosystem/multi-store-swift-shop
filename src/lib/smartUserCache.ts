@@ -1,7 +1,7 @@
 
 import { User } from '@supabase/supabase-js';
 import { Profile } from '@/types/auth';
-import { cache } from '@/lib/cache';
+import { getCache } from '@/lib/cache';
 
 interface CachedUserData {
   user: User | null;
@@ -65,8 +65,9 @@ export class SmartUserCache {
       };
       
       const userKey = this.getUserKey(user.id);
+      const cache = await getCache();
       
-      // Set in Redis
+      // Set in cache
       await cache.set(userKey, userData, this.DEFAULT_TTL);
       
       // Set in memory cache
@@ -89,12 +90,13 @@ export class SmartUserCache {
         return memoryData.user;
       }
       
-      // Try Redis cache
+      // Try cache
+      const cache = await getCache();
       const cachedData = await cache.get<CachedUserData>(userKey);
       if (cachedData) {
         // Update memory cache
         this.setMemoryCache(userKey, cachedData);
-        console.log('SmartUserCache - User from Redis cache');
+        console.log('SmartUserCache - User from cache');
         return cachedData.user;
       }
       
@@ -116,8 +118,9 @@ export class SmartUserCache {
       };
       
       const profileKey = this.getProfileKey(userId);
+      const cache = await getCache();
       
-      // Set in Redis
+      // Set in cache
       await cache.set(profileKey, profileData, this.PROFILE_TTL);
       
       // Set in memory cache
@@ -140,12 +143,13 @@ export class SmartUserCache {
         return memoryData.profile;
       }
       
-      // Try Redis cache
+      // Try cache
+      const cache = await getCache();
       const cachedData = await cache.get<CachedUserData>(profileKey);
       if (cachedData) {
         // Update memory cache
         this.setMemoryCache(profileKey, cachedData);
-        console.log('SmartUserCache - Profile from Redis cache');
+        console.log('SmartUserCache - Profile from cache');
         return cachedData.profile;
       }
       
@@ -168,8 +172,9 @@ export class SmartUserCache {
       };
       
       const userKey = this.getUserKey(user.id);
+      const cache = await getCache();
       
-      // Set in Redis
+      // Set in cache
       await cache.set(userKey, userData, this.DEFAULT_TTL);
       
       // Set in memory cache
@@ -200,12 +205,13 @@ export class SmartUserCache {
         };
       }
       
-      // Try Redis cache
+      // Try cache
+      const cache = await getCache();
       const cachedData = await cache.get<CachedUserData>(userKey);
       if (cachedData) {
         // Update memory cache
         this.setMemoryCache(userKey, cachedData);
-        console.log('SmartUserCache - User data from Redis cache');
+        console.log('SmartUserCache - User data from cache');
         return {
           user: cachedData.user,
           profile: cachedData.profile
@@ -224,8 +230,9 @@ export class SmartUserCache {
     try {
       const userKey = this.getUserKey(userId);
       const profileKey = this.getProfileKey(userId);
+      const cache = await getCache();
       
-      // Clear from Redis
+      // Clear from cache
       await Promise.all([
         cache.del(userKey),
         cache.del(profileKey)
@@ -246,7 +253,8 @@ export class SmartUserCache {
       // Clear memory cache
       this.memoryCache.clear();
       
-      // Clear Redis cache (this clears all cache, use with caution)
+      // Clear cache
+      const cache = await getCache();
       await cache.clear();
       
       console.log('SmartUserCache - All cache cleared');
@@ -258,7 +266,7 @@ export class SmartUserCache {
   static getCacheStats(): { memoryKeys: number; redisConnected: boolean } {
     return {
       memoryKeys: this.memoryCache.size,
-      redisConnected: true // TODO: implement Redis connection check
+      redisConnected: true // TODO: implement connection check
     };
   }
 }
