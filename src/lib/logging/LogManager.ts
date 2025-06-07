@@ -4,6 +4,7 @@ import { LogConfig, LogLevel } from './interfaces/types';
 import { ConsoleLogProvider } from './providers/ConsoleLogProvider';
 import { SentryLogProvider } from './providers/SentryLogProvider';
 import { CompositeLogProvider } from './providers/CompositeLogProvider';
+import { getLoggingConfig } from '@/config';
 
 export class LogManager {
   private static instance: LogManager;
@@ -18,7 +19,16 @@ export class LogManager {
   public static getInstance(config?: LogConfig): LogManager {
     if (!LogManager.instance) {
       if (!config) {
-        throw new Error('LogManager requires config for initial setup');
+        // Use configuration from config file if no config provided
+        const appConfig = getLoggingConfig();
+        config = {
+          level: appConfig.level as LogLevel,
+          enableConsole: appConfig.enableConsole,
+          enableSentry: appConfig.enableSentry,
+          sentryDsn: appConfig.sentry.dsn,
+          environment: appConfig.sentry.environment,
+          sampling: appConfig.sentry.tracesSampleRate
+        };
       }
       LogManager.instance = new LogManager(config);
     }
@@ -34,7 +44,12 @@ export class LogManager {
 
     if (this.config.enableSentry && this.config.sentryDsn) {
       try {
-        providers.push(new SentryLogProvider(this.config.sentryDsn, this.config.environment));
+        const sentryConfig = getLoggingConfig().sentry;
+        providers.push(new SentryLogProvider(
+          sentryConfig.dsn, 
+          sentryConfig.environment,
+          sentryConfig.release
+        ));
       } catch (error) {
         console.error('Failed to initialize Sentry provider:', error);
       }

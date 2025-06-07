@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import StorePage from "./pages/StorePage";
 import AuthPage from "./pages/AuthPage";
 import AccountPage from "./pages/AccountPage";
@@ -25,35 +26,37 @@ const App = () => {
   console.log('App component loaded');
   
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <TenantProvider>
-            <AuthProvider>
-              <Routes>
-                <Route path="/" element={<StorePage />} />
-                <Route path="/auth" element={<AuthPage />} />
-                <Route path="/account" element={<AccountPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/admin/products" element={<ProductsPage />} />
-                <Route path="/admin/products/new" element={<ProductFormPage />} />
-                <Route path="/admin/products/:id/edit" element={<ProductFormPage />} />
-                <Route path="/admin/categories" element={<CategoriesPage />} />
-                <Route path="/admin/categories/new" element={<CategoryFormPage />} />
-                <Route path="/admin/categories/:id/edit" element={<CategoryFormPage />} />
-                <Route path="/admin/promotions" element={<PromotionsPage />} />
-                <Route path="/admin/promotions/new" element={<PromotionFormPage />} />
-                <Route path="/admin/promotions/:id/edit" element={<PromotionFormPage />} />
-                <Route path="/admin/store-settings" element={<StoreSettingsPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AuthProvider>
-          </TenantProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <TenantProvider>
+              <AuthProvider>
+                <Routes>
+                  <Route path="/" element={<StorePage />} />
+                  <Route path="/auth" element={<AuthPage />} />
+                  <Route path="/account" element={<AccountPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="/admin/products" element={<ProductsPage />} />
+                  <Route path="/admin/products/new" element={<ProductFormPage />} />
+                  <Route path="/admin/products/:id/edit" element={<ProductFormPage />} />
+                  <Route path="/admin/categories" element={<CategoriesPage />} />
+                  <Route path="/admin/categories/new" element={<CategoryFormPage />} />
+                  <Route path="/admin/categories/:id/edit" element={<CategoryFormPage />} />
+                  <Route path="/admin/promotions" element={<PromotionsPage />} />
+                  <Route path="/admin/promotions/new" element={<PromotionFormPage />} />
+                  <Route path="/admin/promotions/:id/edit" element={<PromotionFormPage />} />
+                  <Route path="/admin/store-settings" element={<StoreSettingsPage />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AuthProvider>
+            </TenantProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

@@ -1,5 +1,5 @@
 
-import * as Sentry from '@sentry/browser';
+import * as Sentry from '@sentry/react';
 import { LogProvider } from '../interfaces/LogProvider';
 import { LogEntry, LogLevel, LogContext } from '../interfaces/types';
 
@@ -7,29 +7,67 @@ export class SentryLogProvider implements LogProvider {
   private globalContext: LogContext = {};
   private initialized = false;
 
-  constructor(dsn: string, environment: string = 'development') {
-    this.initSentry(dsn, environment);
+  constructor(dsn: string, environment: string = 'development', release?: string) {
+    this.initSentry(dsn, environment, release);
   }
 
-  private initSentry(dsn: string, environment: string): void {
+  private initSentry(dsn: string, environment: string, release?: string): void {
     try {
       Sentry.init({
         dsn,
         environment,
+        release: release || process.env.VITE_APP_VERSION || 'unknown',
         integrations: [
           Sentry.browserTracingIntegration(),
+          Sentry.replayIntegration({
+            // Capture 10% of all sessions,
+            // plus always capture sessions with an error
+            sessionSampleRate: 0.1,
+            errorSampleRate: 1.0,
+          }),
         ],
-        tracesSampleRate: 0.1,
-        beforeSend: (event) => {
+        // Performance Monitoring
+        tracesSampleRate: environment === 'production' ? 0.1 : 1.0,
+        // Session Replay
+        replaysSessionSampleRate: environment === 'production' ? 0.1 : 0.1,
+        replaysOnErrorSampleRate: 1.0,
+        
+        beforeSend: (event, hint) => {
           // Filter out debug logs in production
           if (environment === 'production' && event.level === 'debug') {
             return null;
           }
+
+          // Filter out sensitive information
+          if (event.extra) {
+            // Remove any potential sensitive data
+            const sensitiveKeys = ['password', 'token', 'secret', 'key', 'authorization'];
+            Object.keys(event.extra).forEach(key => {
+              if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
+                delete event.extra![key];
+              }
+            });
+          }
+
+          // Log to console in development for debugging
+          if (environment === 'development') {
+            console.log('Sentry event:', event, hint);
+          }
+
           return event;
+        },
+
+        beforeBreadcrumb: (breadcrumb) => {
+          // Filter out noisy breadcrumbs
+          if (breadcrumb.category === 'console' && breadcrumb.level === 'debug') {
+            return null;
+          }
+          return breadcrumb;
         }
       });
+
       this.initialized = true;
-      console.log('Sentry initialized successfully');
+      console.log(`Sentry initialized successfully for ${environment} environment`);
     } catch (error) {
       console.error('Failed to initialize Sentry:', error);
       this.initialized = false;
@@ -42,22 +80,50 @@ export class SentryLogProvider implements LogProvider {
     const { level, message, context, error, metadata } = entry;
     const fullContext = { ...this.globalContext, ...context };
 
-    // Set Sentry context
-    Sentry.setContext('custom', {
-      ...fullContext,
-      ...metadata,
-      timestamp: entry.timestamp.toISOString()
-    });
+    // Set Sentry scope for this log entry
+    Sentry.withScope((scope) => {
+      // Set user context
+      if (fullContext.userId) {
+        scope.setUser({
+          id: fullContext.userId,
+          extra: {
+            storeId: fullContext.storeId,
+            sessionId: fullContext.sessionId
+          }
+        });
+      }
 
-    if (error) {
-      Sentry.captureException(error, {
-        level: this.mapLogLevelToSentryLevel(level),
-        extra: { message, ...metadata },
-        tags: { component: fullContext.component }
+      // Set tags for better filtering
+      scope.setTags({
+        component: fullContext.component || 'unknown',
+        storeId: fullContext.storeId || 'unknown',
+        logLevel: level
       });
-    } else {
-      Sentry.captureMessage(message, this.mapLogLevelToSentryLevel(level));
-    }
+
+      // Set extra context
+      scope.setContext('logEntry', {
+        timestamp: entry.timestamp.toISOString(),
+        ...fullContext,
+        ...metadata
+      });
+
+      // Set fingerprint for better grouping
+      if (fullContext.component && fullContext.action) {
+        scope.setFingerprint([fullContext.component, fullContext.action, level]);
+      }
+
+      if (error) {
+        scope.setLevel(this.mapLogLevelToSentryLevel(level));
+        Sentry.captureException(error, {
+          extra: { 
+            message,
+            ...metadata 
+          }
+        });
+      } else {
+        Sentry.captureMessage(message, this.mapLogLevelToSentryLevel(level));
+      }
+    });
   }
 
   private mapLogLevelToSentryLevel(level: LogLevel): Sentry.SeverityLevel {
@@ -127,6 +193,11 @@ export class SentryLogProvider implements LogProvider {
           sessionId: context.sessionId
         }
       });
+      
+      Sentry.setTags({
+        storeId: context.storeId || 'unknown',
+        component: context.component || 'unknown'
+      });
     }
   }
 
@@ -134,6 +205,7 @@ export class SentryLogProvider implements LogProvider {
     this.globalContext = {};
     if (this.initialized) {
       Sentry.setUser(null);
+      Sentry.setTags({});
     }
   }
 }

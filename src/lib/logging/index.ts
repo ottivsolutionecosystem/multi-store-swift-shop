@@ -2,22 +2,13 @@
 import { LogManager } from './LogManager';
 import { Logger } from './Logger';
 import { LogLevel, LogConfig } from './interfaces/types';
+import { getLoggingConfig } from '@/config';
 
-// Default configuration
-const getDefaultLogConfig = (): LogConfig => ({
-  level: process.env.NODE_ENV === 'production' ? LogLevel.INFO : LogLevel.DEBUG,
-  enableConsole: true,
-  enableSentry: process.env.NODE_ENV === 'production',
-  sentryDsn: process.env.SENTRY_DSN || 'https://4a66f38f73e916262444309d0f5ea784@o4509455574171648.ingest.us.sentry.io/4509455575351296',
-  environment: process.env.NODE_ENV || 'development',
-  sampling: 0.1
-});
-
-// Initialize the LogManager with default config
+// Initialize the LogManager with config from centralized configuration
 let logManager: LogManager;
 
 try {
-  logManager = LogManager.getInstance(getDefaultLogConfig());
+  logManager = LogManager.getInstance();
 } catch (error) {
   console.error('Failed to initialize LogManager:', error);
   // Create a minimal fallback
@@ -52,3 +43,6 @@ export { type LogProvider } from './interfaces/LogProvider';
 export { ConsoleLogProvider } from './providers/ConsoleLogProvider';
 export { SentryLogProvider } from './providers/SentryLogProvider';
 export { CompositeLogProvider } from './providers/CompositeLogProvider';
+
+// Export Sentry utilities for advanced usage
+export { captureException, captureMessage, setUser, setTag, setContext } from '@sentry/react';
