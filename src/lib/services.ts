@@ -37,10 +37,10 @@ export function createServices(storeId: string) {
   const userRepository = new UserRepository();
   const storeSettingsRepository = new StoreSettingsRepository(storeId);
   const manufacturerRepository = new ManufacturerRepository(storeId);
-  const variantRepository = new VariantRepository();
-  const variantValueRepository = new VariantValueRepository();
-  const variantCombinationRepository = new VariantCombinationRepository();
-  const variantGroupPriceRepository = new VariantGroupPriceRepository();
+  const variantRepository = new VariantRepository(storeId);
+  const variantValueRepository = new VariantValueRepository(storeId);
+  const variantCombinationRepository = new VariantCombinationRepository(storeId);
+  const variantGroupPriceRepository = new VariantGroupPriceRepository(storeId);
 
   // Services
   const productService = new ProductService(productRepository);

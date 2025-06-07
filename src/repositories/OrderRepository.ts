@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
-import { OrderWithItems, OrderItemWithDetails } from '@/types/order-management';
+import { OrderWithItems, OrderItemWithDetails, OrderStatus } from '@/types/order-management';
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderInsert = Database['public']['Tables']['orders']['Insert'];
@@ -67,6 +67,7 @@ export class OrderRepository {
     
     const ordersWithItems: OrderWithItems[] = (orders || []).map(order => ({
       ...order,
+      status: order.status as OrderStatus, // Type assertion to fix the status type
       items: (order.order_items || []).map(item => ({
         ...item,
         product: item.products || { id: '', name: 'Produto não encontrado', image_url: null },
