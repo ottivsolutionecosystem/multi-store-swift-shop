@@ -1,5 +1,6 @@
+
 import { UserRepository } from '@/repositories/UserRepository';
-import { UserCache } from '@/lib/userCache';
+import { SmartUserCache } from '@/lib/smartUserCache';
 import { User } from '@supabase/supabase-js';
 import { Profile } from '@/types/auth';
 
@@ -11,59 +12,27 @@ export class UserService {
   }
 
   async getCurrentUser(): Promise<User | null> {
-    console.log('UserService - getting current user');
-    
-    // Try cache first
-    const cached = UserCache.get();
-    if (cached && cached.user) {
-      console.log('UserService - returning cached user');
-      return cached.user;
-    }
-
-    // Fetch from repository if not cached
-    const user = await this.userRepository.getCurrentUser();
-    
-    // Update cache with user data (keep existing profile if any)
-    if (user) {
-      const existingProfile = cached?.profile || null;
-      UserCache.set(user, existingProfile);
-    }
-    
-    return user;
+    console.log('UserService - getting current user with smart cache');
+    return this.userRepository.getCurrentUser();
   }
 
   async getCurrentUserProfile(forceRefresh: boolean = false): Promise<Profile | null> {
     console.log('UserService - getting current user profile, forceRefresh:', forceRefresh);
     
-    // Check cache first (unless force refresh)
-    if (!forceRefresh) {
-      const cached = UserCache.get();
-      if (cached && cached.profile) {
-        console.log('UserService - returning cached profile');
-        return cached.profile;
+    if (forceRefresh) {
+      // If force refresh, get user and invalidate their cache first
+      const user = await this.getCurrentUser();
+      if (user) {
+        await SmartUserCache.invalidateUser(user.id);
       }
     }
-
-    // Fetch from repository
-    const profile = await this.userRepository.getCurrentUserProfile();
     
-    // Update cache
-    if (profile) {
-      const user = await this.getCurrentUser();
-      UserCache.set(user, profile);
-    }
-    
-    return profile;
+    return this.userRepository.getCurrentUserProfile();
   }
 
   async updateProfile(updates: any): Promise<Profile> {
     console.log('UserService - updating profile');
-    const updatedProfile = await this.userRepository.updateProfile(updates);
-    
-    // Update cache with new profile data
-    UserCache.updateProfile(updatedProfile);
-    
-    return updatedProfile;
+    return this.userRepository.updateProfile(updates);
   }
 
   async ensureUserStoreAssociation(storeId: string): Promise<void> {
@@ -77,26 +46,23 @@ export class UserService {
   }
 
   async signIn(email: string, password: string) {
-    const result = await this.userRepository.signIn(email, password);
-    // Clear cache on new login
-    UserCache.clear();
-    return result;
+    return this.userRepository.signIn(email, password);
   }
 
   async signUp(email: string, password: string, fullName?: string) {
-    const result = await this.userRepository.signUp(email, password, fullName);
-    // Clear cache on new signup
-    UserCache.clear();
-    return result;
+    return this.userRepository.signUp(email, password, fullName);
   }
 
   async signOut() {
-    await this.userRepository.signOut();
-    // Clear cache on logout
-    UserCache.clear();
+    return this.userRepository.signOut();
   }
 
   clearCache(): void {
-    UserCache.clear();
+    console.log('UserService - clearing cache');
+    SmartUserCache.clearAll();
+  }
+
+  getCacheStats() {
+    return SmartUserCache.getCacheStats();
   }
 }
