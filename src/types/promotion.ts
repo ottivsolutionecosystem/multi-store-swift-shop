@@ -13,7 +13,7 @@ export const promotionSchema = z.object({
   product_ids: z.array(z.string()).optional(),
   category_ids: z.array(z.string()).optional(),
   minimum_purchase_amount: z.number().min(0, 'Valor deve ser positivo').optional(),
-  usage_limit: z.number().min(1, 'Limite deve ser maior que 0').optional(),
+  usage_limit: z.number().min(1, 'Limite deve ser maior que 0').optional().nullable(),
   usage_limit_per_customer: z.number().min(1, 'Limite deve ser maior que 0').optional(),
   priority: z.number().min(0, 'Prioridade deve ser positiva').default(0),
   status: z.enum(['draft', 'scheduled', 'active', 'expired', 'inactive']).default('draft'),

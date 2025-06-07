@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UseFormRegister, UseFormSetValue } from 'react-hook-form';
+import { UseFormRegister, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,9 +9,24 @@ import { PromotionFormData } from '@/types/promotion';
 interface PromotionAdvancedSectionProps {
   register: UseFormRegister<PromotionFormData>;
   setValue: UseFormSetValue<PromotionFormData>;
+  watch: UseFormWatch<PromotionFormData>;
 }
 
-export function PromotionAdvancedSection({ register, setValue }: PromotionAdvancedSectionProps) {
+export function PromotionAdvancedSection({ register, setValue, watch }: PromotionAdvancedSectionProps) {
+  const usageLimit = watch('usage_limit');
+
+  const handleUsageLimitChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '' || value === '0') {
+      setValue('usage_limit', null);
+    } else {
+      const numValue = parseInt(value, 10);
+      if (!isNaN(numValue) && numValue > 0) {
+        setValue('usage_limit', numValue);
+      }
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -59,11 +74,12 @@ export function PromotionAdvancedSection({ register, setValue }: PromotionAdvanc
               id="usage_limit"
               type="number"
               min="1"
-              {...register('usage_limit', { valueAsNumber: true })}
-              placeholder="Ilimitado"
+              value={usageLimit || ''}
+              onChange={handleUsageLimitChange}
+              placeholder="Deixe vazio para ilimitado"
             />
             <p className="text-sm text-gray-500">
-              Número máximo de usos da promoção
+              Quantas vezes a promoção pode ser usada no total (deixe vazio para ilimitado)
             </p>
           </div>
 
@@ -85,6 +101,7 @@ export function PromotionAdvancedSection({ register, setValue }: PromotionAdvanc
         <div className="p-3 bg-blue-50 rounded-lg">
           <p className="text-sm text-blue-700">
             <strong>Dica:</strong><br />
+            • <strong>Data e Hora</strong>: Você pode programar promoções para horários específicos (ex: início às 08:00)<br />
             • <strong>Valor Mínimo</strong>: O carrinho deve atingir este valor para a promoção ser válida<br />
             • <strong>Prioridade</strong>: Quando múltiplas promoções se aplicam, a de maior número tem preferência<br />
             • <strong>Limite Total</strong>: Quantas vezes a promoção pode ser usada no total (deixe vazio para ilimitado)<br />

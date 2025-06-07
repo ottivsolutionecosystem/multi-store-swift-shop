@@ -66,7 +66,11 @@ export function PromotionForm({ promotionId, onSuccess }: PromotionFormProps) {
         categories={categories}
       />
       
-      <PromotionAdvancedSection register={register} setValue={setValue} />
+      <PromotionAdvancedSection 
+        register={register} 
+        setValue={setValue} 
+        watch={watch}
+      />
       
       <PromotionFormActions 
         isLoading={isLoading} 

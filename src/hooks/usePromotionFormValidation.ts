@@ -40,7 +40,8 @@ export function usePromotionFormValidation() {
     console.log('🔧 usePromotionFormValidation - Final submission data:', {
       productIds,
       categoryIds,
-      promotionType: data.promotion_type
+      promotionType: data.promotion_type,
+      usageLimit: data.usage_limit
     });
 
     return {
