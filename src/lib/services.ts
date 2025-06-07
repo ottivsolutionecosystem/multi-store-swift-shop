@@ -34,7 +34,7 @@ export function createServices(storeId: string) {
   const categoryRepository = new CategoryRepository(storeId);
   const promotionRepository = new PromotionRepository(storeId);
   const orderRepository = new OrderRepository(storeId);
-  const userRepository = new UserRepository();
+  const userRepository = new UserRepository(storeId);
   const storeSettingsRepository = new StoreSettingsRepository(storeId);
   const manufacturerRepository = new ManufacturerRepository(storeId);
   const variantRepository = new VariantRepository(storeId);
