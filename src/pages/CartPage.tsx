@@ -51,7 +51,6 @@ export default function CartPage() {
                       <ProductImage 
                         imageUrl={item.product.image_url} 
                         name={item.product.name}
-                        className="w-full h-full object-cover rounded-md"
                       />
                     </div>
                     
