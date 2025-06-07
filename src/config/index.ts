@@ -12,23 +12,13 @@ export interface SupabaseConfig {
   anonKey: string;
 }
 
-export interface SentryConfig {
-  dsn: string;
-  environment: string;
-  release?: string;
-  org?: string;
-  project?: string;
-  tracesSampleRate: number;
-  replaysSessionSampleRate: number;
-  replaysOnErrorSampleRate: number;
-  enableUserFeedback: boolean;
-}
-
 export interface LoggingConfig {
   level: 'debug' | 'info' | 'warn' | 'error';
   enableConsole: boolean;
   enableSentry: boolean;
-  sentry: SentryConfig;
+  sentryDsn: string;
+  environment: string;
+  sampling: number;
 }
 
 export interface AppConfig {
@@ -55,17 +45,9 @@ export const config: AppConfig = {
     level: (process.env.LOG_LEVEL as any) || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
     enableConsole: process.env.ENABLE_CONSOLE_LOGS !== 'false',
     enableSentry: process.env.ENABLE_SENTRY === 'true' || process.env.NODE_ENV === 'production',
-    sentry: {
-      dsn: process.env.SENTRY_DSN || 'https://4a66f38f73e916262444309d0f5ea784@o4509455574171648.ingest.us.sentry.io/4509455575351296',
-      environment: process.env.NODE_ENV || 'development',
-      release: process.env.VITE_APP_VERSION || undefined,
-      org: process.env.SENTRY_ORG || 'ottiv',
-      project: process.env.SENTRY_PROJECT || 'plugashop',
-      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      replaysSessionSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 0.1,
-      replaysOnErrorSampleRate: 1.0,
-      enableUserFeedback: process.env.NODE_ENV === 'production',
-    }
+    sentryDsn: process.env.SENTRY_DSN || 'https://0bf18f373ec2cace6602ac4f7a794e2a@o4509455574171648.ingest.us.sentry.io/4509455789522944',
+    environment: process.env.NODE_ENV || 'development',
+    sampling: parseFloat(process.env.SENTRY_SAMPLING || '0.1'),
   },
 };
 
@@ -77,6 +59,3 @@ export const getSupabaseConfig = (): SupabaseConfig => config.supabase;
 
 // Helper para obter configuração de Logging
 export const getLoggingConfig = (): LoggingConfig => config.logging;
-
-// Helper para obter configuração do Sentry
-export const getSentryConfig = (): SentryConfig => config.logging.sentry;
