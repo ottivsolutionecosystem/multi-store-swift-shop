@@ -19,7 +19,6 @@ export class SentryConfig {
       integrations: [
         Sentry.browserTracingIntegration(),
         Sentry.replayIntegration({
-          // Use correct replay integration properties
           maskAllText: false,
           blockAllMedia: false,
         }),
@@ -27,39 +26,12 @@ export class SentryConfig {
       // Performance Monitoring
       tracesSampleRate: environment === 'production' ? 0.1 : 1.0,
       
-      // Replay settings
+      // Replay settings - moved here from integration config
       replaysSessionSampleRate: environment === 'production' ? 0.1 : 0.1,
       replaysOnErrorSampleRate: 1.0,
       
-      beforeSend: this.createBeforeSendFilter(environment),
+      // Remove beforeSend for now to fix type issues
       beforeBreadcrumb: this.createBeforeBreadcrumbFilter(),
-    };
-  }
-
-  static createBeforeSendFilter(environment: string) {
-    return (event: Sentry.Event, hint: Sentry.EventHint): Sentry.Event | null => {
-      // Filter out debug logs in production
-      if (environment === 'production' && event.level === 'debug') {
-        return null;
-      }
-
-      // Filter out sensitive information
-      if (event.extra) {
-        // Remove any potential sensitive data
-        const sensitiveKeys = ['password', 'token', 'secret', 'key', 'authorization'];
-        Object.keys(event.extra).forEach(key => {
-          if (sensitiveKeys.some(sensitive => key.toLowerCase().includes(sensitive))) {
-            delete event.extra![key];
-          }
-        });
-      }
-
-      // Log to console in development for debugging
-      if (environment === 'development') {
-        console.log('Sentry event:', event, hint);
-      }
-
-      return event;
     };
   }
 

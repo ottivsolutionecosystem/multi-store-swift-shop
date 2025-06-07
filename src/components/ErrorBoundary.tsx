@@ -5,15 +5,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ErrorBoundaryFallbackProps {
-  error: unknown;
+  error: Error;
   componentStack: string;
   eventId: string;
   resetError(): void;
 }
 
 const ErrorBoundaryFallback = ({ error, resetError }: ErrorBoundaryFallbackProps) => {
-  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-  const errorStack = error instanceof Error ? error.stack : '';
+  const errorMessage = error.message || 'Unknown error occurred';
+  const errorStack = error.stack || '';
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -62,7 +62,10 @@ export const ErrorBoundary = Sentry.withErrorBoundary(
     fallback: ErrorBoundaryFallback,
     beforeCapture: (scope, error, errorInfo) => {
       scope.setTag('errorBoundary', true);
-      scope.setContext('errorInfo', errorInfo);
+      scope.setContext('errorInfo', {
+        componentStack: errorInfo.componentStack,
+        errorBoundary: true
+      });
     }
   }
 );
