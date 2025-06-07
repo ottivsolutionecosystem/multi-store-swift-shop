@@ -19,12 +19,17 @@ export class SentryConfig {
       integrations: [
         Sentry.browserTracingIntegration(),
         Sentry.replayIntegration({
-          // Remove sessionSampleRate and use correct property names
-          errorSampleRate: 1.0,
+          // Use correct replay integration properties
+          maskAllText: false,
+          blockAllMedia: false,
         }),
       ],
       // Performance Monitoring
       tracesSampleRate: environment === 'production' ? 0.1 : 1.0,
+      
+      // Replay settings
+      replaysSessionSampleRate: environment === 'production' ? 0.1 : 0.1,
+      replaysOnErrorSampleRate: 1.0,
       
       beforeSend: this.createBeforeSendFilter(environment),
       beforeBreadcrumb: this.createBeforeBreadcrumbFilter(),
