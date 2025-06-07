@@ -1,4 +1,5 @@
 
+
 // Exemplo de como migrar console.log para o novo sistema
 // Este arquivo serve como referência para a migração gradual
 
@@ -16,7 +17,7 @@ const userServiceLogger = createLogger({ component: 'UserService' });
 await userServiceLogger.info('Getting current user with smart cache');
 
 // Para erros
-await userServiceLogger.error('Error updating profile', error, { action: 'updateProfile' });
+await userServiceLogger.error('Error updating profile', new Error('Sample error'), { action: 'updateProfile' });
 
 // Para warnings
 await userServiceLogger.warn('Cache miss, fetching from database', { cache: 'user' });
@@ -31,8 +32,8 @@ await contextLogger.info('User action completed', { action: 'purchase' });
 // Exemplos de migration helpers (para facilitar a transição)
 export const migrateConsole = {
   log: (message: string, ...args: any[]) => logger.info(message, { originalArgs: args }),
-  error: (message: string, error?: any, ...args: any[]) => 
-    logger.error(message, error instanceof Error ? error : new Error(String(error)), { originalArgs: args }),
+  error: (message: string, errorObj?: any, ...args: any[]) => 
+    logger.error(message, errorObj instanceof Error ? errorObj : new Error(String(errorObj)), { originalArgs: args }),
   warn: (message: string, ...args: any[]) => logger.warn(message, { originalArgs: args }),
   debug: (message: string, ...args: any[]) => logger.debug(message, { originalArgs: args }),
   info: (message: string, ...args: any[]) => logger.info(message, { originalArgs: args }),
@@ -40,3 +41,4 @@ export const migrateConsole = {
 
 // Para usar durante a migração gradual:
 // const console = migrateConsole; // sobrescreve temporariamente
+
