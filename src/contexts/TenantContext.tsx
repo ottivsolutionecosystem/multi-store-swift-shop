@@ -23,28 +23,36 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   useEffect(() => {
     const loadStore = async () => {
+      console.log('TenantProvider - Starting to load store...');
+      
       try {
-        console.log('Loading store for tenant...');
+        setLoading(true);
         const currentStore = await getCurrentStore();
-        console.log('Store loaded:', currentStore);
-        setStore(currentStore);
-      } catch (error) {
-        console.error('Error loading store:', error);
-        // Para desenvolvimento, vamos criar uma store padrão se não encontrar
-        if (!store) {
-          console.log('Creating fallback store for development');
-          const fallbackStore: Store = {
-            id: 'bb9e7e18-b166-4fb7-8f73-e431400dfd87', // ID da store do profile
-            name: 'Demo Store',
-            domain: window.location.host,
-            custom_domain: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-          setStore(fallbackStore);
+        
+        if (currentStore) {
+          console.log('TenantProvider - Store loaded successfully:', currentStore);
+          setStore(currentStore);
+        } else {
+          console.error('TenantProvider - No store returned from getCurrentStore');
         }
+      } catch (error) {
+        console.error('TenantProvider - Error loading store:', error);
+        
+        // Em caso de erro, ainda assim criar uma store fallback
+        const errorFallbackStore: Store = {
+          id: 'bb9e7e18-b166-4fb7-8f73-e431400dfd87',
+          name: 'Demo Store (Error Fallback)',
+          domain: window.location?.host || 'unknown',
+          custom_domain: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        
+        console.log('TenantProvider - Using error fallback store:', errorFallbackStore);
+        setStore(errorFallbackStore);
       } finally {
         setLoading(false);
+        console.log('TenantProvider - Loading completed');
       }
     };
 
@@ -57,7 +65,7 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     loading,
   };
 
-  console.log('TenantContext value:', value);
+  console.log('TenantProvider - Current context value:', value);
 
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>;
 };
