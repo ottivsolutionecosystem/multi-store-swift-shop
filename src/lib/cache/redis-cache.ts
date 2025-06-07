@@ -1,6 +1,7 @@
 
 import { CacheProvider } from './cache-provider';
 import Redis from 'ioredis';
+import { getRedisConfig } from '@/config';
 
 let client: Redis | null = null;
 
@@ -8,13 +9,15 @@ function createRedisClient(): Redis {
   if (client) return client;
   
   try {
+    const redisConfig = getRedisConfig();
+    
     client = new Redis({
-      host: 'redis-12517.crce196.sa-east-1-2.ec2.redns.redis-cloud.com',
-      port: 12517,
-      maxRetriesPerRequest: 3,
-      lazyConnect: true,
-      connectTimeout: 10000,
-      commandTimeout: 5000,
+      host: redisConfig.host,
+      port: redisConfig.port,
+      maxRetriesPerRequest: redisConfig.maxRetriesPerRequest,
+      lazyConnect: redisConfig.lazyConnect,
+      connectTimeout: redisConfig.connectTimeout,
+      commandTimeout: redisConfig.commandTimeout,
     });
 
     client.on('error', (err) => {
