@@ -11,7 +11,6 @@ function createRedisClient(): Redis {
     client = new Redis({
       host: 'redis-12517.crce196.sa-east-1-2.ec2.redns.redis-cloud.com',
       port: 12517,
-      retryDelayOnFailover: 100,
       maxRetriesPerRequest: 3,
       lazyConnect: true,
       connectTimeout: 10000,
