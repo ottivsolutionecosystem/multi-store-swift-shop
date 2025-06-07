@@ -52,7 +52,7 @@ export const config: AppConfig = {
   },
   logging: {
     level: (process.env.LOG_LEVEL as any) || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
-    enableConsole: process.env.ENABLE_CONSOLE_LOGS !== 'false',
+    enableConsole: process.env.ENABLE_CONSOLE_LOGS !== 'true',
     enableSentry: process.env.ENABLE_SENTRY === 'true' || process.env.NODE_ENV === 'production',
     sentryDsn: process.env.SENTRY_DSN || 'https://0bf18f373ec2cace6602ac4f7a794e2a@o4509455574171648.ingest.us.sentry.io/4509455789522944',
     environment: process.env.NODE_ENV || 'development',
