@@ -19,6 +19,7 @@ import CategoriesPage from "./pages/admin/CategoriesPage";
 import CategoryFormPage from "./pages/admin/CategoryFormPage";
 import PromotionsPage from "./pages/admin/PromotionsPage";
 import PromotionFormPage from "./pages/admin/PromotionFormPage";
+import OrdersPage from "./pages/admin/OrdersPage";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => {
                   <Route path="/admin/promotions" element={<PromotionsPage />} />
                   <Route path="/admin/promotions/new" element={<PromotionFormPage />} />
                   <Route path="/admin/promotions/:id/edit" element={<PromotionFormPage />} />
+                  <Route path="/admin/orders" element={<OrdersPage />} />
                   <Route path="/admin/store-settings" element={<StoreSettingsPage />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
