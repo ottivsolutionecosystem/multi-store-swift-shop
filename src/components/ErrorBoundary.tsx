@@ -63,7 +63,7 @@ export const ErrorBoundary = Sentry.withErrorBoundary(
     beforeCapture: (scope, error, errorInfo) => {
       scope.setTag('errorBoundary', true);
       scope.setContext('errorInfo', {
-        componentStack: errorInfo.componentStack,
+        componentStack: typeof errorInfo === 'string' ? errorInfo : errorInfo?.componentStack || 'unknown',
         errorBoundary: true
       });
     }
