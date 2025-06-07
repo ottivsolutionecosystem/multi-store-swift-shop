@@ -55,8 +55,8 @@ export function createServices(storeId: string) {
   const variantManagementService = new VariantManagementService(variantRepository); // Takes only VariantRepository
   const combinationService = new CombinationService(variantRepository); // Takes only VariantRepository
   const groupPricingService = new GroupPricingService(variantRepository); // Takes VariantRepository, not VariantGroupPriceRepository
-  const productPromotionService = new ProductPromotionService(productRepository); // Takes only ProductRepository
-  const productQueryService = new ProductQueryService(productRepository); // Takes only ProductRepository
+  const productPromotionService = new ProductPromotionService(storeId); // Takes storeId string parameter
+  const productQueryService = new ProductQueryService(storeId); // Takes storeId string parameter
 
   return {
     productService,
