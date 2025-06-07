@@ -28,7 +28,7 @@ export function usePromotionForm({ promotionId, onSuccess }: UsePromotionFormPro
   const form = useForm<PromotionFormData>({
     resolver: zodResolver(promotionSchema),
     defaultValues,
-    mode: 'onChange',
+    mode: 'onBlur', // Mudança: de 'onChange' para 'onBlur'
   });
 
   const { products, categories, isDataLoading } = usePromotionFormData({

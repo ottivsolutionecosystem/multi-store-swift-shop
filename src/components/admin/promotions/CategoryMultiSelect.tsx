@@ -14,6 +14,7 @@ interface CategoryMultiSelectProps {
 
 export function CategoryMultiSelect({ setValue, watch, errors, categories = [] }: CategoryMultiSelectProps) {
   const selectedCategoryIds = watch('category_ids') || [];
+  const formName = watch('name') || '';
 
   // Validação robusta das categorias
   const safeCategories = useMemo(() => {
@@ -98,11 +99,15 @@ export function CategoryMultiSelect({ setValue, watch, errors, categories = [] }
   // Validação antes de renderizar o MultiSelect
   const shouldRenderMultiSelect = categoryOptions.length > 0 && Array.isArray(safeSelectedCategoryIds);
 
+  // Só mostra erro se o formulário foi preenchido e não há categorias selecionadas
+  const shouldShowError = errors.category_ids && formName && formName.length > 0;
+
   console.log('🔧 CategoryMultiSelect render decision:', {
     shouldRender: shouldRenderMultiSelect,
     optionsCount: categoryOptions.length,
     selectedIsArray: Array.isArray(safeSelectedCategoryIds),
-    selectedCount: safeSelectedCategoryIds.length
+    selectedCount: safeSelectedCategoryIds.length,
+    shouldShowError
   });
 
   return (
@@ -122,7 +127,7 @@ export function CategoryMultiSelect({ setValue, watch, errors, categories = [] }
           {safeCategories.length === 0 ? 'Carregando categorias...' : 'Erro ao carregar seleção de categorias'}
         </div>
       )}
-      {errors.category_ids && (
+      {shouldShowError && (
         <p className="text-sm text-red-600">{errors.category_ids.message}</p>
       )}
       <p className="text-sm text-gray-500">

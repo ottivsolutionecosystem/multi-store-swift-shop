@@ -1,7 +1,7 @@
 
 import { z } from 'zod';
 
-// Schema atualizado com suporte a múltiplos produtos e categorias
+// Schema com validação condicional mais inteligente
 export const promotionSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
@@ -31,16 +31,30 @@ export const promotionSchema = z.object({
   message: 'Data de fim deve ser posterior à data de início',
   path: ['end_date'],
 }).refine((data) => {
-  if (data.promotion_type === 'product' && (!data.product_ids || data.product_ids.length === 0)) {
-    return false;
+  // Só valida se o tipo for 'product' E se não está em estado inicial (arrays vazios são aceitos no início)
+  if (data.promotion_type === 'product') {
+    // Se product_ids existe e é um array com pelo menos um elemento, está OK
+    // Se não existe ou é um array vazio, falha apenas se outros campos já foram preenchidos
+    const hasProductIds = data.product_ids && data.product_ids.length > 0;
+    const formSeemsFilled = data.name && data.name.length > 0;
+    
+    if (formSeemsFilled && !hasProductIds) {
+      return false;
+    }
   }
   return true;
 }, {
   message: 'Pelo menos um produto deve ser selecionado',
   path: ['product_ids'],
 }).refine((data) => {
-  if (data.promotion_type === 'category' && (!data.category_ids || data.category_ids.length === 0)) {
-    return false;
+  // Só valida se o tipo for 'category' E se não está em estado inicial
+  if (data.promotion_type === 'category') {
+    const hasCategoryIds = data.category_ids && data.category_ids.length > 0;
+    const formSeemsFilled = data.name && data.name.length > 0;
+    
+    if (formSeemsFilled && !hasCategoryIds) {
+      return false;
+    }
   }
   return true;
 }, {

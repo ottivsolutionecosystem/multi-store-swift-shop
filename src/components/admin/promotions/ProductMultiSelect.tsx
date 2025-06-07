@@ -14,6 +14,7 @@ interface ProductMultiSelectProps {
 
 export function ProductMultiSelect({ setValue, watch, errors, products = [] }: ProductMultiSelectProps) {
   const selectedProductIds = watch('product_ids') || [];
+  const formName = watch('name') || '';
 
   // Validação robusta dos produtos
   const safeProducts = useMemo(() => {
@@ -98,11 +99,15 @@ export function ProductMultiSelect({ setValue, watch, errors, products = [] }: P
   // Validação antes de renderizar o MultiSelect
   const shouldRenderMultiSelect = productOptions.length > 0 && Array.isArray(safeSelectedProductIds);
 
+  // Só mostra erro se o formulário foi preenchido e não há produtos selecionados
+  const shouldShowError = errors.product_ids && formName && formName.length > 0;
+
   console.log('🔧 ProductMultiSelect render decision:', {
     shouldRender: shouldRenderMultiSelect,
     optionsCount: productOptions.length,
     selectedIsArray: Array.isArray(safeSelectedProductIds),
-    selectedCount: safeSelectedProductIds.length
+    selectedCount: safeSelectedProductIds.length,
+    shouldShowError
   });
 
   return (
@@ -122,7 +127,7 @@ export function ProductMultiSelect({ setValue, watch, errors, products = [] }: P
           {safeProducts.length === 0 ? 'Carregando produtos...' : 'Erro ao carregar seleção de produtos'}
         </div>
       )}
-      {errors.product_ids && (
+      {shouldShowError && (
         <p className="text-sm text-red-600">{errors.product_ids.message}</p>
       )}
       <p className="text-sm text-gray-500">
