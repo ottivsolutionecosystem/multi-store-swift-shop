@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { OrderWithItems, OrderItemWithDetails } from '@/types/order-management';
 
 type Order = Database['public']['Tables']['orders']['Row'];
 type OrderInsert = Database['public']['Tables']['orders']['Insert'];
@@ -30,6 +31,50 @@ export class OrderRepository {
 
     if (error) throw error;
     return data || [];
+  }
+
+  async findAllWithItems(): Promise<OrderWithItems[]> {
+    console.log('OrderRepository - Finding all orders with items for store:', this.storeId);
+    
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (
+          *,
+          products (
+            id,
+            name,
+            image_url
+          ),
+          promotions (
+            id,
+            name,
+            discount_type,
+            discount_value
+          )
+        )
+      `)
+      .eq('store_id', this.storeId)
+      .order('created_at', { ascending: false });
+
+    if (ordersError) {
+      console.error('OrderRepository - Error fetching orders:', ordersError);
+      throw ordersError;
+    }
+
+    console.log('OrderRepository - Found orders:', orders?.length || 0);
+    
+    const ordersWithItems: OrderWithItems[] = (orders || []).map(order => ({
+      ...order,
+      items: (order.order_items || []).map(item => ({
+        ...item,
+        product: item.products || { id: '', name: 'Produto não encontrado', image_url: null },
+        promotion: item.promotions || null,
+      } as OrderItemWithDetails)),
+    }));
+
+    return ordersWithItems;
   }
 
   async findById(id: string): Promise<Order | null> {

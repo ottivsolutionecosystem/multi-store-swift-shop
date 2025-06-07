@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Tag, ShoppingCart, ArrowRight, Percent, Settings } from 'lucide-react';
+import { Package, Tag, ShoppingCart, ArrowRight, Percent, Settings, ClipboardList } from 'lucide-react';
 
 export default function AdminPage() {
   const { user, profile, loading } = useAuth();
@@ -39,6 +39,11 @@ export default function AdminPage() {
   const handleStoreSettingsClick = () => {
     console.log('Navegando para configurações...');
     navigate('/admin/store-settings');
+  };
+
+  const handleOrdersClick = () => {
+    console.log('Navegando para pedidos...');
+    navigate('/admin/orders');
   };
 
   if (loading) {
@@ -162,7 +167,7 @@ export default function AdminPage() {
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-purple-600" />
+                <ClipboardList className="h-5 w-5 text-purple-600" />
                 Pedidos
               </CardTitle>
               <CardDescription>
@@ -172,6 +177,30 @@ export default function AdminPage() {
             <CardContent>
               <p className="text-gray-600 mb-4">
                 Acompanhar status dos pedidos dos clientes.
+              </p>
+              <Button 
+                onClick={handleOrdersClick}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                Gerenciar Pedidos
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5 text-gray-400" />
+                Carrinho & Checkout
+              </CardTitle>
+              <CardDescription>
+                Sistema de compras
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Funcionalidade de carrinho e checkout dos clientes.
               </p>
               <Button 
                 variant="secondary"

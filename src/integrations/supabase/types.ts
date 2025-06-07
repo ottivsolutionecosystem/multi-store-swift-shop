@@ -150,6 +150,7 @@ export type Database = {
           order_id: string
           price: number
           product_id: string
+          promotion_id: string | null
           quantity: number
         }
         Insert: {
@@ -158,6 +159,7 @@ export type Database = {
           order_id: string
           price: number
           product_id: string
+          promotion_id?: string | null
           quantity?: number
         }
         Update: {
@@ -166,6 +168,7 @@ export type Database = {
           order_id?: string
           price?: number
           product_id?: string
+          promotion_id?: string | null
           quantity?: number
         }
         Relationships: [
@@ -183,12 +186,34 @@ export type Database = {
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "order_items_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "active_promotions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_promotion_id_fkey"
+            columns: ["promotion_id"]
+            isOneToOne: false
+            referencedRelation: "promotions"
+            referencedColumns: ["id"]
+          },
         ]
       }
       orders: {
         Row: {
           created_at: string
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          discount_amount: number | null
           id: string
+          notes: string | null
+          payment_method: string | null
+          shipping_address: Json | null
+          shipping_cost: number | null
           status: string
           store_id: string
           total_amount: number
@@ -197,7 +222,15 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_amount?: number | null
           id?: string
+          notes?: string | null
+          payment_method?: string | null
+          shipping_address?: Json | null
+          shipping_cost?: number | null
           status?: string
           store_id: string
           total_amount?: number
@@ -206,7 +239,15 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          customer_phone?: string | null
+          discount_amount?: number | null
           id?: string
+          notes?: string | null
+          payment_method?: string | null
+          shipping_address?: Json | null
+          shipping_cost?: number | null
           status?: string
           store_id?: string
           total_amount?: number
