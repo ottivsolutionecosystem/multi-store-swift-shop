@@ -9,7 +9,7 @@ function createCacheProvider(): CacheProvider {
   if (provider) return provider;
 
   // Use Redis in production, Memory cache for tests or fallback
-  if (typeof window === 'undefined' || process.env.NODE_ENV === 'test') {
+  if (typeof window === 'undefined' || import.meta.env.MODE === 'test') {
     provider = new MemoryCache();
     console.log('Using Memory cache provider');
   } else {

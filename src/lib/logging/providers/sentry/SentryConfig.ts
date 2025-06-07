@@ -15,7 +15,7 @@ export class SentryConfig {
     return {
       dsn,
       environment,
-      release: release || process.env.VITE_APP_VERSION || 'unknown',
+      release: release || import.meta.env.VITE_APP_VERSION || 'unknown',
       integrations: [
         Sentry.browserTracingIntegration(),
         Sentry.replayIntegration({

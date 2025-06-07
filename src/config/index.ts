@@ -36,32 +36,40 @@ export interface AppConfig {
   logging: LoggingConfig;
 }
 
+// Get environment from import.meta.env for browser compatibility
+const getEnvironment = () => {
+  if (typeof window !== 'undefined') {
+    return import.meta.env.MODE || 'development';
+  }
+  return 'development';
+};
+
 // Configuração centralizada da aplicação
 export const config: AppConfig = {
   redis: {
-    host: process.env.REDIS_HOST || 'redis-12517.crce196.sa-east-1-2.ec2.redns.redis-cloud.com',
-    port: parseInt(process.env.REDIS_PORT || '12517'),
+    host: import.meta.env.VITE_REDIS_HOST || 'redis-12517.crce196.sa-east-1-2.ec2.redns.redis-cloud.com',
+    port: parseInt(import.meta.env.VITE_REDIS_PORT || '12517'),
     maxRetriesPerRequest: 3,
     lazyConnect: true,
     connectTimeout: 10000,
     commandTimeout: 5000,
   },
   supabase: {
-    url: process.env.SUPABASE_URL || "https://dkliovgbxuskqmnfojvp.supabase.co",
-    anonKey: process.env.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrbGlvdmdieHVza3FtbmZvanZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0MTcyMDgsImV4cCI6MjA2Mzk5MzIwOH0.w1EKr-ae-jK6_WRKMuvbZ2tbfJ0qaPeyh4uJ2eF2BBw",
+    url: import.meta.env.VITE_SUPABASE_URL || "https://dkliovgbxuskqmnfojvp.supabase.co",
+    anonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRrbGlvdmdieHVza3FtbmZvanZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg0MTcyMDgsImV4cCI6MjA2Mzk5MzIwOH0.w1EKr-ae-jK6_WRKMuvbZ2tbfJ0qaPeyh4uJ2eF2BBw",
   },
   logging: {
-    level: (process.env.LOG_LEVEL as any) || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
-    enableConsole: process.env.ENABLE_CONSOLE_LOGS !== 'true',
-    enableSentry: process.env.ENABLE_SENTRY === 'true' || process.env.NODE_ENV === 'production',
-    sentryDsn: process.env.SENTRY_DSN || 'https://0bf18f373ec2cace6602ac4f7a794e2a@o4509455574171648.ingest.us.sentry.io/4509455789522944',
-    environment: process.env.NODE_ENV || 'development',
-    sampling: parseFloat(process.env.SENTRY_SAMPLING || '0.1'),
+    level: (import.meta.env.VITE_LOG_LEVEL as any) || (getEnvironment() === 'production' ? 'info' : 'debug'),
+    enableConsole: import.meta.env.VITE_ENABLE_CONSOLE_LOGS !== 'true',
+    enableSentry: import.meta.env.VITE_ENABLE_SENTRY === 'true' || getEnvironment() === 'production',
+    sentryDsn: import.meta.env.VITE_SENTRY_DSN || 'https://0bf18f373ec2cace6602ac4f7a794e2a@o4509455574171648.ingest.us.sentry.io/4509455789522944',
+    environment: getEnvironment(),
+    sampling: parseFloat(import.meta.env.VITE_SENTRY_SAMPLING || '0.1'),
     sentry: {
-      dsn: process.env.SENTRY_DSN || 'https://0bf18f373ec2cace6602ac4f7a794e2a@o4509455574171648.ingest.us.sentry.io/4509455789522944',
-      environment: process.env.NODE_ENV || 'development',
-      release: process.env.VITE_APP_VERSION || 'unknown',
-      tracesSampleRate: parseFloat(process.env.SENTRY_SAMPLING || '0.1'),
+      dsn: import.meta.env.VITE_SENTRY_DSN || 'https://0bf18f373ec2cace6602ac4f7a794e2a@o4509455574171648.ingest.us.sentry.io/4509455789522944',
+      environment: getEnvironment(),
+      release: import.meta.env.VITE_APP_VERSION || 'unknown',
+      tracesSampleRate: parseFloat(import.meta.env.VITE_SENTRY_SAMPLING || '0.1'),
     },
   },
 };
