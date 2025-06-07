@@ -7,8 +7,8 @@ import { Profile } from '@/types/auth';
 export class UserService {
   private userRepository: UserRepository;
 
-  constructor(storeId: string) {
-    this.userRepository = new UserRepository(storeId);
+  constructor(userRepository: UserRepository) {
+    this.userRepository = userRepository;
   }
 
   async getCurrentUser(): Promise<User | null> {
