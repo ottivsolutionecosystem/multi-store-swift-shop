@@ -1,4 +1,3 @@
-
 import * as Sentry from '@sentry/react';
 import { LogProvider } from '../interfaces/LogProvider';
 import { LogEntry, LogLevel, LogContext } from '../interfaces/types';
@@ -20,17 +19,13 @@ export class SentryLogProvider implements LogProvider {
         integrations: [
           Sentry.browserTracingIntegration(),
           Sentry.replayIntegration({
-            // Capture 10% of all sessions,
-            // plus always capture sessions with an error
-            sessionSampleRate: 0.1,
+            // Capture 10% of all sessions in production, more in development
+            sessionSampleRate: environment === 'production' ? 0.1 : 0.1,
             errorSampleRate: 1.0,
           }),
         ],
         // Performance Monitoring
         tracesSampleRate: environment === 'production' ? 0.1 : 1.0,
-        // Session Replay
-        replaysSessionSampleRate: environment === 'production' ? 0.1 : 0.1,
-        replaysOnErrorSampleRate: 1.0,
         
         beforeSend: (event, hint) => {
           // Filter out debug logs in production

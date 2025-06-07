@@ -4,12 +4,14 @@ import { AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface ErrorBoundaryFallbackProps {
+interface SentryErrorBoundaryFallbackProps {
   error: Error;
-  resetError: () => void;
+  componentStack: string;
+  eventId: string;
+  resetError(): void;
 }
 
-const ErrorBoundaryFallback = ({ error, resetError }: ErrorBoundaryFallbackProps) => {
+const ErrorBoundaryFallback = ({ error, resetError }: SentryErrorBoundaryFallbackProps) => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
