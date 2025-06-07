@@ -39,8 +39,8 @@ export class SentryContextManager {
   withScope<T>(
     fullContext: LogContext,
     level: string,
-    metadata?: Record<string, any>,
-    callback: (scope: Sentry.Scope) => T
+    callback: (scope: Sentry.Scope) => T,
+    metadata?: Record<string, any>
   ): T {
     return Sentry.withScope((scope) => {
       // Set user context

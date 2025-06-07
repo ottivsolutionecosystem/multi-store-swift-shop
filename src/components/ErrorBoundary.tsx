@@ -5,11 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface ErrorBoundaryFallbackProps {
-  error: Error;
+  error: unknown;
+  componentStack: string;
+  eventId: string;
   resetError(): void;
 }
 
 const ErrorBoundaryFallback = ({ error, resetError }: ErrorBoundaryFallbackProps) => {
+  const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+  const errorStack = error instanceof Error ? error.stack : '';
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -27,8 +32,8 @@ const ErrorBoundaryFallback = ({ error, resetError }: ErrorBoundaryFallbackProps
             <details className="bg-gray-50 p-3 rounded text-sm">
               <summary className="cursor-pointer font-medium">Detalhes do erro</summary>
               <pre className="mt-2 whitespace-pre-wrap text-xs text-red-600">
-                {error.message}
-                {error.stack}
+                {errorMessage}
+                {errorStack}
               </pre>
             </details>
           )}

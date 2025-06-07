@@ -19,8 +19,7 @@ export class SentryConfig {
       integrations: [
         Sentry.browserTracingIntegration(),
         Sentry.replayIntegration({
-          // Capture 10% of all sessions in production, more in development
-          sessionSampleRate: environment === 'production' ? 0.1 : 0.1,
+          // Remove sessionSampleRate and use correct property names
           errorSampleRate: 1.0,
         }),
       ],
@@ -33,7 +32,7 @@ export class SentryConfig {
   }
 
   static createBeforeSendFilter(environment: string) {
-    return (event: Sentry.Event, hint: Sentry.EventHint) => {
+    return (event: Sentry.Event, hint: Sentry.EventHint): Sentry.Event | null => {
       // Filter out debug logs in production
       if (environment === 'production' && event.level === 'debug') {
         return null;
@@ -60,7 +59,7 @@ export class SentryConfig {
   }
 
   static createBeforeBreadcrumbFilter() {
-    return (breadcrumb: Sentry.Breadcrumb) => {
+    return (breadcrumb: Sentry.Breadcrumb): Sentry.Breadcrumb | null => {
       // Filter out noisy breadcrumbs
       if (breadcrumb.category === 'console' && breadcrumb.level === 'debug') {
         return null;

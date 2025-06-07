@@ -12,7 +12,7 @@ export class SentryLogger {
     const fullContext = this.contextManager.configureScopeForLog(context, metadata);
     const sentryLevel = SentryConfig.mapLogLevelToSentryLevel(level);
 
-    this.contextManager.withScope(fullContext, level, metadata, (scope) => {
+    this.contextManager.withScope(fullContext, level, (scope) => {
       scope.setLevel(sentryLevel);
       
       if (error) {
@@ -25,6 +25,6 @@ export class SentryLogger {
       } else {
         Sentry.captureMessage(message, sentryLevel);
       }
-    });
+    }, metadata);
   }
 }
