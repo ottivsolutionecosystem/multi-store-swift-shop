@@ -125,7 +125,7 @@ export default function AdminPage() {
               </p>
               <Button 
                 onClick={handlePromotionsClick}
-                variant="secondary"
+                variant="outline"
                 className="w-full flex items-center justify-center gap-2"
               >
                 Gerenciar Promoções
