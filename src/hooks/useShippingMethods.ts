@@ -18,7 +18,7 @@ export function useShippingMethods() {
 
       try {
         setLoading(true);
-        const methods = await services.shippingService.getAllShippingMethods();
+        const methods = await services.shippingService.getShippingMethods();
         setShippingMethods(methods);
       } catch (error) {
         console.error('Error loading shipping methods:', error);
@@ -35,7 +35,7 @@ export function useShippingMethods() {
     loadShippingMethods();
   }, [services, toast]);
 
-  const createMethod = async (data: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>) => {
+  const createMethod = async (data: Omit<ShippingMethod, 'id' | 'created_at' | 'updated_at'>) => {
     if (!services) return;
 
     try {

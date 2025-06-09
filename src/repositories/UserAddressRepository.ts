@@ -35,7 +35,15 @@ export class UserAddressRepository {
 
   async create(address: UserAddressFormData, userId: string): Promise<UserAddress> {
     const addressData: UserAddressInsert = {
-      ...address,
+      name: address.name,
+      street: address.street,
+      number: address.number,
+      complement: address.complement || null,
+      neighborhood: address.neighborhood,
+      city: address.city,
+      state: address.state,
+      zip_code: address.zip_code,
+      is_default: address.is_default,
       user_id: userId,
     };
 

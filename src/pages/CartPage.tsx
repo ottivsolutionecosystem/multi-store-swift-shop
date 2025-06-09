@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
@@ -50,7 +49,7 @@ export default function CartPage() {
       setShippingCalculations(calculations);
       
       // Auto-select the first available method
-      if (calculations.length > 0 && !calculations[0].error) {
+      if (calculations.length > 0) {
         setSelectedShippingMethod(calculations[0].method_id);
         setShippingPrice(calculations[0].price);
       }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -78,7 +77,7 @@ export function ShippingStep({ guestUser, onShippingSelect, onAddressSelect, onN
       setShippingCalculations(calculations);
       
       // Auto-select the first available method
-      if (calculations.length > 0 && !calculations[0].error) {
+      if (calculations.length > 0) {
         setSelectedShippingMethod(calculations[0].method_id);
         setShippingPrice(calculations[0].price);
         onShippingSelect(calculations[0].method_id, calculations[0].price);
