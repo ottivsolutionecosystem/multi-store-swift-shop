@@ -26,6 +26,8 @@ export class ShippingMethodRepository {
   async getActiveShippingMethods(): Promise<ShippingMethod[]> {
     console.log('ShippingMethodRepository - getting active shipping methods for store:', this.storeId);
     
+    // Para métodos ativos, não precisamos filtrar por store_id pois a política RLS já faz isso
+    // e queremos que usuários não autenticados também possam ver métodos ativos
     const { data, error } = await supabase
       .from('shipping_methods')
       .select('*')

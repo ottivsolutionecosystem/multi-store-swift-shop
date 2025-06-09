@@ -43,6 +43,13 @@ export type Database = {
             foreignKeyName: "bundle_items_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "active_promotions"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "bundle_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -178,6 +185,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "orders"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "active_promotions"
+            referencedColumns: ["product_id"]
           },
           {
             foreignKeyName: "order_items_product_id_fkey"
@@ -383,6 +397,13 @@ export type Database = {
             foreignKeyName: "product_variant_combinations_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "active_promotions"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "product_variant_combinations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -414,6 +435,13 @@ export type Database = {
           variant_value_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "product_variant_group_prices_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "active_promotions"
+            referencedColumns: ["product_id"]
+          },
           {
             foreignKeyName: "product_variant_group_prices_product_id_fkey"
             columns: ["product_id"]
@@ -491,6 +519,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "active_promotions"
+            referencedColumns: ["product_id"]
+          },
           {
             foreignKeyName: "product_variants_product_id_fkey"
             columns: ["product_id"]
@@ -838,6 +873,13 @@ export type Database = {
             foreignKeyName: "promotions_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
+            referencedRelation: "active_promotions"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "promotions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
             referencedRelation: "products"
             referencedColumns: ["id"]
           },
@@ -882,6 +924,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "quantity_discounts_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "active_promotions"
+            referencedColumns: ["product_id"]
+          },
           {
             foreignKeyName: "quantity_discounts_product_id_fkey"
             columns: ["product_id"]
@@ -1165,13 +1214,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "promotions_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "promotions_store_id_fkey"
             columns: ["store_id"]
             isOneToOne: false
@@ -1200,6 +1242,10 @@ export type Database = {
       }
       is_promotion_current: {
         Args: { p_start_date: string; p_end_date: string; p_is_active: boolean }
+        Returns: boolean
+      }
+      is_store_admin: {
+        Args: { store_uuid: string }
         Returns: boolean
       }
       is_user_admin: {

@@ -38,6 +38,7 @@ export class ShippingService {
   async calculateShipping(items: any[], zipCode: string): Promise<ShippingCalculation[]> {
     console.log('ShippingService - Calculating shipping for:', zipCode, items);
     
+    // Usar métodos ativos para cálculo de frete (acessível publicamente)
     const methods = await this.getActiveShippingMethods();
     
     return methods.map(method => ({

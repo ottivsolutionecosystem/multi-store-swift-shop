@@ -24,6 +24,7 @@ export class StoreAccessService {
         store_id: profile.store_id 
       });
 
+      // Com as novas políticas RLS, apenas admins podem se associar a lojas
       if (profile.role === 'admin' && !profile.store_id) {
         console.log('StoreAccessService - associating admin user to store:', storeId);
         await this.userProfileService.updateProfile({ store_id: storeId });
@@ -41,11 +42,13 @@ export class StoreAccessService {
     try {
       const profile = await this.userProfileService.getCurrentUserProfile();
       if (!profile) {
-        console.log('StoreAccessService - no profile found, access denied');
-        return false;
+        console.log('StoreAccessService - no profile found, allowing public access');
+        // Permitir acesso público para funcionalidades como navegação de produtos
+        return true;
       }
 
-      const hasAccess = profile.store_id === storeId;
+      // Para usuários autenticados, verificar se têm acesso à loja
+      const hasAccess = !profile.store_id || profile.store_id === storeId;
       console.log('StoreAccessService - store access validation:', {
         userStoreId: profile.store_id,
         requestedStoreId: storeId,
@@ -55,7 +58,8 @@ export class StoreAccessService {
       return hasAccess;
     } catch (error) {
       console.error('StoreAccessService - error validating store access:', error);
-      return false;
+      // Em caso de erro, permitir acesso público
+      return true;
     }
   }
 }
