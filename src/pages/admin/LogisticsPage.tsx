@@ -37,7 +37,7 @@ export default function LogisticsPage() {
     }
   }, [user, profile, authLoading, navigate]);
 
-  const handleCreateMethod = async (data: Omit<ShippingMethod, 'id' | 'created_at' | 'updated_at'>) => {
+  const handleCreateMethod = async (data: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>) => {
     try {
       await createMethod(data);
       setIsCreateDialogOpen(false);
@@ -92,10 +92,10 @@ export default function LogisticsPage() {
     <div className="min-h-screen bg-gray-50">
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <LogisticsHeader onCreateMethod={handleCreateMethod} />
+        <LogisticsHeader onCreateMethod={() => setIsCreateDialogOpen(true)} />
 
         {shippingMethods.length === 0 ? (
-          <ShippingMethodsEmptyState onCreateMethod={handleCreateMethod} />
+          <ShippingMethodsEmptyState onCreateMethod={() => setIsCreateDialogOpen(true)} />
         ) : (
           <ShippingMethodsGrid
             shippingMethods={shippingMethods}

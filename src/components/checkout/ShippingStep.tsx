@@ -63,7 +63,8 @@ export function ShippingStep({ guestUser, onShippingSelect, onAddressSelect, onN
     calculateShipping(items, data.zip_code);
   };
 
-  const canProceed = selectedShippingMethod && (form.watch('zip_code') || !useCustomAddress);
+  const zipCode = form.watch('zip_code');
+  const canProceed = selectedShippingMethod && (Boolean(zipCode) || !useCustomAddress);
 
   return (
     <div className="space-y-6">
