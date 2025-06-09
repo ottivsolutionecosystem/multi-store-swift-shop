@@ -1,133 +1,164 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { useShippingMethods } from '@/hooks/useShippingMethods';
-import { Header } from '@/components/layout/Header';
+import { useServices } from '@/hooks/useServices';
+import { useToast } from '@/hooks/use-toast';
+import { Database } from '@/integrations/supabase/types';
 import { LogisticsHeader } from '@/components/admin/shipping/LogisticsHeader';
-import { ShippingMethodsEmptyState } from '@/components/admin/shipping/ShippingMethodsEmptyState';
 import { ShippingMethodsGrid } from '@/components/admin/shipping/ShippingMethodsGrid';
+import { ShippingMethodsEmptyState } from '@/components/admin/shipping/ShippingMethodsEmptyState';
 import { ShippingMethodFormDialog } from '@/components/admin/shipping/ShippingMethodFormDialog';
-import { ShippingMethodDeleteDialog } from '@/components/admin/shipping/ShippingMethodDeleteDialog';
-import { ShippingMethod } from '@/types/shipping';
+
+type ShippingMethod = Database['public']['Tables']['shipping_methods']['Row'];
+type ShippingMethodInsert = Database['public']['Tables']['shipping_methods']['Insert'];
+type ShippingMethodUpdate = Database['public']['Tables']['shipping_methods']['Update'];
 
 export default function LogisticsPage() {
-  const { user, profile, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { 
-    shippingMethods, 
-    loading, 
-    submitting, 
-    createMethod, 
-    updateMethod, 
-    deleteMethod 
-  } = useShippingMethods();
+  const services = useServices();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const [showForm, setShowForm] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMethod, setEditingMethod] = useState<ShippingMethod | null>(null);
-  const [deletingMethodId, setDeletingMethodId] = useState<string | null>(null);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (!authLoading) {
-      if (!user) {
-        navigate('/auth');
-      } else if (profile?.role !== 'admin') {
-        navigate('/');
+  const { data: methods = [], isLoading } = useQuery({
+    queryKey: ['shipping-methods'],
+    queryFn: async () => {
+      if (!services?.shippingService) {
+        throw new Error('Shipping service not available');
       }
-    }
-  }, [user, profile, authLoading, navigate]);
+      return services.shippingService.getAllShippingMethods();
+    },
+    enabled: !!services?.shippingService,
+  });
 
-  const handleCreateMethod = async (data: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>) => {
-    try {
-      await createMethod(data);
-      setIsCreateDialogOpen(false);
-    } catch (error) {
-      // Error is already handled in the hook
-    }
+  const createMutation = useMutation({
+    mutationFn: async (data: Omit<ShippingMethodInsert, 'store_id'>) => {
+      if (!services?.shippingService) {
+        throw new Error('Shipping service not available');
+      }
+      return services.shippingService.createShippingMethod(data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipping-methods'] });
+      setIsDialogOpen(false);
+      toast({
+        title: 'Sucesso',
+        description: 'Método de frete criado com sucesso!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao criar método de frete',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: ShippingMethodUpdate }) => {
+      if (!services?.shippingService) {
+        throw new Error('Shipping service not available');
+      }
+      return services.shippingService.updateShippingMethod(id, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipping-methods'] });
+      setIsDialogOpen(false);
+      setEditingMethod(null);
+      toast({
+        title: 'Sucesso',
+        description: 'Método de frete atualizado com sucesso!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao atualizar método de frete',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!services?.shippingService) {
+        throw new Error('Shipping service not available');
+      }
+      return services.shippingService.deleteShippingMethod(id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['shipping-methods'] });
+      toast({
+        title: 'Sucesso',
+        description: 'Método de frete excluído com sucesso!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Erro',
+        description: error.message || 'Erro ao excluir método de frete',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleCreateMethod = () => {
+    setEditingMethod(null);
+    setIsDialogOpen(true);
   };
 
   const handleEditMethod = (method: ShippingMethod) => {
     setEditingMethod(method);
-    setShowForm(true);
+    setIsDialogOpen(true);
   };
 
-  const handleDeleteMethod = async () => {
-    if (!deletingMethodId) return;
-    
-    try {
-      await deleteMethod(deletingMethodId);
-    } finally {
-      setDeletingMethodId(null);
+  const handleDeleteMethod = async (id: string) => {
+    if (confirm('Tem certeza que deseja excluir este método de frete?')) {
+      deleteMutation.mutate(id);
     }
   };
 
-  const handleSubmitMethod = async (data: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>) => {
-    try {
-      if (editingMethod) {
-        await updateMethod(editingMethod.id, data);
-      } else {
-        await createMethod(data);
-      }
-      
-      setShowForm(false);
-      setEditingMethod(null);
-    } catch (error) {
-      // Error is already handled in the hook
+  const handleSubmitMethod = async (data: Omit<ShippingMethodInsert, 'store_id'>) => {
+    if (editingMethod) {
+      updateMutation.mutate({ id: editingMethod.id, data });
+    } else {
+      createMutation.mutate(data);
     }
   };
 
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
-  if (!user || profile?.role !== 'admin') {
-    return null;
+  if (!services) {
+    return <div>Carregando serviços...</div>;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <LogisticsHeader onCreateMethod={() => setIsCreateDialogOpen(true)} />
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <LogisticsHeader onCreateMethod={handleCreateMethod} />
 
-        {shippingMethods.length === 0 ? (
-          <ShippingMethodsEmptyState onCreateMethod={() => setIsCreateDialogOpen(true)} />
+        {isLoading ? (
+          <div className="text-center py-8">Carregando métodos de frete...</div>
+        ) : methods.length === 0 ? (
+          <ShippingMethodsEmptyState onCreateMethod={handleCreateMethod} />
         ) : (
           <ShippingMethodsGrid
-            shippingMethods={shippingMethods}
+            methods={methods}
             onEdit={handleEditMethod}
-            onDelete={(id) => setDeletingMethodId(id)}
+            onDelete={handleDeleteMethod}
           />
         )}
 
         <ShippingMethodFormDialog
-          open={showForm}
-          onOpenChange={setShowForm}
-          editingMethod={editingMethod}
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          method={editingMethod}
           onSubmit={handleSubmitMethod}
-          loading={submitting}
+          isLoading={createMutation.isPending || updateMutation.isPending}
         />
-
-        <ShippingMethodFormDialog
-          open={isCreateDialogOpen}
-          onOpenChange={setIsCreateDialogOpen}
-          editingMethod={null}
-          onSubmit={handleCreateMethod}
-          loading={submitting}
-        />
-
-        <ShippingMethodDeleteDialog
-          open={!!deletingMethodId}
-          onOpenChange={() => setDeletingMethodId(null)}
-          onConfirm={handleDeleteMethod}
-          loading={submitting}
-        />
-      </main>
+      </div>
     </div>
   );
 }
