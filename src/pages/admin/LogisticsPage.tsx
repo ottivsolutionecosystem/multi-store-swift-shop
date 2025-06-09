@@ -10,7 +10,6 @@ import { ShippingMethodsGrid } from '@/components/admin/shipping/ShippingMethods
 import { ShippingMethodsEmptyState } from '@/components/admin/shipping/ShippingMethodsEmptyState';
 import { ShippingMethodFormDialog } from '@/components/admin/shipping/ShippingMethodFormDialog';
 
-type ShippingMethodInsert = Omit<ShippingMethod, 'id' | 'created_at' | 'updated_at'>;
 type ShippingMethodUpdate = Partial<Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>>;
 
 export default function LogisticsPage() {
@@ -34,7 +33,7 @@ export default function LogisticsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: Omit<ShippingMethodInsert, 'store_id'>) => {
+    mutationFn: async (data: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>) => {
       if (!services?.shippingService) {
         throw new Error('Shipping service not available');
       }

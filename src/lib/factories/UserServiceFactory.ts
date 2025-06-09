@@ -19,10 +19,10 @@ export function createUserServices(storeId: string) {
   // Services - fix constructor arguments to match service expectations
   const userService = new UserService(userRepository);
   const profileService = new ProfileService(userRepository);
-  const storeAccessService = new StoreAccessService();
-  const userSessionService = new UserSessionService();
-  const userProfileManagementService = new UserProfileManagementService();
-  const authenticationService = new AuthenticationService();
+  const storeAccessService = new StoreAccessService(); // No arguments
+  const userSessionService = new UserSessionService(); // No arguments
+  const userProfileManagementService = new UserProfileManagementService(); // No arguments
+  const authenticationService = new AuthenticationService(); // No arguments
   const userAddressService = new UserAddressService(userAddressRepository);
 
   return {
