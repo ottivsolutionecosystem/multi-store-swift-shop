@@ -9,19 +9,19 @@ import { UserProfileManagementService } from '@/services/UserProfileManagementSe
 import { AuthenticationService } from '@/services/AuthenticationService';
 import { UserAddressService } from '@/services/UserAddressService';
 
-export function createUserServices() {
-  console.log('Creating user services');
+export function createUserServices(storeId: string) {
+  console.log('Creating user services for storeId:', storeId);
 
-  // Repositories (user services don't need storeId)
-  const userRepository = new UserRepository();
-  const userAddressRepository = new UserAddressRepository();
+  // Repositories - pass storeId where needed
+  const userRepository = new UserRepository(storeId);
+  const userAddressRepository = new UserAddressRepository(storeId);
 
-  // Services
+  // Services - fix constructor arguments to match service expectations
   const userService = new UserService(userRepository);
   const profileService = new ProfileService(userRepository);
-  const storeAccessService = new StoreAccessService(userRepository);
+  const storeAccessService = new StoreAccessService();
   const userSessionService = new UserSessionService();
-  const userProfileManagementService = new UserProfileManagementService(userRepository);
+  const userProfileManagementService = new UserProfileManagementService();
   const authenticationService = new AuthenticationService();
   const userAddressService = new UserAddressService(userAddressRepository);
 

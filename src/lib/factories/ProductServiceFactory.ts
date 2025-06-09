@@ -14,7 +14,7 @@ export function createProductServices(storeId: string) {
   const categoryRepository = new CategoryRepository(storeId);
   const promotionRepository = new PromotionRepository(storeId);
 
-  // Services
+  // Services - fix constructor arguments to match service expectations
   const productService = new ProductService(productRepository);
   const productQueryService = new ProductQueryService(productRepository);
   const productPromotionService = new ProductPromotionService(promotionRepository);

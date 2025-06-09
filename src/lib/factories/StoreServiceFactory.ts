@@ -2,11 +2,11 @@
 import { StoreSettingsRepository } from '@/repositories/StoreSettingsRepository';
 import { StoreSettingsService } from '@/services/StoreSettingsService';
 
-export function createStoreServices() {
-  console.log('Creating store services');
+export function createStoreServices(storeId: string) {
+  console.log('Creating store services for storeId:', storeId);
 
-  // Repository - StoreSettingsRepository expects storeId but we'll handle it differently
-  const storeSettingsRepository = new StoreSettingsRepository();
+  // Repository - pass storeId to StoreSettingsRepository
+  const storeSettingsRepository = new StoreSettingsRepository(storeId);
 
   // Service
   const storeSettingsService = new StoreSettingsService(storeSettingsRepository);

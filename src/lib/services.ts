@@ -11,14 +11,14 @@ import { createShippingServices } from '@/lib/factories/ShippingServiceFactory';
 export function createServices(storeId: string) {
   console.log('Creating services for storeId:', storeId);
 
-  // Create all service groups
+  // Create all service groups - pass storeId to all factories
   const productServices = createProductServices(storeId);
   const categoryServices = createCategoryServices(storeId);
-  const userServices = createUserServices();
+  const userServices = createUserServices(storeId);
   const orderServices = createOrderServices(storeId);
   const promotionServices = createPromotionServices(storeId);
   const variantServices = createVariantServices(storeId);
-  const storeServices = createStoreServices();
+  const storeServices = createStoreServices(storeId);
   const shippingServices = createShippingServices(storeId);
 
   // Return combined services object
