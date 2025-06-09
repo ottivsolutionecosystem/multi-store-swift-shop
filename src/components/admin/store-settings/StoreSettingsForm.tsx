@@ -2,110 +2,103 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useStoreSettings } from '@/hooks/useStoreSettings';
-import { useServices } from '@/hooks/useServices';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Palette, Settings, Package } from 'lucide-react';
 import { Form } from '@/components/ui/form';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { storeSettingsSchema, StoreSettingsFormData } from '@/types/store-settings';
+import { GeneralSettingsTab } from './GeneralSettingsTab';
 import { VisualSettingsTab } from './VisualSettingsTab';
 import { ProductSettingsTab } from './ProductSettingsTab';
-import { GeneralSettingsTab } from './GeneralSettingsTab';
-import { storeSettingsSchema, StoreSettingsFormData } from '@/types/store-settings';
-
-const defaultValues: StoreSettingsFormData = {
-  primary_color: '#3b82f6',
-  secondary_color: '#6b7280',
-  price_color: '#16a34a',
-  logo_url: '',
-  banner_url: '',
-  store_description: '',
-  show_category: true,
-  show_description: true,
-  show_stock_quantity: true,
-  show_price: true,
-  show_promotion_badge: true,
-  promotion_display_format: 'percentage',
-};
+import { OriginAddressTab } from './OriginAddressTab';
 
 export function StoreSettingsForm() {
-  const { storeSettings, updateStoreSettings, isUpdating } = useStoreSettings();
-  const services = useServices();
+  const { storeSettings, updateStoreSettings, isLoading, isUpdating } = useStoreSettings();
 
   const form = useForm<StoreSettingsFormData>({
     resolver: zodResolver(storeSettingsSchema),
-    defaultValues,
-    mode: 'onChange',
+    defaultValues: {
+      primary_color: '#3b82f6',
+      secondary_color: '#6b7280',
+      price_color: '#16a34a',
+      logo_url: '',
+      banner_url: '',
+      store_description: '',
+      show_category: true,
+      show_description: true,
+      show_stock_quantity: true,
+      show_price: true,
+      show_promotion_badge: true,
+      promotion_display_format: 'percentage',
+      origin_address: undefined,
+    },
   });
 
   React.useEffect(() => {
     if (storeSettings) {
-      const formData: StoreSettingsFormData = {
-        primary_color: storeSettings.primary_color || defaultValues.primary_color,
-        secondary_color: storeSettings.secondary_color || defaultValues.secondary_color,
-        price_color: storeSettings.price_color || defaultValues.price_color,
-        logo_url: storeSettings.logo_url || defaultValues.logo_url,
-        banner_url: storeSettings.banner_url || defaultValues.banner_url,
-        store_description: storeSettings.store_description || defaultValues.store_description,
-        show_category: storeSettings.show_category ?? defaultValues.show_category,
-        show_description: storeSettings.show_description ?? defaultValues.show_description,
-        show_stock_quantity: storeSettings.show_stock_quantity ?? defaultValues.show_stock_quantity,
-        show_price: storeSettings.show_price ?? defaultValues.show_price,
-        show_promotion_badge: storeSettings.show_promotion_badge ?? defaultValues.show_promotion_badge,
-        promotion_display_format: (storeSettings.promotion_display_format as 'percentage' | 'comparison') || defaultValues.promotion_display_format,
-      };
-      form.reset(formData);
+      console.log('StoreSettingsForm - updating form with settings:', storeSettings);
+      form.reset({
+        primary_color: storeSettings.primary_color || '#3b82f6',
+        secondary_color: storeSettings.secondary_color || '#6b7280',
+        price_color: storeSettings.price_color || '#16a34a',
+        logo_url: storeSettings.logo_url || '',
+        banner_url: storeSettings.banner_url || '',
+        store_description: storeSettings.store_description || '',
+        show_category: storeSettings.show_category ?? true,
+        show_description: storeSettings.show_description ?? true,
+        show_stock_quantity: storeSettings.show_stock_quantity ?? true,
+        show_price: storeSettings.show_price ?? true,
+        show_promotion_badge: storeSettings.show_promotion_badge ?? true,
+        promotion_display_format: storeSettings.promotion_display_format || 'percentage',
+        origin_address: storeSettings.origin_address || undefined,
+      });
     }
   }, [storeSettings, form]);
 
   const onSubmit = (data: StoreSettingsFormData) => {
-    console.log('Submitting store settings:', data);
-    console.log('Services available:', !!services);
+    console.log('StoreSettingsForm - submitting data:', data);
     updateStoreSettings(data);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)}>
-        <Tabs defaultValue="visual" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="visual" className="flex items-center gap-2">
-              <Palette className="h-4 w-4" />
-              Visual
-            </TabsTrigger>
-            <TabsTrigger value="products" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              Produtos
-            </TabsTrigger>
-            <TabsTrigger value="general" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Geral
-            </TabsTrigger>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Tabs defaultValue="general" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="general">Geral</TabsTrigger>
+            <TabsTrigger value="visual">Visual</TabsTrigger>
+            <TabsTrigger value="products">Produtos</TabsTrigger>
+            <TabsTrigger value="address">Endereço</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="visual">
+          <TabsContent value="general" className="space-y-4">
+            <GeneralSettingsTab form={form} />
+          </TabsContent>
+
+          <TabsContent value="visual" className="space-y-4">
             <VisualSettingsTab form={form} />
           </TabsContent>
 
-          <TabsContent value="products">
+          <TabsContent value="products" className="space-y-4">
             <ProductSettingsTab form={form} />
           </TabsContent>
 
-          <TabsContent value="general">
-            <GeneralSettingsTab form={form} />
+          <TabsContent value="address" className="space-y-4">
+            <OriginAddressTab form={form} />
           </TabsContent>
         </Tabs>
 
-        <Separator className="my-6" />
-
         <div className="flex justify-end">
-          <Button
-            type="submit"
-            disabled={isUpdating || !services}
-            className="min-w-[120px]"
-          >
-            {isUpdating ? 'Salvando...' : 'Salvar Alterações'}
+          <Button type="submit" disabled={isUpdating}>
+            {isUpdating ? 'Salvando...' : 'Salvar Configurações'}
           </Button>
         </div>
       </form>
