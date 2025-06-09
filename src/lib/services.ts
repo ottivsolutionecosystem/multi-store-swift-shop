@@ -50,18 +50,13 @@ export function createServices(storeId: string) {
   const categoryService = new CategoryService(categoryRepository);
   const manufacturerService = new ManufacturerService(manufacturerRepository);
   const promotionService = new PromotionService(promotionRepository);
-  const productPromotionService = new ProductPromotionService(promotionRepository, productRepository);
-  const productService = new ProductService(productRepository, productPromotionService);
+  const productPromotionService = new ProductPromotionService(storeId);
+  const productService = new ProductService(productRepository);
   const orderService = new OrderService(orderRepository);
   const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
   const authenticationService = new AuthenticationService();
   const userSessionService = new UserSessionService();
-  const variantService = new VariantService(
-    variantRepository,
-    variantValueRepository,
-    variantCombinationRepository,
-    variantGroupPriceRepository
-  );
+  const variantService = new VariantService(variantRepository);
   const shippingService = new ShippingService(shippingMethodRepository);
 
   console.log('Services created successfully');
