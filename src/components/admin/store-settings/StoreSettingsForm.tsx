@@ -37,6 +37,13 @@ export function StoreSettingsForm() {
   React.useEffect(() => {
     if (storeSettings) {
       console.log('StoreSettingsForm - updating form with settings:', storeSettings);
+      
+      // Handle origin_address safely - it could be Json type from DB
+      let originAddress;
+      if (storeSettings.origin_address && typeof storeSettings.origin_address === 'object') {
+        originAddress = storeSettings.origin_address as any;
+      }
+      
       form.reset({
         primary_color: storeSettings.primary_color || '#3b82f6',
         secondary_color: storeSettings.secondary_color || '#6b7280',
@@ -50,7 +57,7 @@ export function StoreSettingsForm() {
         show_price: storeSettings.show_price ?? true,
         show_promotion_badge: storeSettings.show_promotion_badge ?? true,
         promotion_display_format: storeSettings.promotion_display_format || 'percentage',
-        origin_address: storeSettings.origin_address || undefined,
+        origin_address: originAddress || undefined,
       });
     }
   }, [storeSettings, form]);

@@ -1,11 +1,6 @@
 
 import { ShippingMethodRepository } from '@/repositories/ShippingMethodRepository';
-import { Database } from '@/integrations/supabase/types';
-import { ShippingCalculation } from '@/types/shipping';
-
-type ShippingMethod = Database['public']['Tables']['shipping_methods']['Row'];
-type ShippingMethodInsert = Database['public']['Tables']['shipping_methods']['Insert'];
-type ShippingMethodUpdate = Database['public']['Tables']['shipping_methods']['Update'];
+import { ShippingCalculation, ShippingMethod } from '@/types/shipping';
 
 interface CartItem {
   product: {
@@ -20,23 +15,23 @@ export class ShippingService {
   constructor(private shippingMethodRepository: ShippingMethodRepository) {}
 
   async getAllShippingMethods(): Promise<ShippingMethod[]> {
-    return this.shippingMethodRepository.findAll();
+    return this.shippingMethodRepository.getAllShippingMethods();
   }
 
   async getActiveShippingMethods(): Promise<ShippingMethod[]> {
-    return this.shippingMethodRepository.findActive();
+    return this.shippingMethodRepository.getActiveShippingMethods();
   }
 
-  async createShippingMethod(methodData: Omit<ShippingMethodInsert, 'store_id'>): Promise<ShippingMethod> {
-    return this.shippingMethodRepository.create(methodData);
+  async createShippingMethod(methodData: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
+    return this.shippingMethodRepository.createShippingMethod(methodData);
   }
 
-  async updateShippingMethod(id: string, methodData: ShippingMethodUpdate): Promise<ShippingMethod> {
-    return this.shippingMethodRepository.update(id, methodData);
+  async updateShippingMethod(id: string, methodData: Partial<Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>>): Promise<ShippingMethod> {
+    return this.shippingMethodRepository.updateShippingMethod(id, methodData);
   }
 
   async deleteShippingMethod(id: string): Promise<void> {
-    return this.shippingMethodRepository.delete(id);
+    return this.shippingMethodRepository.deleteShippingMethod(id);
   }
 
   async calculateShipping(items: CartItem[], destinationZipCode: string): Promise<ShippingCalculation[]> {
@@ -46,20 +41,20 @@ export class ShippingService {
     for (const method of activeMethods) {
       try {
         let calculatedPrice = method.price || 0;
-        let estimatedDays = method.delivery_days || 5;
+        let deliveryDays = method.delivery_days || 5;
 
         // Para métodos de API externa, fazer cálculo via API
         if (method.type === 'api' && method.api_url) {
           const apiResult = await this.calculateExternalShipping(method, items, destinationZipCode);
           calculatedPrice = apiResult.price;
-          estimatedDays = apiResult.days;
+          deliveryDays = apiResult.days;
         }
 
         calculations.push({
           method_id: method.id,
           method_name: method.name,
           price: calculatedPrice,
-          estimated_days: estimatedDays,
+          delivery_days: deliveryDays,
           delivery_label: method.delivery_label_type || 'days',
           error: null,
         });
@@ -69,7 +64,7 @@ export class ShippingService {
           method_id: method.id,
           method_name: method.name,
           price: 0,
-          estimated_days: 0,
+          delivery_days: 0,
           delivery_label: 'days',
           error: 'Erro ao calcular frete',
         });

@@ -5,7 +5,7 @@ import { ShippingMethod } from '@/types/shipping';
 export class ShippingMethodRepository {
   constructor(private storeId: string) {}
 
-  async getAllShippingMethods(): Promise<ShippingMethod[]> {
+  async findAll(): Promise<ShippingMethod[]> {
     console.log('ShippingMethodRepository - getting all shipping methods for store:', this.storeId);
     
     const { data, error } = await supabase
@@ -23,7 +23,7 @@ export class ShippingMethodRepository {
     return (data || []).map(this.mapToShippingMethod);
   }
 
-  async getActiveShippingMethods(): Promise<ShippingMethod[]> {
+  async findActive(): Promise<ShippingMethod[]> {
     console.log('ShippingMethodRepository - getting active shipping methods for store:', this.storeId);
     
     const { data, error } = await supabase
@@ -42,7 +42,7 @@ export class ShippingMethodRepository {
     return (data || []).map(this.mapToShippingMethod);
   }
 
-  async getShippingMethodById(id: string): Promise<ShippingMethod | null> {
+  async findById(id: string): Promise<ShippingMethod | null> {
     console.log('ShippingMethodRepository - getting shipping method by id:', id);
     
     const { data, error } = await supabase
@@ -61,7 +61,7 @@ export class ShippingMethodRepository {
     return data ? this.mapToShippingMethod(data) : null;
   }
 
-  async createShippingMethod(shippingMethod: Omit<ShippingMethod, 'id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
+  async create(shippingMethod: Omit<ShippingMethod, 'id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
     console.log('ShippingMethodRepository - creating shipping method:', shippingMethod);
     
     const { data, error } = await supabase
@@ -82,7 +82,7 @@ export class ShippingMethodRepository {
     return this.mapToShippingMethod(data);
   }
 
-  async updateShippingMethod(id: string, updates: Partial<Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>>): Promise<ShippingMethod> {
+  async update(id: string, updates: Partial<Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>>): Promise<ShippingMethod> {
     console.log('ShippingMethodRepository - updating shipping method:', id, updates);
     
     const { data, error } = await supabase
@@ -102,7 +102,7 @@ export class ShippingMethodRepository {
     return this.mapToShippingMethod(data);
   }
 
-  async deleteShippingMethod(id: string): Promise<void> {
+  async delete(id: string): Promise<void> {
     console.log('ShippingMethodRepository - deleting shipping method:', id);
     
     const { error } = await supabase
@@ -117,6 +117,31 @@ export class ShippingMethodRepository {
     }
 
     console.log('ShippingMethodRepository - deleted shipping method:', id);
+  }
+
+  // Alias methods for backward compatibility
+  async getAllShippingMethods(): Promise<ShippingMethod[]> {
+    return this.findAll();
+  }
+
+  async getActiveShippingMethods(): Promise<ShippingMethod[]> {
+    return this.findActive();
+  }
+
+  async getShippingMethodById(id: string): Promise<ShippingMethod | null> {
+    return this.findById(id);
+  }
+
+  async createShippingMethod(shippingMethod: Omit<ShippingMethod, 'id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
+    return this.create(shippingMethod);
+  }
+
+  async updateShippingMethod(id: string, updates: Partial<Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>>): Promise<ShippingMethod> {
+    return this.update(id, updates);
+  }
+
+  async deleteShippingMethod(id: string): Promise<void> {
+    return this.delete(id);
   }
 
   private mapToShippingMethod(data: any): ShippingMethod {

@@ -12,7 +12,7 @@ export function useOrderData(filters: OrderFilters, sort: OrderSort) {
       if (!services?.orderService) {
         throw new Error('Order service not available');
       }
-      return services.orderService.getOrdersWithFilters(filters, sort);
+      return services.orderService.getOrdersWithFilters(filters);
     },
     enabled: !!services?.orderService,
   });
