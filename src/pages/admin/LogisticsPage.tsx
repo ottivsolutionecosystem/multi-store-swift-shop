@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -109,6 +110,14 @@ export default function LogisticsPage() {
           onOpenChange={setShowForm}
           editingMethod={editingMethod}
           onSubmit={handleSubmitMethod}
+          loading={submitting}
+        />
+
+        <ShippingMethodFormDialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+          editingMethod={null}
+          onSubmit={handleCreateMethod}
           loading={submitting}
         />
 
