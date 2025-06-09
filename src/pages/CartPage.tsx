@@ -1,15 +1,94 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useCart } from '@/contexts/CartContext';
+import { useServices } from '@/hooks/useServices';
+import { useToast } from '@/hooks/use-toast';
 import { ProductImage } from '@/components/products/ProductImage';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { ShippingMethodSelector } from '@/components/cart/ShippingMethodSelector';
+import { ShippingCalculation } from '@/types/shipping';
+import { Minus, Plus, Trash2, Calculator } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem, clearCart } = useCart();
+  const services = useServices();
+  const { toast } = useToast();
+
+  const [cep, setCep] = useState('');
+  const [shippingCalculations, setShippingCalculations] = useState<ShippingCalculation[]>([]);
+  const [selectedShippingMethod, setSelectedShippingMethod] = useState<string>('');
+  const [shippingPrice, setShippingPrice] = useState(0);
+  const [calculatingShipping, setCalculatingShipping] = useState(false);
+
+  const calculateShipping = async () => {
+    if (!services || !cep.trim()) {
+      toast({
+        title: 'CEP necessário',
+        description: 'Digite o CEP para calcular o frete',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (items.length === 0) {
+      toast({
+        title: 'Carrinho vazio',
+        description: 'Adicione produtos ao carrinho para calcular o frete',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setCalculatingShipping(true);
+      const calculations = await services.shippingService.calculateShipping(items, cep);
+      setShippingCalculations(calculations);
+      
+      // Auto-select the first available method
+      if (calculations.length > 0 && !calculations[0].error) {
+        setSelectedShippingMethod(calculations[0].method_id);
+        setShippingPrice(calculations[0].price);
+      }
+    } catch (error) {
+      console.error('Error calculating shipping:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao calcular frete',
+        variant: 'destructive',
+      });
+    } finally {
+      setCalculatingShipping(false);
+    }
+  };
+
+  const handleShippingMethodSelect = (methodId: string, price: number) => {
+    setSelectedShippingMethod(methodId);
+    setShippingPrice(price);
+  };
+
+  const formatCep = (value: string) => {
+    // Remove non-numeric characters
+    const cleaned = value.replace(/\D/g, '');
+    
+    // Apply mask: 00000-000
+    if (cleaned.length <= 5) {
+      return cleaned;
+    } else {
+      return cleaned.slice(0, 5) + '-' + cleaned.slice(5, 8);
+    }
+  };
+
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedCep = formatCep(e.target.value);
+    setCep(formattedCep);
+  };
+
+  const finalTotal = total + shippingPrice;
 
   if (items.length === 0) {
     return (
@@ -31,7 +110,7 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
-      <main className="max-w-4xl mx-auto px-4 py-8">
+      <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Carrinho de Compras</h1>
           <Button variant="outline" onClick={clearCart}>
@@ -106,8 +185,49 @@ export default function CartPage() {
             ))}
           </div>
 
-          {/* Cart Summary */}
-          <div className="lg:col-span-1">
+          {/* Cart Summary and Shipping */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Shipping Calculator */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calculator className="h-5 w-5" />
+                  Calcular Frete
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="cep">CEP</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="cep"
+                      placeholder="00000-000"
+                      value={cep}
+                      onChange={handleCepChange}
+                      maxLength={9}
+                    />
+                    <Button 
+                      onClick={calculateShipping}
+                      disabled={calculatingShipping || !cep.trim()}
+                    >
+                      {calculatingShipping ? 'Calculando...' : 'Calcular'}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Shipping Methods */}
+            {shippingCalculations.length > 0 && (
+              <ShippingMethodSelector
+                calculations={shippingCalculations}
+                selectedMethodId={selectedShippingMethod}
+                onMethodSelect={handleShippingMethodSelect}
+                loading={calculatingShipping}
+              />
+            )}
+
+            {/* Cart Summary */}
             <Card>
               <CardHeader>
                 <CardTitle>Resumo do Pedido</CardTitle>
@@ -120,14 +240,19 @@ export default function CartPage() {
                 
                 <div className="flex justify-between">
                   <span>Frete</span>
-                  <span className="text-green-600">Grátis</span>
+                  <span className={shippingPrice === 0 ? 'text-green-600' : ''}>
+                    {shippingPrice === 0 
+                      ? 'Grátis' 
+                      : shippingPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                    }
+                  </span>
                 </div>
                 
                 <hr />
                 
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span>{total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                  <span>{finalTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                 </div>
                 
                 <Button className="w-full" size="lg">

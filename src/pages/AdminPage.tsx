@@ -5,7 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Header } from '@/components/layout/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Tag, ShoppingCart, ArrowRight, Percent, Settings, ClipboardList } from 'lucide-react';
+import { Package, Tag, ShoppingCart, ArrowRight, Percent, Settings, ClipboardList, Truck } from 'lucide-react';
 
 export default function AdminPage() {
   const { user, profile, loading } = useAuth();
@@ -44,6 +44,11 @@ export default function AdminPage() {
   const handleOrdersClick = () => {
     console.log('Navegando para pedidos...');
     navigate('/admin/orders');
+  };
+
+  const handleLogisticsClick = () => {
+    console.log('Navegando para logística...');
+    navigate('/admin/logistics');
   };
 
   if (loading) {
@@ -142,6 +147,30 @@ export default function AdminPage() {
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
+                <Truck className="h-5 w-5 text-purple-600" />
+                Logística
+              </CardTitle>
+              <CardDescription>
+                Gerenciar métodos de frete
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 mb-4">
+                Configurar frete expresso e APIs de entrega.
+              </p>
+              <Button 
+                onClick={handleLogisticsClick}
+                className="w-full flex items-center justify-center gap-2"
+              >
+                Gerenciar Logística
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
                 <Settings className="h-5 w-5 text-indigo-600" />
                 Configurações
               </CardTitle>
@@ -167,7 +196,7 @@ export default function AdminPage() {
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
-                <ClipboardList className="h-5 w-5 text-purple-600" />
+                <ClipboardList className="h-5 w-5 text-cyan-600" />
                 Pedidos
               </CardTitle>
               <CardDescription>
@@ -183,31 +212,6 @@ export default function AdminPage() {
                 className="w-full flex items-center justify-center gap-2"
               >
                 Gerenciar Pedidos
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-gray-400" />
-                Carrinho & Checkout
-              </CardTitle>
-              <CardDescription>
-                Sistema de compras
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-4">
-                Funcionalidade de carrinho e checkout dos clientes.
-              </p>
-              <Button 
-                variant="secondary"
-                className="w-full flex items-center justify-center gap-2"
-                disabled
-              >
-                Em Breve
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </CardContent>

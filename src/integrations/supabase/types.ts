@@ -510,9 +510,11 @@ export type Database = {
           created_at: string
           description: string | null
           gallery_images: string[] | null
+          height: number | null
           id: string
           image_url: string | null
           is_active: boolean
+          length: number | null
           manufacturer_id: string | null
           name: string
           price: number
@@ -526,6 +528,7 @@ export type Database = {
           track_quantity: boolean
           updated_at: string
           weight: number | null
+          width: number | null
         }
         Insert: {
           barcode?: string | null
@@ -536,9 +539,11 @@ export type Database = {
           created_at?: string
           description?: string | null
           gallery_images?: string[] | null
+          height?: number | null
           id?: string
           image_url?: string | null
           is_active?: boolean
+          length?: number | null
           manufacturer_id?: string | null
           name: string
           price?: number
@@ -552,6 +557,7 @@ export type Database = {
           track_quantity?: boolean
           updated_at?: string
           weight?: number | null
+          width?: number | null
         }
         Update: {
           barcode?: string | null
@@ -562,9 +568,11 @@ export type Database = {
           created_at?: string
           description?: string | null
           gallery_images?: string[] | null
+          height?: number | null
           id?: string
           image_url?: string | null
           is_active?: boolean
+          length?: number | null
           manufacturer_id?: string | null
           name?: string
           price?: number
@@ -578,6 +586,7 @@ export type Database = {
           track_quantity?: boolean
           updated_at?: string
           weight?: number | null
+          width?: number | null
         }
         Relationships: [
           {
@@ -915,6 +924,57 @@ export type Database = {
         }
         Relationships: []
       }
+      shipping_methods: {
+        Row: {
+          api_headers: Json | null
+          api_url: string | null
+          created_at: string
+          delivery_days: number | null
+          delivery_label_type:
+            | Database["public"]["Enums"]["delivery_label_type"]
+            | null
+          id: string
+          is_active: boolean
+          name: string
+          price: number | null
+          store_id: string
+          type: Database["public"]["Enums"]["shipping_method_type"]
+          updated_at: string
+        }
+        Insert: {
+          api_headers?: Json | null
+          api_url?: string | null
+          created_at?: string
+          delivery_days?: number | null
+          delivery_label_type?:
+            | Database["public"]["Enums"]["delivery_label_type"]
+            | null
+          id?: string
+          is_active?: boolean
+          name: string
+          price?: number | null
+          store_id: string
+          type: Database["public"]["Enums"]["shipping_method_type"]
+          updated_at?: string
+        }
+        Update: {
+          api_headers?: Json | null
+          api_url?: string | null
+          created_at?: string
+          delivery_days?: number | null
+          delivery_label_type?:
+            | Database["public"]["Enums"]["delivery_label_type"]
+            | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          price?: number | null
+          store_id?: string
+          type?: Database["public"]["Enums"]["shipping_method_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       store_settings: {
         Row: {
           banner_url: string | null
@@ -1091,6 +1151,7 @@ export type Database = {
       }
     }
     Enums: {
+      delivery_label_type: "days" | "guaranteed"
       discount_type: "percentage" | "fixed_amount"
       promotion_display_format: "percentage" | "comparison"
       promotion_status:
@@ -1099,6 +1160,7 @@ export type Database = {
         | "active"
         | "expired"
         | "inactive"
+      shipping_method_type: "express" | "api"
       user_role: "user" | "admin"
     }
     CompositeTypes: {
@@ -1215,9 +1277,11 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      delivery_label_type: ["days", "guaranteed"],
       discount_type: ["percentage", "fixed_amount"],
       promotion_display_format: ["percentage", "comparison"],
       promotion_status: ["draft", "scheduled", "active", "expired", "inactive"],
+      shipping_method_type: ["express", "api"],
       user_role: ["user", "admin"],
     },
   },

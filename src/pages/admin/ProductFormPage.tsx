@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -69,6 +70,9 @@ export default function ProductFormPage() {
     
     // Frete
     weight: '',
+    length: '',
+    width: '',
+    height: '',
     
     // SEO
     seo_title: '',
@@ -127,6 +131,9 @@ export default function ProductFormPage() {
               barcode: product.barcode || '',
               
               weight: product.weight?.toString() || '',
+              length: product.length?.toString() || '',
+              width: product.width?.toString() || '',
+              height: product.height?.toString() || '',
               
               seo_title: product.seo_title || '',
               seo_description: product.seo_description || ''
@@ -205,6 +212,9 @@ export default function ProductFormPage() {
         barcode: formData.barcode || null,
         
         weight: formData.weight ? parseFloat(formData.weight) : null,
+        length: formData.length ? parseFloat(formData.length) : null,
+        width: formData.width ? parseFloat(formData.width) : null,
+        height: formData.height ? parseFloat(formData.height) : null,
         
         seo_title: formData.seo_title || null,
         seo_description: formData.seo_description || null
@@ -460,7 +470,13 @@ export default function ProductFormPage() {
               {/* Frete */}
               <ProductShippingSection
                 weight={formData.weight}
+                length={formData.length}
+                width={formData.width}
+                height={formData.height}
                 onWeightChange={(value) => setFormData({...formData, weight: value})}
+                onLengthChange={(value) => setFormData({...formData, length: value})}
+                onWidthChange={(value) => setFormData({...formData, width: value})}
+                onHeightChange={(value) => setFormData({...formData, height: value})}
               />
 
               {/* SEO */}

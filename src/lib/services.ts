@@ -1,77 +1,98 @@
 
-import { ProductRepository } from '@/repositories/ProductRepository';
 import { CategoryRepository } from '@/repositories/CategoryRepository';
+import { ProductRepository } from '@/repositories/ProductRepository';
+import { UserRepository } from '@/repositories/UserRepository';
+import { ManufacturerRepository } from '@/repositories/ManufacturerRepository';
 import { PromotionRepository } from '@/repositories/PromotionRepository';
 import { OrderRepository } from '@/repositories/OrderRepository';
-import { UserRepository } from '@/repositories/UserRepository';
 import { StoreSettingsRepository } from '@/repositories/StoreSettingsRepository';
-import { ManufacturerRepository } from '@/repositories/ManufacturerRepository';
 import { VariantRepository } from '@/repositories/VariantRepository';
 import { VariantValueRepository } from '@/repositories/VariantValueRepository';
 import { VariantCombinationRepository } from '@/repositories/VariantCombinationRepository';
 import { VariantGroupPriceRepository } from '@/repositories/VariantGroupPriceRepository';
+import { ShippingMethodRepository } from '@/repositories/ShippingMethodRepository';
 
-import { ProductService } from '@/services/ProductService';
 import { CategoryService } from '@/services/CategoryService';
-import { PromotionService } from '@/services/PromotionService';
-import { OrderService } from '@/services/OrderService';
+import { ProductService } from '@/services/ProductService';
 import { UserService } from '@/services/UserService';
 import { ProfileService } from '@/services/ProfileService';
-import { StoreSettingsService } from '@/services/StoreSettingsService';
 import { ManufacturerService } from '@/services/ManufacturerService';
-import { VariantService } from '@/services/VariantService';
-import { VariantManagementService } from '@/services/VariantManagementService';
-import { CombinationService } from '@/services/CombinationService';
-import { GroupPricingService } from '@/services/GroupPricingService';
+import { PromotionService } from '@/services/PromotionService';
 import { ProductPromotionService } from '@/services/ProductPromotionService';
-import { ProductQueryService } from '@/services/ProductQueryService';
+import { OrderService } from '@/services/OrderService';
+import { StoreSettingsService } from '@/services/StoreSettingsService';
+import { AuthenticationService } from '@/services/AuthenticationService';
+import { UserSessionService } from '@/services/UserSessionService';
+import { VariantService } from '@/services/VariantService';
+import { ShippingService } from '@/services/ShippingService';
 
 export function createServices(storeId: string) {
-  console.log('createServices - Creating services for storeId:', storeId);
+  console.log('Creating services for storeId:', storeId);
   
   // Repositories
-  const productRepository = new ProductRepository(storeId);
   const categoryRepository = new CategoryRepository(storeId);
+  const productRepository = new ProductRepository(storeId);
+  const userRepository = new UserRepository(storeId);
+  const manufacturerRepository = new ManufacturerRepository(storeId);
   const promotionRepository = new PromotionRepository(storeId);
   const orderRepository = new OrderRepository(storeId);
-  const userRepository = new UserRepository(storeId);
   const storeSettingsRepository = new StoreSettingsRepository(storeId);
-  const manufacturerRepository = new ManufacturerRepository(storeId);
   const variantRepository = new VariantRepository(storeId);
   const variantValueRepository = new VariantValueRepository(storeId);
   const variantCombinationRepository = new VariantCombinationRepository(storeId);
   const variantGroupPriceRepository = new VariantGroupPriceRepository(storeId);
+  const shippingMethodRepository = new ShippingMethodRepository(storeId);
 
   // Services
-  const productService = new ProductService(productRepository);
-  const categoryService = new CategoryService(categoryRepository);
-  const promotionService = new PromotionService(promotionRepository);
-  const orderService = new OrderService(orderRepository);
   const userService = new UserService(userRepository);
-  const profileService = new ProfileService(); // ProfileService doesn't take parameters
-  const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
+  const profileService = new ProfileService(userRepository);
+  const categoryService = new CategoryService(categoryRepository);
   const manufacturerService = new ManufacturerService(manufacturerRepository);
-  const variantService = new VariantService(variantRepository); // VariantService takes only VariantRepository
-  const variantManagementService = new VariantManagementService(variantRepository); // Takes only VariantRepository
-  const combinationService = new CombinationService(variantRepository); // Takes only VariantRepository
-  const groupPricingService = new GroupPricingService(variantRepository); // Takes VariantRepository, not VariantGroupPriceRepository
-  const productPromotionService = new ProductPromotionService(storeId); // Takes storeId string parameter
-  const productQueryService = new ProductQueryService(storeId); // Takes storeId string parameter
+  const promotionService = new PromotionService(promotionRepository);
+  const productPromotionService = new ProductPromotionService(promotionRepository, productRepository);
+  const productService = new ProductService(productRepository, productPromotionService);
+  const orderService = new OrderService(orderRepository);
+  const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
+  const authenticationService = new AuthenticationService();
+  const userSessionService = new UserSessionService();
+  const variantService = new VariantService(
+    variantRepository,
+    variantValueRepository,
+    variantCombinationRepository,
+    variantGroupPriceRepository
+  );
+  const shippingService = new ShippingService(shippingMethodRepository);
+
+  console.log('Services created successfully');
 
   return {
-    productService,
-    categoryService,
-    promotionService,
-    orderService,
+    // Repositories
+    categoryRepository,
+    productRepository,
+    userRepository,
+    manufacturerRepository,
+    promotionRepository,
+    orderRepository,
+    storeSettingsRepository,
+    variantRepository,
+    variantValueRepository,
+    variantCombinationRepository,
+    variantGroupPriceRepository,
+    shippingMethodRepository,
+
+    // Services
     userService,
     profileService,
-    storeSettingsService,
+    categoryService,
     manufacturerService,
-    variantService,
-    variantManagementService,
-    combinationService,
-    groupPricingService,
+    promotionService,
     productPromotionService,
-    productQueryService,
+    productService,
+    orderService,
+    storeSettingsService,
+    authenticationService,
+    userSessionService,
+    variantService,
+    shippingService,
   };
 }

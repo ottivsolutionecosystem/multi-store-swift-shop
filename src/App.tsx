@@ -22,6 +22,7 @@ import CategoryFormPage from "./pages/admin/CategoryFormPage";
 import PromotionsPage from "./pages/admin/PromotionsPage";
 import PromotionFormPage from "./pages/admin/PromotionFormPage";
 import OrdersPage from "./pages/admin/OrdersPage";
+import LogisticsPage from "./pages/admin/LogisticsPage";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => {
                     <Route path="/admin/promotions/new" element={<PromotionFormPage />} />
                     <Route path="/admin/promotions/:id/edit" element={<PromotionFormPage />} />
                     <Route path="/admin/orders" element={<OrdersPage />} />
+                    <Route path="/admin/logistics" element={<LogisticsPage />} />
                     <Route path="/admin/store-settings" element={<StoreSettingsPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
