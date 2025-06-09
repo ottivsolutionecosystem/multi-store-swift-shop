@@ -50,7 +50,9 @@ export function StoreSettingsForm() {
         show_price: storeSettings.show_price ?? true,
         show_promotion_badge: storeSettings.show_promotion_badge ?? true,
         promotion_display_format: storeSettings.promotion_display_format || 'percentage',
-        origin_address: storeSettings.origin_address || undefined,
+        origin_address: (storeSettings.origin_address && typeof storeSettings.origin_address === 'object' && storeSettings.origin_address !== null) 
+          ? storeSettings.origin_address as any 
+          : undefined,
       });
     }
   }, [storeSettings, form]);

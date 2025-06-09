@@ -96,4 +96,28 @@ export class OrderService {
       throw error;
     }
   }
+
+  async createOrder(orderData: any): Promise<any> {
+    console.log('OrderService - Creating order:', orderData);
+    
+    try {
+      return await this.orderRepository.create(orderData);
+    } catch (error) {
+      console.error('OrderService - Error creating order:', error);
+      throw error;
+    }
+  }
+
+  async addOrderItem(orderId: string, itemData: any): Promise<any> {
+    console.log('OrderService - Adding order item:', orderId, itemData);
+    
+    try {
+      // This would typically be handled by an OrderItemRepository
+      // For now, we'll implement it directly in the OrderRepository
+      return await this.orderRepository.addOrderItem(orderId, itemData);
+    } catch (error) {
+      console.error('OrderService - Error adding order item:', error);
+      throw error;
+    }
+  }
 }

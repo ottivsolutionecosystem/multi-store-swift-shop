@@ -1,15 +1,26 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, Session } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { AuthState, Profile } from '@/types/auth';
-import { SmartUserCache } from '@/lib/smartUserCache';
+import { Profile } from '@/types/auth';
+import { useServices } from '@/hooks/useServices';
+
+interface AuthState {
+  user: User | null;
+  profile: Profile | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signOut: () => Promise<void>;
+}
 
 const AuthContext = createContext<AuthState>({
   user: null,
-  session: null,
   profile: null,
   loading: true,
+  signIn: async () => {},
+  signUp: async () => {},
+  signOut: async () => {},
 });
 
 export const useAuth = () => {
@@ -22,125 +33,131 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
+  const services = useServices();
 
-  // Load initial data from cache
   useEffect(() => {
-    console.log('AuthProvider - initializing with smart cache');
-    
-    const initializeAuth = async () => {
+    // Get initial session
+    const getInitialSession = async () => {
       try {
-        // Check for existing session first
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log('AuthContext - Initial session:', session);
         
-        if (currentSession?.user) {
-          setSession(currentSession);
-          setUser(currentSession.user);
-          
-          // Try to get cached profile
-          const cachedProfile = await SmartUserCache.getProfile(currentSession.user.id);
-          if (cachedProfile) {
-            console.log('AuthProvider - loaded cached profile');
-            setProfile(cachedProfile);
-          } else {
-            // Fetch profile from database and cache it
-            console.log('AuthProvider - fetching profile from database');
-            const { data: freshProfile } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', currentSession.user.id)
-              .maybeSingle();
-            
-            if (freshProfile) {
-              setProfile(freshProfile);
-              await SmartUserCache.setUserData(currentSession.user, freshProfile);
-            }
-          }
+        if (session?.user) {
+          setUser(session.user);
+          await loadUserProfile(session.user.id);
         }
       } catch (error) {
-        console.error('AuthProvider - initialization error:', error);
+        console.error('AuthContext - Error getting initial session:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    initializeAuth();
-  }, []);
+    getInitialSession();
 
-  useEffect(() => {
-    console.log('AuthProvider - setting up optimized auth state listener');
-    
+    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('AuthProvider - auth state changed:', event, session?.user?.email);
+        console.log('AuthContext - Auth state changed:', event, session);
         
-        setSession(session);
         setUser(session?.user ?? null);
         
-        if (event === 'SIGNED_OUT') {
-          console.log('AuthProvider - user signed out, clearing cache');
-          setProfile(null);
-          setLoading(false);
-          return;
-        }
-        
         if (session?.user) {
-          console.log('AuthProvider - user signed in, using smart cache');
-          
-          // Defer profile loading to prevent blocking auth flow
-          setTimeout(async () => {
-            try {
-              // Try cache first
-              const cachedProfile = await SmartUserCache.getProfile(session.user.id);
-              if (cachedProfile) {
-                console.log('AuthProvider - using cached profile');
-                setProfile(cachedProfile);
-                setLoading(false);
-                return;
-              }
-              
-              // Fetch fresh profile if not cached
-              console.log('AuthProvider - fetching fresh profile');
-              const { data: freshProfile } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', session.user.id)
-                .maybeSingle();
-              
-              console.log('AuthProvider - profile fetched:', freshProfile);
-              setProfile(freshProfile);
-              
-              // Update cache with fresh data
-              if (freshProfile) {
-                await SmartUserCache.setUserData(session.user, freshProfile);
-              }
-            } catch (error) {
-              console.error('AuthProvider - error loading profile:', error);
-            } finally {
-              setLoading(false);
-            }
-          }, 0);
+          await loadUserProfile(session.user.id);
         } else {
           setProfile(null);
-          setLoading(false);
         }
+        
+        setLoading(false);
       }
     );
 
-    return () => {
-      console.log('AuthProvider - cleaning up auth listener');
-      subscription.unsubscribe();
-    };
-  }, []);
+    return () => subscription.unsubscribe();
+  }, [services]);
+
+  const loadUserProfile = async (userId: string) => {
+    try {
+      if (!services?.userService) {
+        console.log('AuthContext - UserService not available yet');
+        return;
+      }
+
+      console.log('AuthContext - Loading profile for user:', userId);
+      const userProfile = await services.userService.getCurrentUserProfile();
+      console.log('AuthContext - Loaded profile:', userProfile);
+      setProfile(userProfile);
+    } catch (error) {
+      console.error('AuthContext - Error loading user profile:', error);
+      setProfile(null);
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    console.log('AuthContext - Signing in user:', email);
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error('AuthContext - Sign in error:', error);
+      throw error;
+    }
+
+    console.log('AuthContext - Sign in successful:', data);
+  };
+
+  const signUp = async (email: string, password: string, fullName: string) => {
+    console.log('AuthContext - Signing up user:', email);
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+      },
+    });
+
+    if (error) {
+      console.error('AuthContext - Sign up error:', error);
+      throw error;
+    }
+
+    console.log('AuthContext - Sign up successful:', data);
+  };
+
+  const signOut = async () => {
+    console.log('AuthContext - Signing out');
+    
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error('AuthContext - Sign out error:', error);
+      throw error;
+    }
+
+    setUser(null);
+    setProfile(null);
+    console.log('AuthContext - Sign out successful');
+  };
 
   const value: AuthState = {
     user,
-    session,
     profile,
     loading,
+    signIn,
+    signUp,
+    signOut,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };

@@ -67,7 +67,7 @@ export class OrderRepository {
     
     const ordersWithItems: OrderWithItems[] = (orders || []).map(order => ({
       ...order,
-      status: order.status as OrderStatus, // Type assertion to fix the status type
+      status: order.status as OrderStatus,
       items: (order.order_items || []).map(item => ({
         ...item,
         product: item.products || { id: '', name: 'Produto não encontrado', image_url: null },
@@ -107,6 +107,20 @@ export class OrderRepository {
       .update(order)
       .eq('id', id)
       .eq('store_id', this.storeId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  }
+
+  async addOrderItem(orderId: string, itemData: any): Promise<any> {
+    const { data, error } = await supabase
+      .from('order_items')
+      .insert({
+        order_id: orderId,
+        ...itemData
+      })
       .select()
       .single();
 
