@@ -61,7 +61,7 @@ export class ShippingMethodRepository {
     return data ? this.mapToShippingMethod(data) : null;
   }
 
-  async createShippingMethod(shippingMethod: Omit<ShippingMethod, 'id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
+  async createShippingMethod(shippingMethod: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
     console.log('ShippingMethodRepository - creating shipping method:', shippingMethod);
     
     const { data, error } = await supabase
