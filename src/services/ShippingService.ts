@@ -20,7 +20,7 @@ export class ShippingService {
     return this.shippingMethodRepository.getShippingMethodById(id);
   }
 
-  async createShippingMethod(method: Omit<ShippingMethod, 'id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
+  async createShippingMethod(method: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
     console.log('ShippingService - Creating shipping method:', method);
     return this.shippingMethodRepository.createShippingMethod(method);
   }
