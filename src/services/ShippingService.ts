@@ -1,4 +1,5 @@
 
+
 import { ShippingMethodRepository } from '@/repositories/ShippingMethodRepository';
 import { ShippingCalculation, ShippingMethod } from '@/types/shipping';
 
@@ -23,7 +24,10 @@ export class ShippingService {
   }
 
   async createShippingMethod(methodData: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
-    return this.shippingMethodRepository.createShippingMethod(methodData);
+    return this.shippingMethodRepository.createShippingMethod({
+      ...methodData,
+      store_id: '', // This will be set by the repository based on storeId
+    });
   }
 
   async updateShippingMethod(id: string, methodData: Partial<Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>>): Promise<ShippingMethod> {
