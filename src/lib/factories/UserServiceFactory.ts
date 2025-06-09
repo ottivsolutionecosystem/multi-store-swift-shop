@@ -18,12 +18,12 @@ export function createUserServices(storeId: string) {
 
   // Services - fix constructor arguments to match service expectations
   const userService = new UserService(userRepository);
-  const profileService = new ProfileService(userRepository);
+  const profileService = new ProfileService(); // No arguments
   const storeAccessService = new StoreAccessService(); // No arguments
   const userSessionService = new UserSessionService(); // No arguments
   const userProfileManagementService = new UserProfileManagementService(); // No arguments
   const authenticationService = new AuthenticationService(); // No arguments
-  const userAddressService = new UserAddressService(); // No arguments - should not receive repository
+  const userAddressService = new UserAddressService(userAddressRepository); // Expects repository
 
   return {
     userService,

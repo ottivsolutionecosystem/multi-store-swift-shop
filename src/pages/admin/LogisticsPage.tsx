@@ -10,6 +10,7 @@ import { ShippingMethodsEmptyState } from '@/components/admin/shipping/ShippingM
 import { ShippingMethodFormDialog } from '@/components/admin/shipping/ShippingMethodFormDialog';
 
 type ShippingMethodUpdate = Partial<Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>>;
+type ShippingMethodCreate = Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>;
 
 export default function LogisticsPage() {
   const navigate = useNavigate();
@@ -32,7 +33,7 @@ export default function LogisticsPage() {
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (data: ShippingMethodCreate) => {
       if (!services?.shippingService) {
         throw new Error('Shipping service not available');
       }
@@ -119,7 +120,7 @@ export default function LogisticsPage() {
     }
   };
 
-  const handleSubmitMethod = async (data: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>) => {
+  const handleSubmitMethod = async (data: ShippingMethodCreate) => {
     if (editingMethod) {
       updateMutation.mutate({ id: editingMethod.id, data });
     } else {
