@@ -55,7 +55,7 @@ export function createServices(storeId: string) {
   const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
   const authenticationService = new AuthenticationService();
   const userSessionService = new UserSessionService();
-  const variantService = new VariantService(variantRepository, variantValueRepository, variantCombinationRepository, variantGroupPriceRepository);
+  const variantService = new VariantService(variantRepository);
   const shippingService = new ShippingService(shippingMethodRepository);
 
   console.log('Services created successfully');
