@@ -20,7 +20,7 @@ export class ShippingMethodRepository {
     }
 
     console.log('ShippingMethodRepository - found shipping methods:', data?.length || 0);
-    return data || [];
+    return (data || []).map(this.mapToShippingMethod);
   }
 
   async getActiveShippingMethods(): Promise<ShippingMethod[]> {
@@ -39,7 +39,7 @@ export class ShippingMethodRepository {
     }
 
     console.log('ShippingMethodRepository - found active shipping methods:', data?.length || 0);
-    return data || [];
+    return (data || []).map(this.mapToShippingMethod);
   }
 
   async getShippingMethodById(id: string): Promise<ShippingMethod | null> {
@@ -58,7 +58,7 @@ export class ShippingMethodRepository {
     }
 
     console.log('ShippingMethodRepository - found shipping method:', data);
-    return data;
+    return data ? this.mapToShippingMethod(data) : null;
   }
 
   async createShippingMethod(shippingMethod: Omit<ShippingMethod, 'id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
@@ -79,7 +79,7 @@ export class ShippingMethodRepository {
     }
 
     console.log('ShippingMethodRepository - created shipping method:', data);
-    return data;
+    return this.mapToShippingMethod(data);
   }
 
   async updateShippingMethod(id: string, updates: Partial<Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>>): Promise<ShippingMethod> {
@@ -99,7 +99,7 @@ export class ShippingMethodRepository {
     }
 
     console.log('ShippingMethodRepository - updated shipping method:', data);
-    return data;
+    return this.mapToShippingMethod(data);
   }
 
   async deleteShippingMethod(id: string): Promise<void> {
@@ -117,5 +117,22 @@ export class ShippingMethodRepository {
     }
 
     console.log('ShippingMethodRepository - deleted shipping method:', id);
+  }
+
+  private mapToShippingMethod(data: any): ShippingMethod {
+    return {
+      id: data.id,
+      store_id: data.store_id,
+      name: data.name,
+      type: data.type,
+      is_active: data.is_active,
+      price: data.price,
+      delivery_days: data.delivery_days,
+      delivery_label_type: data.delivery_label_type,
+      api_url: data.api_url,
+      api_headers: (data.api_headers as Record<string, string>) || {},
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+    };
   }
 }
