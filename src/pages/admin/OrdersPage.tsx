@@ -59,9 +59,17 @@ export default function OrdersPage() {
     return null;
   }
 
-  // Convert orders to OrderWithItems format by adding empty items array
+  // Convert orders to OrderWithItems format with proper type casting
   const ordersWithItems = orders.map(order => ({
     ...order,
+    status: order.status as OrderWithItems['status'],
+    customer_name: order.customer_name || '',
+    customer_email: order.customer_email || '',
+    customer_phone: order.customer_phone || '',
+    discount_amount: order.discount_amount || 0,
+    shipping_cost: order.shipping_cost || 0,
+    notes: order.notes || '',
+    payment_method: order.payment_method || '',
     items: [] // Add empty items array for now
   }));
 
