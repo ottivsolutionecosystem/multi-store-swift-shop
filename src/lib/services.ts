@@ -51,7 +51,7 @@ export function createServices(storeId: string) {
   const promotionService = new PromotionService(promotionRepository);
   const productPromotionService = new ProductPromotionService(promotionRepository, productRepository);
   const productService = new ProductService(productRepository, productPromotionService);
-  const orderService = new OrderService(orderRepository);
+  const orderService = new OrderService(orderRepository, storeId);
   const storeSettingsService = new StoreSettingsService(storeSettingsRepository);
   const authenticationService = new AuthenticationService();
   const userSessionService = new UserSessionService();
