@@ -10,6 +10,7 @@ import { OrderTableView } from '@/components/admin/orders/OrderTableView';
 import { useOrderManagement } from '@/hooks/useOrderManagement';
 import { useOrderData } from '@/hooks/useOrderData';
 import { useAuth } from '@/contexts/AuthContext';
+import { OrderWithItems } from '@/types/order-management';
 import { useEffect } from 'react';
 
 export default function OrdersPage() {
