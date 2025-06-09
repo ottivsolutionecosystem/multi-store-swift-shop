@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -26,6 +25,7 @@ export default function LogisticsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingMethod, setEditingMethod] = useState<ShippingMethod | null>(null);
   const [deletingMethodId, setDeletingMethodId] = useState<string | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading) {
@@ -37,9 +37,13 @@ export default function LogisticsPage() {
     }
   }, [user, profile, authLoading, navigate]);
 
-  const handleCreateMethod = () => {
-    setEditingMethod(null);
-    setShowForm(true);
+  const handleCreateMethod = async (data: Omit<ShippingMethod, 'id' | 'created_at' | 'updated_at'>) => {
+    try {
+      await createMethod(data);
+      setIsCreateDialogOpen(false);
+    } catch (error) {
+      // Error is already handled in the hook
+    }
   };
 
   const handleEditMethod = (method: ShippingMethod) => {
