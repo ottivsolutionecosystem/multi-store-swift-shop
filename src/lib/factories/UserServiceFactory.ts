@@ -23,7 +23,7 @@ export function createUserServices(storeId: string) {
   const userSessionService = new UserSessionService(); // No arguments
   const userProfileManagementService = new UserProfileManagementService(); // No arguments
   const authenticationService = new AuthenticationService(); // No arguments
-  const userAddressService = new UserAddressService(userAddressRepository);
+  const userAddressService = new UserAddressService(); // No arguments - should not receive repository
 
   return {
     userService,
