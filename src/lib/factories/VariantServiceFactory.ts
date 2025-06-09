@@ -20,8 +20,8 @@ export function createVariantServices(storeId: string) {
   // Services - fix constructor arguments to match service expectations
   const variantService = new VariantService(variantRepository);
   const variantManagementService = new VariantManagementService(variantRepository);
-  const combinationService = new CombinationService(variantCombinationRepository);
-  const groupPricingService = new GroupPricingService(variantGroupPriceRepository);
+  const combinationService = new CombinationService(variantRepository);
+  const groupPricingService = new GroupPricingService(variantRepository);
 
   return {
     variantService,
