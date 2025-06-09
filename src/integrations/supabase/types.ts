@@ -614,37 +614,31 @@ export type Database = {
       }
       profiles: {
         Row: {
-          address: Json | null
           avatar_url: string | null
           created_at: string
           email: string
           full_name: string | null
           id: string
-          phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           store_id: string | null
           updated_at: string
         }
         Insert: {
-          address?: Json | null
           avatar_url?: string | null
           created_at?: string
           email: string
           full_name?: string | null
           id: string
-          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           store_id?: string | null
           updated_at?: string
         }
         Update: {
-          address?: Json | null
           avatar_url?: string | null
           created_at?: string
           email?: string
           full_name?: string | null
           id?: string
-          phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           store_id?: string | null
           updated_at?: string
@@ -991,7 +985,6 @@ export type Database = {
           free_shipping_threshold: number | null
           id: string
           logo_url: string | null
-          origin_address: Json | null
           payment_settings: Json | null
           price_color: string
           primary_color: string
@@ -1016,7 +1009,6 @@ export type Database = {
           free_shipping_threshold?: number | null
           id?: string
           logo_url?: string | null
-          origin_address?: Json | null
           payment_settings?: Json | null
           price_color?: string
           primary_color?: string
@@ -1041,7 +1033,6 @@ export type Database = {
           free_shipping_threshold?: number | null
           id?: string
           logo_url?: string | null
-          origin_address?: Json | null
           payment_settings?: Json | null
           price_color?: string
           primary_color?: string
@@ -1091,54 +1082,6 @@ export type Database = {
           id?: string
           name?: string
           updated_at?: string
-        }
-        Relationships: []
-      }
-      user_addresses: {
-        Row: {
-          city: string
-          complement: string | null
-          created_at: string
-          id: string
-          is_default: boolean
-          name: string
-          neighborhood: string
-          number: string
-          state: string
-          street: string
-          updated_at: string
-          user_id: string
-          zip_code: string
-        }
-        Insert: {
-          city: string
-          complement?: string | null
-          created_at?: string
-          id?: string
-          is_default?: boolean
-          name: string
-          neighborhood: string
-          number: string
-          state: string
-          street: string
-          updated_at?: string
-          user_id: string
-          zip_code: string
-        }
-        Update: {
-          city?: string
-          complement?: string | null
-          created_at?: string
-          id?: string
-          is_default?: boolean
-          name?: string
-          neighborhood?: string
-          number?: string
-          state?: string
-          street?: string
-          updated_at?: string
-          user_id?: string
-          zip_code?: string
         }
         Relationships: []
       }

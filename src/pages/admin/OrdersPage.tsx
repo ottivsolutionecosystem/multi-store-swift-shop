@@ -10,7 +10,6 @@ import { OrderTableView } from '@/components/admin/orders/OrderTableView';
 import { useOrderManagement } from '@/hooks/useOrderManagement';
 import { useOrderData } from '@/hooks/useOrderData';
 import { useAuth } from '@/contexts/AuthContext';
-import { OrderWithItems } from '@/types/order-management';
 import { useEffect } from 'react';
 
 export default function OrdersPage() {
@@ -60,20 +59,6 @@ export default function OrdersPage() {
     return null;
   }
 
-  // Convert orders to OrderWithItems format with proper type casting
-  const ordersWithItems = orders.map(order => ({
-    ...order,
-    status: order.status as OrderWithItems['status'],
-    customer_name: order.customer_name || '',
-    customer_email: order.customer_email || '',
-    customer_phone: order.customer_phone || '',
-    discount_amount: order.discount_amount || 0,
-    shipping_cost: order.shipping_cost || 0,
-    notes: order.notes || '',
-    payment_method: order.payment_method || '',
-    items: [] // Add empty items array for now
-  }));
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -93,7 +78,7 @@ export default function OrdersPage() {
             <div className="flex items-center gap-4">
               <OrderSort sort={sort} onSortChange={setSort} />
               <p className="text-sm text-gray-600">
-                {ordersWithItems.length} pedido(s) encontrado(s)
+                {orders.length} pedido(s) encontrado(s)
               </p>
             </div>
             <OrderViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
@@ -109,13 +94,13 @@ export default function OrdersPage() {
             </div>
           ) : viewMode === 'list' ? (
             <OrderListView
-              orders={ordersWithItems}
+              orders={orders}
               onViewDetails={handleViewDetails}
               onEdit={handleEdit}
             />
           ) : (
             <OrderTableView
-              orders={ordersWithItems}
+              orders={orders}
               onViewDetails={handleViewDetails}
               onEdit={handleEdit}
             />
