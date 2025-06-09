@@ -12,7 +12,16 @@ export function useOrderData(filters: OrderFilters, sort: OrderSort) {
       if (!services?.orderService) {
         throw new Error('Order service not available');
       }
-      return services.orderService.getOrdersWithFilters(filters);
+      
+      // Convert filters to match service expectations
+      const serviceFilters = {
+        status: filters.status?.[0], // Take first status if array
+        startDate: filters.dateRange?.from?.toISOString(),
+        endDate: filters.dateRange?.to?.toISOString(),
+        search: filters.search,
+      };
+      
+      return services.orderService.getOrdersWithFilters(serviceFilters);
     },
     enabled: !!services?.orderService,
   });

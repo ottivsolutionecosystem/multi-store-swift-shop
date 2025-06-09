@@ -1,4 +1,3 @@
-
 import { ShippingMethodRepository } from '@/repositories/ShippingMethodRepository';
 import { ShippingCalculation, ShippingMethod } from '@/types/shipping';
 
@@ -15,23 +14,23 @@ export class ShippingService {
   constructor(private shippingMethodRepository: ShippingMethodRepository) {}
 
   async getAllShippingMethods(): Promise<ShippingMethod[]> {
-    return this.shippingMethodRepository.getAllShippingMethods();
+    return this.shippingMethodRepository.findAll();
   }
 
   async getActiveShippingMethods(): Promise<ShippingMethod[]> {
-    return this.shippingMethodRepository.getActiveShippingMethods();
+    return this.shippingMethodRepository.findActive();
   }
 
   async createShippingMethod(methodData: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>): Promise<ShippingMethod> {
-    return this.shippingMethodRepository.createShippingMethod(methodData);
+    return this.shippingMethodRepository.create(methodData);
   }
 
   async updateShippingMethod(id: string, methodData: Partial<Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>>): Promise<ShippingMethod> {
-    return this.shippingMethodRepository.updateShippingMethod(id, methodData);
+    return this.shippingMethodRepository.update(id, methodData);
   }
 
   async deleteShippingMethod(id: string): Promise<void> {
-    return this.shippingMethodRepository.deleteShippingMethod(id);
+    return this.shippingMethodRepository.delete(id);
   }
 
   async calculateShipping(items: CartItem[], destinationZipCode: string): Promise<ShippingCalculation[]> {

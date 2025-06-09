@@ -30,10 +30,7 @@ interface CreateOrderItemData {
 }
 
 export class OrderService {
-  constructor(
-    private orderRepository: OrderRepository,
-    private storeId: string
-  ) {}
+  constructor(private orderRepository: OrderRepository) {}
 
   async getAllOrders(): Promise<Order[]> {
     return this.orderRepository.findAll();
@@ -98,7 +95,7 @@ export class OrderService {
     endDate?: string;
     search?: string;
   }): Promise<Order[]> {
-    // Implementar filtros conforme necessário
+    // For now, return all orders. In a real implementation, you'd filter based on the parameters
     return this.orderRepository.findAll();
   }
 }

@@ -59,6 +59,12 @@ export default function OrdersPage() {
     return null;
   }
 
+  // Convert orders to OrderWithItems format by adding empty items array
+  const ordersWithItems = orders.map(order => ({
+    ...order,
+    items: [] // Add empty items array for now
+  }));
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -78,7 +84,7 @@ export default function OrdersPage() {
             <div className="flex items-center gap-4">
               <OrderSort sort={sort} onSortChange={setSort} />
               <p className="text-sm text-gray-600">
-                {orders.length} pedido(s) encontrado(s)
+                {ordersWithItems.length} pedido(s) encontrado(s)
               </p>
             </div>
             <OrderViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
@@ -94,13 +100,13 @@ export default function OrdersPage() {
             </div>
           ) : viewMode === 'list' ? (
             <OrderListView
-              orders={orders}
+              orders={ordersWithItems}
               onViewDetails={handleViewDetails}
               onEdit={handleEdit}
             />
           ) : (
             <OrderTableView
-              orders={orders}
+              orders={ordersWithItems}
               onViewDetails={handleViewDetails}
               onEdit={handleEdit}
             />
