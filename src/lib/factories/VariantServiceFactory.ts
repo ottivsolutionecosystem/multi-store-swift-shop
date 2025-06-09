@@ -17,9 +17,9 @@ export function createVariantServices(storeId: string) {
   const variantCombinationRepository = new VariantCombinationRepository(storeId);
   const variantGroupPriceRepository = new VariantGroupPriceRepository(storeId);
 
-  // Services
-  const variantService = new VariantService(variantRepository, variantValueRepository);
-  const variantManagementService = new VariantManagementService(variantRepository, variantValueRepository, variantCombinationRepository, variantGroupPriceRepository);
+  // Services - fix constructor arguments to match service expectations
+  const variantService = new VariantService(variantRepository);
+  const variantManagementService = new VariantManagementService(variantRepository);
   const combinationService = new CombinationService(variantCombinationRepository);
   const groupPricingService = new GroupPricingService(variantGroupPriceRepository);
 

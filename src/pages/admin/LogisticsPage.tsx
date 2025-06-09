@@ -4,15 +4,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useServices } from '@/hooks/useServices';
 import { useToast } from '@/hooks/use-toast';
-import { Database } from '@/integrations/supabase/types';
+import { ShippingMethod } from '@/types/shipping';
 import { LogisticsHeader } from '@/components/admin/shipping/LogisticsHeader';
 import { ShippingMethodsGrid } from '@/components/admin/shipping/ShippingMethodsGrid';
 import { ShippingMethodsEmptyState } from '@/components/admin/shipping/ShippingMethodsEmptyState';
 import { ShippingMethodFormDialog } from '@/components/admin/shipping/ShippingMethodFormDialog';
 
-type ShippingMethod = Database['public']['Tables']['shipping_methods']['Row'];
-type ShippingMethodInsert = Database['public']['Tables']['shipping_methods']['Insert'];
-type ShippingMethodUpdate = Database['public']['Tables']['shipping_methods']['Update'];
+type ShippingMethodInsert = Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>;
+type ShippingMethodUpdate = Partial<Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>>;
 
 export default function LogisticsPage() {
   const navigate = useNavigate();
@@ -29,13 +28,13 @@ export default function LogisticsPage() {
       if (!services?.shippingService) {
         throw new Error('Shipping service not available');
       }
-      return services.shippingService.getAllShippingMethods();
+      return services.shippingService.getShippingMethods();
     },
     enabled: !!services?.shippingService,
   });
 
   const createMutation = useMutation({
-    mutationFn: async (data: Omit<ShippingMethodInsert, 'store_id'>) => {
+    mutationFn: async (data: ShippingMethodInsert) => {
       if (!services?.shippingService) {
         throw new Error('Shipping service not available');
       }
@@ -122,7 +121,7 @@ export default function LogisticsPage() {
     }
   };
 
-  const handleSubmitMethod = async (data: Omit<ShippingMethodInsert, 'store_id'>) => {
+  const handleSubmitMethod = async (data: ShippingMethodInsert) => {
     if (editingMethod) {
       updateMutation.mutate({ id: editingMethod.id, data });
     } else {
@@ -154,7 +153,7 @@ export default function LogisticsPage() {
         <ShippingMethodFormDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
-          method={editingMethod}
+          editingMethod={editingMethod}
           onSubmit={handleSubmitMethod}
           isLoading={createMutation.isPending || updateMutation.isPending}
         />

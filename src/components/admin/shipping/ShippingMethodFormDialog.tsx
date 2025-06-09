@@ -9,7 +9,7 @@ interface ShippingMethodFormDialogProps {
   onOpenChange: (open: boolean) => void;
   editingMethod: ShippingMethod | null;
   onSubmit: (data: Omit<ShippingMethod, 'id' | 'store_id' | 'created_at' | 'updated_at'>) => Promise<void>;
-  loading?: boolean;
+  isLoading?: boolean;
 }
 
 export function ShippingMethodFormDialog({ 
@@ -17,7 +17,7 @@ export function ShippingMethodFormDialog({
   onOpenChange, 
   editingMethod, 
   onSubmit, 
-  loading 
+  isLoading 
 }: ShippingMethodFormDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -31,7 +31,7 @@ export function ShippingMethodFormDialog({
           shippingMethod={editingMethod}
           onSubmit={onSubmit}
           onCancel={() => onOpenChange(false)}
-          loading={loading}
+          loading={isLoading}
         />
       </DialogContent>
     </Dialog>

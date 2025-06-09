@@ -10,8 +10,8 @@ export function createOrderServices(storeId: string) {
   const orderRepository = new OrderRepository(storeId);
   const productRepository = new ProductRepository(storeId);
 
-  // Service
-  const orderService = new OrderService(orderRepository, productRepository);
+  // Service - OrderService only expects orderRepository as first argument
+  const orderService = new OrderService(orderRepository);
 
   return {
     orderService,

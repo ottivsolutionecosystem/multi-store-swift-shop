@@ -16,8 +16,8 @@ export function createProductServices(storeId: string) {
 
   // Services
   const productService = new ProductService(productRepository);
-  const productQueryService = new ProductQueryService(productRepository, categoryRepository, promotionRepository);
-  const productPromotionService = new ProductPromotionService(promotionRepository, productRepository);
+  const productQueryService = new ProductQueryService(productRepository);
+  const productPromotionService = new ProductPromotionService(promotionRepository);
 
   return {
     productService,

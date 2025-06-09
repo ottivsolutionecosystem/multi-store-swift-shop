@@ -5,7 +5,7 @@ import { StoreSettingsService } from '@/services/StoreSettingsService';
 export function createStoreServices() {
   console.log('Creating store services');
 
-  // Repository (store settings don't need storeId for the repository constructor)
+  // Repository - StoreSettingsRepository expects storeId but we'll handle it differently
   const storeSettingsRepository = new StoreSettingsRepository();
 
   // Service
