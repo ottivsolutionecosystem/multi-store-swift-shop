@@ -7,7 +7,9 @@ type PromotionInsert = Database['public']['Tables']['promotions']['Insert'];
 type PromotionUpdate = Database['public']['Tables']['promotions']['Update'];
 
 export class PromotionRepository {
-  constructor(private storeId: string) {}
+  constructor(private storeId: string) {
+    console.log('🔧 PromotionRepository - Initialized with storeId:', storeId);
+  }
 
   async findAll(): Promise<Promotion[]> {
     const { data, error } = await supabase
@@ -95,14 +97,40 @@ export class PromotionRepository {
   }
 
   async create(promotion: Omit<PromotionInsert, 'store_id'>): Promise<Promotion> {
-    const { data, error } = await supabase
-      .from('promotions')
-      .insert({ ...promotion, store_id: this.storeId })
-      .select()
-      .single();
+    console.log('🔧 PromotionRepository.create - STARTED');
+    console.log('🔧 PromotionRepository.create - StoreId:', this.storeId);
+    console.log('🔧 PromotionRepository.create - Input promotion data:', promotion);
 
-    if (error) throw error;
-    return data;
+    try {
+      const promotionWithStoreId = { ...promotion, store_id: this.storeId };
+      console.log('🔧 PromotionRepository.create - Data with store_id:', promotionWithStoreId);
+
+      console.log('🔧 PromotionRepository.create - Calling Supabase insert...');
+      const { data, error } = await supabase
+        .from('promotions')
+        .insert(promotionWithStoreId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ PromotionRepository.create - Supabase error:', error);
+        console.error('❌ PromotionRepository.create - Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+
+      console.log('✅ PromotionRepository.create - Supabase insert successful');
+      console.log('✅ PromotionRepository.create - Result data:', data);
+      return data;
+    } catch (error: any) {
+      console.error('❌ PromotionRepository.create - Unexpected error:', error);
+      console.error('❌ PromotionRepository.create - Error stack:', error.stack);
+      throw error;
+    }
   }
 
   async update(id: string, promotion: PromotionUpdate): Promise<Promotion> {

@@ -7,21 +7,22 @@ export function useServices() {
   const { storeId, loading } = useTenant();
 
   return useMemo(() => {
-    console.log('useServices - storeId:', storeId, 'loading:', loading);
+    console.log('🔧 useServices - Memo recalculating...');
+    console.log('🔧 useServices - storeId:', storeId, 'loading:', loading);
     
     // Retorna null enquanto ainda está carregando
     if (loading) {
-      console.log('useServices - still loading');
+      console.log('🔧 useServices - Still loading, returning null');
       return null;
     }
     
     // Se não há storeId após carregar, retorna null
     if (!storeId) {
-      console.log('useServices - no storeId available');
+      console.log('🔧 useServices - No storeId available, returning null');
       return null;
     }
     
-    console.log('useServices - creating services for storeId:', storeId);
+    console.log('🔧 useServices - Creating services for storeId:', storeId);
     const services = createServices(storeId);
     
     // Debug user access when services are created
@@ -29,6 +30,7 @@ export function useServices() {
       services.profileService.debugUserAccess().catch(console.error);
     }
     
+    console.log('🔧 useServices - Services created successfully');
     return services;
   }, [storeId, loading]);
 }
