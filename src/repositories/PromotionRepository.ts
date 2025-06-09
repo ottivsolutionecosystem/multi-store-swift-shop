@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { createSupabaseClient } from '@/lib/supabaseClient';
 import { Database } from '@/integrations/supabase/types';
 
 type Promotion = Database['public']['Tables']['promotions']['Row'];
@@ -7,12 +7,14 @@ type PromotionInsert = Database['public']['Tables']['promotions']['Insert'];
 type PromotionUpdate = Database['public']['Tables']['promotions']['Update'];
 
 export class PromotionRepository {
+  private supabase = createSupabaseClient();
+
   constructor(private storeId: string) {
     console.log('🔧 PromotionRepository - Initialized with storeId:', storeId);
   }
 
   async findAll(): Promise<Promotion[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
@@ -23,7 +25,7 @@ export class PromotionRepository {
   }
 
   async findActive(): Promise<Promotion[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
@@ -35,7 +37,7 @@ export class PromotionRepository {
   }
 
   async findByProductIds(productIds: string[]): Promise<Promotion[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
@@ -47,7 +49,7 @@ export class PromotionRepository {
   }
 
   async findActiveByProductId(productId: string): Promise<Promotion[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
@@ -60,7 +62,7 @@ export class PromotionRepository {
   }
 
   async findByCategoryIds(categoryIds: string[]): Promise<Promotion[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
@@ -72,7 +74,7 @@ export class PromotionRepository {
   }
 
   async findActiveByCategoryId(categoryId: string): Promise<Promotion[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
@@ -85,7 +87,7 @@ export class PromotionRepository {
   }
 
   async findById(id: string): Promise<Promotion | null> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('promotions')
       .select('*')
       .eq('id', id)
@@ -106,7 +108,7 @@ export class PromotionRepository {
       console.log('🔧 PromotionRepository.create - Data with store_id:', promotionWithStoreId);
 
       console.log('🔧 PromotionRepository.create - Calling Supabase insert...');
-      const { data, error } = await supabase
+      const { data, error } = await this.supabase
         .from('promotions')
         .insert(promotionWithStoreId)
         .select()
@@ -134,7 +136,7 @@ export class PromotionRepository {
   }
 
   async update(id: string, promotion: PromotionUpdate): Promise<Promotion> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('promotions')
       .update(promotion)
       .eq('id', id)
@@ -147,7 +149,7 @@ export class PromotionRepository {
   }
 
   async delete(id: string): Promise<void> {
-    const { error } = await supabase
+    const { error } = await this.supabase
       .from('promotions')
       .delete()
       .eq('id', id)
@@ -160,7 +162,7 @@ export class PromotionRepository {
     const now = new Date().toISOString();
     
     // Ativar promoções agendadas que chegaram na data de início
-    await supabase
+    await this.supabase
       .from('promotions')
       .update({ status: 'active' })
       .eq('store_id', this.storeId)
@@ -168,7 +170,7 @@ export class PromotionRepository {
       .lte('start_date', now);
 
     // Expirar promoções ativas que passaram da data de fim
-    await supabase
+    await this.supabase
       .from('promotions')
       .update({ status: 'expired' })
       .eq('store_id', this.storeId)

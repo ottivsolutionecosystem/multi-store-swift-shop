@@ -1,9 +1,10 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { createSupabaseClient } from '@/lib/supabaseClient';
 import { ProductWithPromotion } from '@/types/product';
 import { ProductPromotionService } from './ProductPromotionService';
 
 export class ProductQueryService {
+  private supabase = createSupabaseClient();
   private promotionService: ProductPromotionService;
 
   constructor(private storeId: string) {
@@ -11,7 +12,7 @@ export class ProductQueryService {
   }
 
   async findAll(): Promise<ProductWithPromotion[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('products')
       .select(`
         *,
@@ -31,7 +32,7 @@ export class ProductQueryService {
   }
 
   async findByCategory(categoryId: string): Promise<ProductWithPromotion[]> {
-    const { data, error } = await supabase
+    const { data, error } = await this.supabase
       .from('products')
       .select(`
         *,
@@ -56,7 +57,7 @@ export class ProductQueryService {
     const mainCategoryProducts = await this.findByCategory(categoryId);
     
     // Depois, buscar subcategorias e seus produtos
-    const { data: subcategories, error: subcatError } = await supabase
+    const { data: subcategories, error: subcatError } = await this.supabase
       .from('categories')
       .select('id')
       .eq('store_id', this.storeId)
@@ -70,7 +71,7 @@ export class ProductQueryService {
 
     // Buscar produtos de todas as subcategorias
     const subcategoryIds = subcategories.map(sub => sub.id);
-    const { data: subcategoryProducts, error: subProdError } = await supabase
+    const { data: subcategoryProducts, error: subProdError } = await this.supabase
       .from('products')
       .select(`
         *,

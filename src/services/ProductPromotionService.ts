@@ -1,16 +1,18 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { createSupabaseClient } from '@/lib/supabaseClient';
 import { calculateBestPromotion } from '@/lib/promotionHierarchy';
 import { ProductWithPromotion } from '@/types/product';
 
 export class ProductPromotionService {
+  private supabase = createSupabaseClient();
+
   constructor(private storeId: string) {}
 
   async processProductsWithPromotions(products: any[]): Promise<ProductWithPromotion[]> {
     if (products.length === 0) return [];
 
     // Buscar todas as promoções ativas da loja
-    const { data: allPromotions, error: promoError } = await supabase
+    const { data: allPromotions, error: promoError } = await this.supabase
       .from('promotions')
       .select('*')
       .eq('store_id', this.storeId)
@@ -33,7 +35,7 @@ export class ProductPromotionService {
     // Buscar todas as categorias pai em uma única consulta
     let parentCategories: any = {};
     if (parentIds.length > 0) {
-      const { data: parents, error } = await supabase
+      const { data: parents, error } = await this.supabase
         .from('categories')
         .select('id, name')
         .in('id', parentIds);
