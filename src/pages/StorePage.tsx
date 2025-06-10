@@ -5,6 +5,7 @@ import { ProductCard } from '@/components/products/ProductCard';
 import { CategoryNav } from '@/components/categories/CategoryNav';
 import { useServices } from '@/hooks/useServices';
 import { useTenant } from '@/contexts/TenantContext';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
 import { useToast } from '@/hooks/use-toast';
 import { ProductWithPromotion } from '@/types/product';
 
@@ -14,11 +15,12 @@ export default function StorePage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const services = useServices();
   const { store, loading: tenantLoading } = useTenant();
+  const { storeSettings, isLoading: settingsLoading } = useStoreSettings();
   const { toast } = useToast();
 
   useEffect(() => {
     const loadProducts = async () => {
-      // Aguarda apenas o tenant carregar e os serviços estarem disponíveis
+      // Aguarda o tenant carregar e os serviços estarem disponíveis
       if (tenantLoading || !services) {
         return;
       }
@@ -51,8 +53,8 @@ export default function StorePage() {
     loadProducts();
   }, [services, tenantLoading, selectedCategoryId, toast]);
 
-  // Loading state - aguarda apenas produtos e tenant
-  const isLoading = tenantLoading || productsLoading;
+  // Loading state - aguarda produtos E configurações da loja
+  const isLoading = tenantLoading || productsLoading || settingsLoading;
 
   if (isLoading) {
     return (

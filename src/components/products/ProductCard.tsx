@@ -13,24 +13,21 @@ interface ProductCardProps {
   product: ProductWithPromotion;
 }
 
-// Configurações padrão para fallback
-const DEFAULT_SETTINGS = {
-  show_category: true,
-  show_description: true,
-  show_stock_quantity: true,
-  show_price: true,
-  show_promotion_badge: true,
-  promotion_display_format: 'percentage' as const,
-  primary_color: '#3b82f6',
-  secondary_color: '#6b7280',
-  price_color: '#16a34a',
-};
-
 export function ProductCard({ product }: ProductCardProps) {
-  const { storeSettings } = useStoreSettings();
+  const { storeSettings, isLoading: settingsLoading } = useStoreSettings();
 
-  // Usar settings carregadas ou fallback padrão
-  const settings = storeSettings || DEFAULT_SETTINGS;
+  // Use fallback settings while loading or if settings are not available
+  const settings = storeSettings || {
+    show_category: true,
+    show_description: true,
+    show_stock_quantity: true,
+    show_price: true,
+    show_promotion_badge: true,
+    promotion_display_format: 'percentage' as const,
+    primary_color: '#3b82f6',
+    secondary_color: '#6b7280',
+    price_color: '#16a34a',
+  };
 
   // Verificação mais robusta para hasPromotion
   const hasPromotion = Boolean(
