@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useServices } from '@/hooks/useServices';
 import { useToast } from '@/hooks/use-toast';
+import { Header } from '@/components/layout/Header';
 import { ShippingMethod } from '@/types/shipping';
 import { LogisticsHeader } from '@/components/admin/shipping/LogisticsHeader';
 import { ShippingMethodsGrid } from '@/components/admin/shipping/ShippingMethodsGrid';
@@ -30,6 +32,8 @@ export default function LogisticsPage() {
       return services.shippingService.getShippingMethods();
     },
     enabled: !!services?.shippingService,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 
   const createMutation = useMutation({
@@ -134,6 +138,7 @@ export default function LogisticsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Header />
       <div className="max-w-7xl mx-auto px-4 py-8">
         <LogisticsHeader onCreateMethod={handleCreateMethod} />
 

@@ -1,34 +1,52 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Database } from '@/integrations/supabase/types';
 import { PromotionFilters, PromotionSort, PromotionViewMode } from '@/types/promotion-management';
 
 type Promotion = Database['public']['Tables']['promotions']['Row'];
 
+const defaultFilters: PromotionFilters = {
+  search: '',
+  status: 'all',
+  promotionType: 'all',
+  discountType: 'all',
+  period: 'all',
+};
+
+const defaultSort: PromotionSort = {
+  field: 'created_at',
+  direction: 'desc',
+};
+
 export function usePromotionManagement(promotions: Promotion[]) {
   const [viewMode, setViewMode] = useState<PromotionViewMode>('list');
-  const [filters, setFilters] = useState<PromotionFilters>({
-    search: '',
-    status: 'all',
-    promotionType: 'all',
-    discountType: 'all',
-    period: 'all',
-  });
-  const [sort, setSort] = useState<PromotionSort>({
-    field: 'created_at',
-    direction: 'desc',
-  });
+  const [filters, setFilters] = useState<PromotionFilters>(defaultFilters);
+  const [sort, setSort] = useState<PromotionSort>(defaultSort);
 
-  const filteredPromotions = useMemo(() => {
+  const handleFiltersChange = useCallback((newFilters: PromotionFilters) => {
+    setFilters(newFilters);
+  }, []);
+
+  const handleSortChange = useCallback((newSort: PromotionSort) => {
+    setSort(newSort);
+  }, []);
+
+  const filteredAndSortedPromotions = useMemo(() => {
+    if (!promotions.length) return [];
+
     const now = new Date();
     
-    return promotions.filter((promotion) => {
+    // Filter step
+    let filtered = promotions.filter((promotion) => {
       // Search filter
-      if (filters.search && !promotion.name.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false;
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        if (!promotion.name.toLowerCase().includes(searchLower)) {
+          return false;
+        }
       }
 
-      // Status filter - agora usa o campo status diretamente
+      // Status filter - use status field directly
       if (filters.status !== 'all' && promotion.status !== filters.status) {
         return false;
       }
@@ -63,46 +81,45 @@ export function usePromotionManagement(promotions: Promotion[]) {
 
       return true;
     });
-  }, [promotions, filters]);
 
-  const sortedPromotions = useMemo(() => {
-    return [...filteredPromotions].sort((a, b) => {
-      let aValue: any = a[sort.field];
-      let bValue: any = b[sort.field];
+    // Sort step - optimized with type-specific comparisons
+    filtered.sort((a, b) => {
+      let comparison = 0;
 
-      // Handle date fields
-      if (sort.field === 'start_date' || sort.field === 'end_date' || sort.field === 'created_at') {
-        aValue = new Date(aValue).getTime();
-        bValue = new Date(bValue).getTime();
+      switch (sort.field) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'start_date':
+        case 'end_date':
+        case 'created_at':
+          comparison = new Date(a[sort.field]).getTime() - new Date(b[sort.field]).getTime();
+          break;
+        case 'discount_value':
+          comparison = Number(a.discount_value) - Number(b.discount_value);
+          break;
+        case 'status':
+          comparison = a.status.localeCompare(b.status);
+          break;
+        default:
+          return 0;
       }
 
-      // Handle numeric fields
-      if (sort.field === 'discount_value') {
-        aValue = Number(aValue);
-        bValue = Number(bValue);
-      }
-
-      // Handle string fields
-      if (sort.field === 'name' || sort.field === 'status') {
-        aValue = aValue.toLowerCase();
-        bValue = bValue.toLowerCase();
-      }
-
-      if (aValue < bValue) return sort.direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sort.direction === 'asc' ? 1 : -1;
-      return 0;
+      return sort.direction === 'asc' ? comparison : -comparison;
     });
-  }, [filteredPromotions, sort]);
+
+    return filtered;
+  }, [promotions, filters, sort]);
 
   return {
     viewMode,
     setViewMode,
     filters,
-    setFilters,
+    setFilters: handleFiltersChange,
     sort,
-    setSort,
-    filteredPromotions: sortedPromotions,
+    setSort: handleSortChange,
+    filteredPromotions: filteredAndSortedPromotions,
     totalPromotions: promotions.length,
-    filteredCount: sortedPromotions.length,
+    filteredCount: filteredAndSortedPromotions.length,
   };
 }

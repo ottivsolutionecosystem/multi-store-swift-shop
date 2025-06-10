@@ -25,8 +25,8 @@ export function useServices() {
     console.log('🔧 useServices - Creating services for storeId:', storeId);
     const services = createServices(storeId);
     
-    // Debug user access when services are created
-    if (services.profileService) {
+    // Debug user access when services are created (only in development)
+    if (import.meta.env.DEV && services.profileService) {
       services.profileService.debugUserAccess().catch(console.error);
     }
     

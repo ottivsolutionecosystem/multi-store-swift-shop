@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { ProductWithPromotion } from '@/types/product';
 import { ProductFilters, ProductSort, ViewMode } from '@/types/product-management';
 
@@ -22,16 +22,30 @@ export function useProductManagement(products: ProductWithPromotion[]) {
   const [filters, setFilters] = useState<ProductFilters>(defaultFilters);
   const [sort, setSort] = useState<ProductSort>(defaultSort);
 
-  const handleViewModeChange = (mode: ViewMode) => {
+  const handleViewModeChange = useCallback((mode: ViewMode) => {
     setViewMode(mode);
     localStorage.setItem('product-view-mode', mode);
-  };
+  }, []);
+
+  const handleFiltersChange = useCallback((newFilters: ProductFilters) => {
+    setFilters(newFilters);
+  }, []);
+
+  const handleSortChange = useCallback((newSort: ProductSort) => {
+    setSort(newSort);
+  }, []);
 
   const filteredAndSortedProducts = useMemo(() => {
+    if (!products.length) return [];
+
+    // Filter step
     let filtered = products.filter(product => {
-      // Search filter
-      if (filters.search && !product.name.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false;
+      // Search filter - optimized with early return
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        if (!product.name.toLowerCase().includes(searchLower)) {
+          return false;
+        }
       }
 
       // Status filter
@@ -48,39 +62,33 @@ export function useProductManagement(products: ProductWithPromotion[]) {
       return true;
     });
 
-    // Apply sorting
+    // Sort step - optimized with type-specific comparisons
     filtered.sort((a, b) => {
-      let aValue: any;
-      let bValue: any;
+      let comparison = 0;
 
       switch (sort.field) {
         case 'name':
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
+          comparison = a.name.localeCompare(b.name);
           break;
         case 'price':
-          aValue = a.price;
-          bValue = b.price;
+          comparison = a.price - b.price;
           break;
         case 'created_at':
-          aValue = new Date(a.created_at);
-          bValue = new Date(b.created_at);
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
           break;
         case 'stock_quantity':
-          aValue = a.stock_quantity;
-          bValue = b.stock_quantity;
+          comparison = a.stock_quantity - b.stock_quantity;
           break;
         case 'category':
-          aValue = a.category?.name || '';
-          bValue = b.category?.name || '';
+          const aCategory = a.category?.name || '';
+          const bCategory = b.category?.name || '';
+          comparison = aCategory.localeCompare(bCategory);
           break;
         default:
           return 0;
       }
 
-      if (aValue < bValue) return sort.direction === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sort.direction === 'asc' ? 1 : -1;
-      return 0;
+      return sort.direction === 'asc' ? comparison : -comparison;
     });
 
     return filtered;
@@ -90,9 +98,9 @@ export function useProductManagement(products: ProductWithPromotion[]) {
     viewMode,
     setViewMode: handleViewModeChange,
     filters,
-    setFilters,
+    setFilters: handleFiltersChange,
     sort,
-    setSort,
+    setSort: handleSortChange,
     filteredProducts: filteredAndSortedProducts,
   };
 }

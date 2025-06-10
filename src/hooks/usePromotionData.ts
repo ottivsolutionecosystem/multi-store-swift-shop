@@ -1,56 +1,64 @@
 
-import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useServices } from '@/hooks/useServices';
 import { Database } from '@/integrations/supabase/types';
+import { useMemo } from 'react';
 
 type Promotion = Database['public']['Tables']['promotions']['Row'];
 
 export function usePromotionData() {
   const services = useServices();
   const { toast } = useToast();
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [isLoadingPromotions, setIsLoadingPromotions] = useState(true);
-  const [stats, setStats] = useState({
-    active: 0,
-    scheduled: 0,
-    totalSavings: 0
+
+  const { 
+    data: promotions = [], 
+    isLoading: isLoadingPromotions,
+    error
+  } = useQuery({
+    queryKey: ['promotions'],
+    queryFn: async () => {
+      if (!services?.promotionService) {
+        throw new Error('Promotion service not available');
+      }
+      return services.promotionService.getAllPromotions();
+    },
+    enabled: !!services?.promotionService,
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+    retry: 2,
+    onError: (error: any) => {
+      console.error('Erro ao carregar promoções:', error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar promoções',
+        variant: 'destructive',
+      });
+    }
   });
 
-  useEffect(() => {
-    const loadPromotions = async () => {
-      if (!services) return;
+  const stats = useMemo(() => {
+    if (!promotions.length) {
+      return {
+        active: 0,
+        scheduled: 0,
+        totalSavings: 0
+      };
+    }
 
-      try {
-        const promotionsData = await services.promotionService.getAllPromotions();
-        setPromotions(promotionsData);
+    const activeCount = promotions.filter(p => p.status === 'active').length;
+    const scheduledCount = promotions.filter(p => p.status === 'scheduled').length;
 
-        // Calculate stats usando o campo status
-        const activeCount = promotionsData.filter(p => p.status === 'active').length;
-        const scheduledCount = promotionsData.filter(p => p.status === 'scheduled').length;
-
-        setStats({
-          active: activeCount,
-          scheduled: scheduledCount,
-          totalSavings: 0 // This would need order data to calculate properly
-        });
-      } catch (error) {
-        console.error('Erro ao carregar promoções:', error);
-        toast({
-          title: 'Erro',
-          description: 'Erro ao carregar promoções',
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoadingPromotions(false);
-      }
+    return {
+      active: activeCount,
+      scheduled: scheduledCount,
+      totalSavings: 0 // This would need order data to calculate properly
     };
-
-    loadPromotions();
-  }, [services, toast]);
+  }, [promotions]);
 
   const removePromotion = (id: string) => {
-    setPromotions(prev => prev.filter(p => p.id !== id));
+    // This will be handled by React Query invalidation in the actual delete mutation
+    console.log('Promotion removed:', id);
   };
 
   return {
@@ -58,5 +66,6 @@ export function usePromotionData() {
     isLoadingPromotions,
     stats,
     removePromotion,
+    error
   };
 }
