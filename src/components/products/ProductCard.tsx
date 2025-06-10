@@ -29,7 +29,16 @@ export function ProductCard({ product }: ProductCardProps) {
     price_color: '#16a34a',
   };
 
-  const hasPromotion = product.promotion && product.promotion.promotional_price < product.price;
+  // Verificação mais robusta para hasPromotion
+  const hasPromotion = Boolean(
+    product.promotion && 
+    typeof product.promotion === 'object' && 
+    product.promotion.promotional_price && 
+    typeof product.promotion.promotional_price === 'number' &&
+    product.promotion.promotional_price < product.price
+  );
+
+  console.log('🎯 ProductCard - Product:', product.id, 'hasPromotion:', hasPromotion, 'promotion:', product.promotion);
 
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-200 overflow-hidden">
@@ -38,7 +47,7 @@ export function ProductCard({ product }: ProductCardProps) {
           imageUrl={product.image_url} 
           name={product.name}
         />
-        {settings.show_promotion_badge && hasPromotion && (
+        {settings.show_promotion_badge && hasPromotion && product.promotion && (
           <div className="absolute top-2 right-2">
             <ProductPromotionBadge 
               product={product}
