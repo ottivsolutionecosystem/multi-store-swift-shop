@@ -1,5 +1,5 @@
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useServices } from '@/hooks/useServices';
 import { Database } from '@/integrations/supabase/types';
 import { useToast } from '@/hooks/use-toast';
@@ -10,9 +10,8 @@ type StoreSettingsUpdate = Database['public']['Tables']['store_settings']['Updat
 
 export function useStoreSettingsUpdate() {
   const services = useServices();
-  const { storeId, store } = useTenant();
+  const { storeId } = useTenant();
   const { profile } = useAuth();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const updateMutation = useMutation({
@@ -34,33 +33,13 @@ export function useStoreSettingsUpdate() {
       
       return updatedSettings;
     },
-    onSuccess: (updatedSettings) => {
-      console.log('useStoreSettingsUpdate - mutation success, propagating changes');
+    onSuccess: () => {
+      console.log('useStoreSettingsUpdate - mutation success, no propagation');
       
-      try {
-        // Otimizar propagação: usar setQueryData ao invés de invalidateQueries
-        // Isso evita uma nova request e atualiza diretamente o cache
-        if (store && updatedSettings) {
-          const updatedStore = {
-            ...store,
-            store_settings: updatedSettings
-          };
-          
-          console.log('useStoreSettingsUpdate - updating tenant cache directly');
-          queryClient.setQueryData(['current-store'], updatedStore);
-        }
-        
-        console.log('useStoreSettingsUpdate - cache updated successfully');
-        
-        toast({
-          title: 'Configurações salvas',
-          description: 'As configurações da loja foram atualizadas com sucesso.',
-        });
-      } catch (error) {
-        console.error('useStoreSettingsUpdate - error updating cache:', error);
-        // Fallback para invalidação se setQueryData falhar
-        queryClient.invalidateQueries({ queryKey: ['current-store'] });
-      }
+      toast({
+        title: 'Configurações salvas',
+        description: 'As configurações da loja foram atualizadas com sucesso. Recarregue a página para ver as mudanças.',
+      });
     },
     onError: (error: Error) => {
       console.error('useStoreSettingsUpdate - mutation error:', error);
