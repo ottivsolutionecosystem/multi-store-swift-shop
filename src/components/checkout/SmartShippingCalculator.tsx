@@ -33,6 +33,18 @@ export function SmartShippingCalculator({
   const [hasExpressMethods, setHasExpressMethods] = useState(false);
   const [hasApiMethods, setHasApiMethods] = useState(false);
   const [autoCalculated, setAutoCalculated] = useState(false);
+  const [defaultAddressCep, setDefaultAddressCep] = useState<string>('');
+
+  // Get default address CEP
+  useEffect(() => {
+    if (user && addresses.length > 0) {
+      const defaultAddress = addresses.find(addr => addr.is_default);
+      if (defaultAddress) {
+        console.log('SmartShippingCalculator - Found default address:', defaultAddress);
+        setDefaultAddressCep(defaultAddress.zip_code);
+      }
+    }
+  }, [user, addresses]);
 
   // Check available shipping methods
   useEffect(() => {
@@ -46,6 +58,11 @@ export function SmartShippingCalculator({
         
         setHasExpressMethods(expressMethods.length > 0);
         setHasApiMethods(apiMethods.length > 0);
+        
+        console.log('SmartShippingCalculator - Shipping methods check:', {
+          expressMethods: expressMethods.length,
+          apiMethods: apiMethods.length
+        });
       } catch (error) {
         console.error('Error checking shipping methods:', error);
       }
@@ -53,6 +70,33 @@ export function SmartShippingCalculator({
 
     checkShippingMethods();
   }, [services]);
+
+  // Auto-calculate shipping when conditions are met
+  useEffect(() => {
+    const shouldAutoCalculate = 
+      user && 
+      defaultAddressCep && 
+      hasExpressMethods && 
+      !autoCalculated && 
+      items.length > 0 &&
+      services;
+
+    console.log('SmartShippingCalculator - Auto-calculate check:', {
+      user: !!user,
+      defaultAddressCep,
+      hasExpressMethods,
+      autoCalculated,
+      itemsLength: items.length,
+      services: !!services,
+      shouldAutoCalculate
+    });
+
+    if (shouldAutoCalculate) {
+      console.log('SmartShippingCalculator - Auto-calculating shipping for default address');
+      calculateShipping(defaultAddressCep);
+      setAutoCalculated(true);
+    }
+  }, [user, defaultAddressCep, hasExpressMethods, autoCalculated, items.length, services]);
 
   const calculateShipping = async (cep: string) => {
     if (!services || !cep.trim()) {
@@ -75,16 +119,19 @@ export function SmartShippingCalculator({
 
     try {
       setCalculatingShipping(true);
+      console.log('SmartShippingCalculator - Calculating shipping for CEP:', cep);
+      
       const calculations = await services.shippingService.calculateShipping(items, cep);
       setShippingCalculations(calculations);
       
-      // Auto-select express method if available
+      // Auto-select express method if available, otherwise select first
       const expressCalculation = calculations.find(calc => 
         calc.method_name.toLowerCase().includes('express')
       );
       
       const selectedCalc = expressCalculation || calculations[0];
       if (selectedCalc) {
+        console.log('SmartShippingCalculator - Auto-selecting method:', selectedCalc);
         setSelectedShippingMethod(selectedCalc.method_id);
         setShippingPrice(selectedCalc.price);
         onShippingMethodSelected?.(selectedCalc.method_id, selectedCalc.price);
@@ -119,8 +166,9 @@ export function SmartShippingCalculator({
       <CardContent className="space-y-4">
         <CepInput
           onCepCalculate={calculateShipping}
-          onUseCustomAddress={() => {}}
           calculating={calculatingShipping}
+          initialCep={defaultAddressCep}
+          showAutoFillIndicator={!!defaultAddressCep}
         />
 
         <ShippingCalculatorActions

@@ -1,18 +1,26 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, MapPin } from 'lucide-react';
 
 interface CepInputProps {
   onCepCalculate: (cep: string) => Promise<void>;
-  onUseCustomAddress: (use: boolean) => void;
   calculating: boolean;
+  initialCep?: string;
+  showAutoFillIndicator?: boolean;
 }
 
-export function CepInput({ onCepCalculate, calculating }: CepInputProps) {
+export function CepInput({ 
+  onCepCalculate, 
+  calculating, 
+  initialCep, 
+  showAutoFillIndicator = false 
+}: CepInputProps) {
   const [cep, setCep] = useState('');
+  const [isAutoFilled, setIsAutoFilled] = useState(false);
 
   const formatCep = (value: string) => {
     const cleaned = value.replace(/\D/g, '');
@@ -23,9 +31,23 @@ export function CepInput({ onCepCalculate, calculating }: CepInputProps) {
     }
   };
 
+  // Auto-fill CEP when initialCep is provided
+  useEffect(() => {
+    if (initialCep && !cep) {
+      const formattedCep = formatCep(initialCep);
+      setCep(formattedCep);
+      setIsAutoFilled(true);
+    }
+  }, [initialCep, cep]);
+
   const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedCep = formatCep(e.target.value);
     setCep(formattedCep);
+    
+    // If user manually changes the CEP, it's no longer auto-filled
+    if (isAutoFilled) {
+      setIsAutoFilled(false);
+    }
   };
 
   const handleCalculate = () => {
@@ -37,7 +59,15 @@ export function CepInput({ onCepCalculate, calculating }: CepInputProps) {
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="cep">CEP de Entrega</Label>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="cep">CEP de Entrega</Label>
+          {isAutoFilled && showAutoFillIndicator && (
+            <Badge variant="secondary" className="text-xs">
+              <MapPin className="h-3 w-3 mr-1" />
+              Endereço padrão
+            </Badge>
+          )}
+        </div>
         <Input
           id="cep"
           type="text"
