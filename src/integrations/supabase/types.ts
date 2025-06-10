@@ -655,6 +655,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          payment_methods: Json | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           store_id: string | null
@@ -667,6 +668,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          payment_methods?: Json | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           store_id?: string | null
@@ -679,6 +681,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          payment_methods?: Json | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           store_id?: string | null
