@@ -1,123 +1,131 @@
 
 import React from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ProductWithPromotion } from '@/types/product';
-import { useStoreSettings } from '@/hooks/useStoreSettings';
-import { useCart } from '@/contexts/CartContext';
-import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { ProductImage } from './ProductImage';
+import { ProductPrice } from './ProductPrice';
 import { ProductPromotionBadge } from './ProductPromotionBadge';
 import { ProductCategoryBreadcrumb } from './ProductCategoryBreadcrumb';
-import { ProductPrice } from './ProductPrice';
-import { Check, Plus } from 'lucide-react';
+import { ProductWithPromotion } from '@/types/product';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface ProductCardProps {
   product: ProductWithPromotion;
 }
 
+// Configurações padrão para fallback
+const DEFAULT_SETTINGS = {
+  show_category: true,
+  show_description: true,
+  show_stock_quantity: true,
+  show_price: true,
+  show_promotion_badge: true,
+  promotion_display_format: 'percentage' as const,
+  primary_color: '#3b82f6',
+  secondary_color: '#6b7280',
+  price_color: '#16a34a',
+};
+
 export function ProductCard({ product }: ProductCardProps) {
-  const { storeSettings } = useStoreSettings();
-  const { addItem, getItemQuantity } = useCart();
-  const { toast } = useToast();
-  
-  const showDescription = storeSettings?.show_description ?? true;
-  const showStockQuantity = storeSettings?.show_stock_quantity ?? true;
-  const itemQuantity = getItemQuantity(product.id);
+  const { store } = useTenant();
 
-  const handleAddToCartClick = () => {
-    // Calcular o preço final correto para o carrinho
-    let finalPrice: number;
-    
-    const hasPromotion = Boolean(product.promotion);
-    
-    if (hasPromotion && product.promotion) {
-      if (product.promotion.compare_at_price) {
-        // Caso: Preço Comparativo - usar o preço atual do produto
-        finalPrice = product.price;
-      } else {
-        // Caso: Promoção ativa - usar o preço promocional
-        finalPrice = product.promotion.promotional_price;
-      }
-    } else {
-      // Caso: Sem promoção - usar preço normal
-      finalPrice = product.price;
-    }
-    
-    addItem(product, finalPrice);
-    
-    // Calcular informação da promoção para o toast
-    let promotionInfo = '';
-    if (product.promotion) {
-      if (product.promotion.compare_at_price) {
-        promotionInfo = ' (Oferta Especial)';
-      } else {
-        const typeLabel = {
-          'global': 'Promoção Global',
-          'category': 'Promoção de Categoria',
-          'product': 'Promoção do Produto'
-        }[product.promotion.promotion_type] || 'Promoção';
-        
-        promotionInfo = ` (${typeLabel})`;
-      }
-    }
+  // Usar configurações da loja se disponíveis, senão usar fallback padrão
+  const storeSettings = store?.store_settings;
+  const settings = storeSettings ? {
+    show_category: storeSettings.show_category ?? DEFAULT_SETTINGS.show_category,
+    show_description: storeSettings.show_description ?? DEFAULT_SETTINGS.show_description,
+    show_stock_quantity: storeSettings.show_stock_quantity ?? DEFAULT_SETTINGS.show_stock_quantity,
+    show_price: storeSettings.show_price ?? DEFAULT_SETTINGS.show_price,
+    show_promotion_badge: storeSettings.show_promotion_badge ?? DEFAULT_SETTINGS.show_promotion_badge,
+    promotion_display_format: storeSettings.promotion_display_format || DEFAULT_SETTINGS.promotion_display_format,
+    primary_color: storeSettings.primary_color || DEFAULT_SETTINGS.primary_color,
+    secondary_color: storeSettings.secondary_color || DEFAULT_SETTINGS.secondary_color,
+    price_color: storeSettings.price_color || DEFAULT_SETTINGS.price_color,
+  } : DEFAULT_SETTINGS;
 
-    toast({
-      title: 'Produto adicionado',
-      description: `${product.name} foi adicionado ao carrinho por ${finalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}${promotionInfo}`,
-    });
-  };
+  // Verificação mais robusta para hasPromotion
+  const hasPromotion = Boolean(
+    product.promotion && 
+    typeof product.promotion === 'object' && 
+    product.promotion.promotional_price && 
+    typeof product.promotion.promotional_price === 'number' &&
+    product.promotion.promotional_price < product.price
+  );
+
+  console.log('🎯 ProductCard - Product:', product.id, 'hasPromotion:', hasPromotion, 'promotion:', product.promotion);
+  console.log('🎯 ProductCard - Using settings:', settings.show_category ? 'with categories' : 'without categories');
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="p-0">
-        <div className="relative">
-          <ProductImage imageUrl={product.image_url} name={product.name} />
-          <ProductPromotionBadge product={product} />
-        </div>
-        <div className="p-4 pb-2">
-          <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
-          <ProductCategoryBreadcrumb product={product} />
-        </div>
-      </CardHeader>
-      
-      <CardContent className="flex-1 px-4 pb-2">
-        {showDescription && product.description && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-3">{product.description}</p>
+    <Card className="group hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+      <div className="relative aspect-square">
+        <ProductImage 
+          imageUrl={product.image_url} 
+          name={product.name}
+        />
+        {settings.show_promotion_badge && hasPromotion && product.promotion && (
+          <div className="absolute top-2 right-2">
+            <ProductPromotionBadge 
+              product={product}
+            />
+          </div>
         )}
-        
-        <div className="flex items-center justify-between">
-          <ProductPrice product={product} />
-          {showStockQuantity && (
-            <span className="text-sm text-gray-500">
-              Estoque: {product.stock_quantity}
-            </span>
+        {settings.show_stock_quantity && product.stock_quantity <= 5 && product.stock_quantity > 0 && (
+          <div className="absolute bottom-2 left-2">
+            <Badge variant="outline" className="bg-white/90 text-orange-600 border-orange-200">
+              Últimas {product.stock_quantity} unidades
+            </Badge>
+          </div>
+        )}
+        {product.stock_quantity === 0 && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <Badge variant="destructive" className="text-white">
+              Esgotado
+            </Badge>
+          </div>
+        )}
+      </div>
+
+      <CardContent className="p-4 space-y-3">
+        {settings.show_category && product.category && (
+          <ProductCategoryBreadcrumb product={product} />
+        )}
+
+        <div>
+          <h3 className="font-medium text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+            {product.name}
+          </h3>
+          
+          {settings.show_description && product.description && (
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+              {product.description}
+            </p>
           )}
         </div>
-      </CardContent>
-      
-      <CardFooter className="p-4 pt-2">
-        <Button 
-          className="w-full" 
-          onClick={handleAddToCartClick}
-          disabled={product.stock_quantity === 0}
-          variant={itemQuantity > 0 ? "secondary" : "default"}
-        >
-          {product.stock_quantity === 0 ? (
-            'Fora de Estoque'
-          ) : itemQuantity > 0 ? (
-            <>
-              <Check className="h-4 w-4 mr-2" />
-              No Carrinho ({itemQuantity})
-            </>
-          ) : (
-            <>
-              <Plus className="h-4 w-4 mr-2" />
-              Adicionar ao Carrinho
-            </>
+
+        <div className="flex items-center justify-between">
+          {settings.show_price && (
+            <ProductPrice 
+              product={product}
+            />
           )}
-        </Button>
-      </CardFooter>
+          
+          {!product.is_active && (
+            <Badge variant="secondary">
+              Inativo
+            </Badge>
+          )}
+        </div>
+
+        {settings.show_stock_quantity && (
+          <div className="text-xs text-gray-500">
+            {product.stock_quantity > 0 ? (
+              `${product.stock_quantity} em estoque`
+            ) : (
+              'Fora de estoque'
+            )}
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 }

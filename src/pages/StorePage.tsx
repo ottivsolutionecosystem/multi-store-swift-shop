@@ -10,7 +10,7 @@ import { ProductWithPromotion } from '@/types/product';
 
 export default function StorePage() {
   const [products, setProducts] = useState<ProductWithPromotion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [productsLoading, setProductsLoading] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const services = useServices();
   const { store, loading: tenantLoading } = useTenant();
@@ -18,12 +18,15 @@ export default function StorePage() {
 
   useEffect(() => {
     const loadProducts = async () => {
-      // Aguarda o tenant carregar e os serviços estarem disponíveis
+      // Aguarda apenas o tenant carregar e os serviços estarem disponíveis
       if (tenantLoading || !services) {
+        console.log('StorePage - Waiting for tenant/services...', { tenantLoading, hasServices: !!services });
         return;
       }
 
       try {
+        console.log('StorePage - Loading products...');
+        setProductsLoading(true);
         let productsData: ProductWithPromotion[];
         
         if (selectedCategoryId) {
@@ -34,6 +37,7 @@ export default function StorePage() {
           productsData = await services.productService.getAllProducts();
         }
         
+        console.log('StorePage - Products loaded:', productsData.length);
         setProducts(productsData);
       } catch (error) {
         console.error('Error loading products:', error);
@@ -43,14 +47,26 @@ export default function StorePage() {
           variant: 'destructive',
         });
       } finally {
-        setLoading(false);
+        setProductsLoading(false);
       }
     };
 
     loadProducts();
   }, [services, tenantLoading, selectedCategoryId, toast]);
 
-  if (tenantLoading || loading) {
+  // Loading state - aguarda apenas produtos e tenant
+  const isLoading = tenantLoading || productsLoading;
+
+  console.log('StorePage - Render state:', {
+    isLoading,
+    tenantLoading,
+    productsLoading,
+    hasStore: !!store,
+    hasServices: !!services,
+    productsCount: products.length
+  });
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
@@ -78,6 +94,11 @@ export default function StorePage() {
           <p className="text-gray-600">
             Descubra nossos produtos incríveis de perfumaria para casa e sabonetes artesanais
           </p>
+          {store?.store_settings && (
+            <p className="text-sm text-green-600 mt-1">
+              ✓ Configurações personalizadas aplicadas
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
