@@ -7,6 +7,9 @@ import {
   getPromotionBadgeClassName, 
   formatPromotionBadgeText 
 } from '@/lib/promotionBadgeUtils';
+import { Database } from '@/integrations/supabase/types';
+
+type DiscountType = Database['public']['Enums']['discount_type'];
 
 interface ProductPromotionBadgeProps {
   product: ProductWithPromotion;
@@ -43,7 +46,7 @@ export function ProductPromotionBadge({ product }: ProductPromotionBadgeProps) {
         className={getPromotionBadgeClassName(product.promotion.promotion_type)}
       >
         {formatPromotionBadgeText(
-          product.promotion.discount_type,
+          product.promotion.discount_type as DiscountType,
           originalPrice,
           promotionalPrice
         )}

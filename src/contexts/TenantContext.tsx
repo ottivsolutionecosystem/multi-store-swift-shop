@@ -60,7 +60,6 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             show_stock_quantity: true,
             show_price: true,
             show_promotion_badge: true,
-            promotion_display_format: 'percentage' as const,
             contact_info: {},
             shipping_settings: {},
             payment_settings: {},
