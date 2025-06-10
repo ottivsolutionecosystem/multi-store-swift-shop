@@ -26,7 +26,6 @@ export function SmartShippingCalculator({
   const services = useServices();
   const { toast } = useToast();
 
-  const [cep, setCep] = useState('');
   const [shippingCalculations, setShippingCalculations] = useState<ShippingCalculation[]>([]);
   const [selectedShippingMethod, setSelectedShippingMethod] = useState<string>('');
   const [shippingPrice, setShippingPrice] = useState(0);
@@ -34,21 +33,7 @@ export function SmartShippingCalculator({
   const [hasExpressMethods, setHasExpressMethods] = useState(false);
   const [hasApiMethods, setHasApiMethods] = useState(false);
   const [autoCalculated, setAutoCalculated] = useState(false);
-
-  // Format CEP input
-  const formatCep = (value: string) => {
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.length <= 5) {
-      return cleaned;
-    } else {
-      return cleaned.slice(0, 5) + '-' + cleaned.slice(5, 8);
-    }
-  };
-
-  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formattedCep = formatCep(e.target.value);
-    setCep(formattedCep);
-  };
+  const [useCustomAddress, setUseCustomAddress] = useState(false);
 
   // Check available shipping methods
   useEffect(() => {
@@ -70,25 +55,7 @@ export function SmartShippingCalculator({
     checkShippingMethods();
   }, [services]);
 
-  // Auto-fill CEP for logged users
-  useEffect(() => {
-    if (user && addresses.length > 0) {
-      const defaultAddress = addresses.find(addr => addr.is_default) || addresses[0];
-      if (defaultAddress && defaultAddress.zip_code) {
-        setCep(formatCep(defaultAddress.zip_code));
-      }
-    }
-  }, [user, addresses]);
-
-  // Auto-calculate if user is logged, has CEP, has express methods, and hasn't calculated yet
-  useEffect(() => {
-    if (user && cep && hasExpressMethods && !autoCalculated && items.length > 0) {
-      calculateShipping();
-      setAutoCalculated(true);
-    }
-  }, [user, cep, hasExpressMethods, autoCalculated, items]);
-
-  const calculateShipping = async () => {
+  const calculateShipping = async (cep: string) => {
     if (!services || !cep.trim()) {
       toast({
         title: 'CEP necessário',
@@ -145,19 +112,36 @@ export function SmartShippingCalculator({
 
   const shouldShowCalculateButton = hasApiMethods || !hasExpressMethods;
 
+  if (useCustomAddress) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Endereço de Entrega</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Funcionalidade de endereço personalizado será implementada aqui.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Calcular Frete</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <CepInput cep={cep} onCepChange={handleCepChange} />
+        <CepInput
+          onCepCalculate={calculateShipping}
+          onUseCustomAddress={setUseCustomAddress}
+          calculating={calculatingShipping}
+        />
 
         <ShippingCalculatorActions
           shouldShowCalculateButton={shouldShowCalculateButton}
           calculatingShipping={calculatingShipping}
-          cep={cep}
-          onCalculateShipping={calculateShipping}
+          cep=""
+          onCalculateShipping={() => {}}
         />
 
         {shippingCalculations.length > 0 && (
