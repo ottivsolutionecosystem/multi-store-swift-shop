@@ -29,8 +29,10 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setLoading(true);
         const currentStore = await getCurrentStore();
         
+        console.log('TenantProvider - Store loaded:', currentStore);
+        
         if (currentStore) {
-          console.log('TenantProvider - Store loaded successfully:', currentStore);
+          console.log('TenantProvider - Store loaded successfully with settings:', currentStore.store_settings ? 'YES' : 'NO');
           setStore(currentStore);
         } else {
           console.error('TenantProvider - No store returned from getCurrentStore');
@@ -46,13 +48,15 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
           custom_domain: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          store_settings: null,
         };
         
         console.log('TenantProvider - Using error fallback store:', errorFallbackStore);
         setStore(errorFallbackStore);
       } finally {
+        // IMPORTANTE: sempre finalizar o loading
+        console.log('TenantProvider - Setting loading to false');
         setLoading(false);
-        console.log('TenantProvider - Loading completed');
       }
     };
 
@@ -65,7 +69,12 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     loading,
   };
 
-  console.log('TenantProvider - Current context value:', value);
+  console.log('TenantProvider - Current context value:', {
+    hasStore: !!value.store,
+    storeId: value.storeId,
+    loading: value.loading,
+    hasSettings: !!value.store?.store_settings
+  });
 
   return <TenantContext.Provider value={value}>{children}</TenantContext.Provider>;
 };
