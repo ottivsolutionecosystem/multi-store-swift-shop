@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -32,7 +33,7 @@ export default function LogisticsPage() {
     },
     enabled: !!services?.shippingService,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
   });
 
   const createMutation = useMutation({

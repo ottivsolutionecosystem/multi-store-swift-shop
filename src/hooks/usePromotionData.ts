@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useServices } from '@/hooks/useServices';
 import { Database } from '@/integrations/supabase/types';
-import { useMemo, useEffect } from 'react';
+import { useMemo } from 'react';
 
 type Promotion = Database['public']['Tables']['promotions']['Row'];
 
@@ -25,13 +25,9 @@ export function usePromotionData() {
     },
     enabled: !!services?.promotionService,
     staleTime: 3 * 60 * 1000, // 3 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
     retry: 2,
-  });
-
-  // Handle errors through useEffect
-  useEffect(() => {
-    if (error) {
+    onError: (error: any) => {
       console.error('Erro ao carregar promoções:', error);
       toast({
         title: 'Erro',
@@ -39,7 +35,7 @@ export function usePromotionData() {
         variant: 'destructive',
       });
     }
-  }, [error, toast]);
+  });
 
   const stats = useMemo(() => {
     if (!promotions.length) {
