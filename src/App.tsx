@@ -13,6 +13,7 @@ import AuthPage from "./pages/AuthPage";
 import AccountPage from "./pages/AccountPage";
 import AdminPage from "./pages/AdminPage";
 import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import StoreSettingsPage from "./pages/admin/StoreSettingsPage";
 import NotFound from "./pages/NotFound";
 import ProductsPage from "./pages/admin/ProductsPage";
@@ -44,6 +45,7 @@ const App = () => {
                     <Route path="/auth" element={<AuthPage />} />
                     <Route path="/account" element={<AccountPage />} />
                     <Route path="/cart" element={<CartPage />} />
+                    <Route path="/checkout" element={<CheckoutPage />} />                    
                     <Route path="/admin" element={<AdminPage />} />
                     <Route path="/admin/products" element={<ProductsPage />} />
                     <Route path="/admin/products/new" element={<ProductFormPage />} />
