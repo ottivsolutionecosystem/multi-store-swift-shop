@@ -4,15 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { CheckoutSteps } from '@/components/checkout/CheckoutSteps';
 import { EnhancedCartSummary } from '@/components/checkout/EnhancedCartSummary';
-import { SmartShippingCalculator } from '@/components/checkout/SmartShippingCalculator';
+import { CartStep } from '@/components/checkout/CartStep';
 import { IdentificationStep } from '@/components/checkout/IdentificationStep';
 import { ShippingStep } from '@/components/checkout/ShippingStep';
 import { FinalStep } from '@/components/checkout/FinalStep';
 import { useCart } from '@/contexts/CartContext';
 import { useCheckout } from '@/hooks/useCheckout';
 import { CheckoutStep, GuestUser } from '@/types/checkout';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { ShippingCalculation } from '@/types/shipping';
 
 const steps: CheckoutStep[] = [
@@ -94,40 +92,16 @@ export default function CheckoutPage() {
           <CheckoutSteps steps={currentSteps} />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content */}
-          <div className="lg:col-span-2 bg-amber-600">
+          <div className="lg:col-span-3">
             {checkoutState.step === 1 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Coluna 1: Calcular Frete (menor) */}
-                <div className="md:col-span-1">
-                  <SmartShippingCalculator
-                    items={items}
-                    onShippingCalculated={handleShippingCalculated}
-                    onShippingMethodSelected={handleShippingMethodSelected}
-                  />
-                </div>
-                
-                {/* Coluna 2: Resumo do Carrinho (maior) */}
-                <div className="md:col-span-2">
-                  <EnhancedCartSummary 
-                    allowEditing={true}
-                    showShippingCalculator={false}
-                  />
-                  
-                  <div className="flex justify-between mt-6">
-                    <Link to="/">
-                      <Button variant="outline">Continuar Comprando</Button>
-                    </Link>
-                    <Button 
-                      onClick={nextStep}
-                      disabled={items.length === 0}
-                    >
-                      Continuar para Identificação
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <CartStep
+                items={items}
+                onShippingCalculated={handleShippingCalculated}
+                onShippingMethodSelected={handleShippingMethodSelected}
+                onNext={nextStep}
+              />
             )}
 
             {checkoutState.step === 2 && (
