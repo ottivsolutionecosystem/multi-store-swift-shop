@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ProductWithPromotion } from '@/types/product';
-import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { useTenant } from '@/contexts/TenantContext';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
 import { ProductImage } from './ProductImage';
@@ -17,12 +17,23 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { storeSettings } = useStoreSettings();
+  const { store } = useTenant();
   const { addItem, getItemQuantity } = useCart();
   const { toast } = useToast();
   
+  // Usar configurações da loja via tenant context com fallbacks
+  const storeSettings = store?.store_settings;
   const showDescription = storeSettings?.show_description ?? true;
   const showStockQuantity = storeSettings?.show_stock_quantity ?? true;
+  const showPrice = storeSettings?.show_price ?? true;
+  const showCategory = storeSettings?.show_category ?? true;
+  const showPromotionBadge = storeSettings?.show_promotion_badge ?? true;
+  
+  // Cores personalizadas
+  const primaryColor = storeSettings?.primary_color || '#3b82f6';
+  const secondaryColor = storeSettings?.secondary_color || '#6b7280';
+  const priceColor = storeSettings?.price_color || '#16a34a';
+  
   const itemQuantity = getItemQuantity(product.id);
 
   const handleAddToCartClick = () => {
@@ -73,11 +84,11 @@ export function ProductCard({ product }: ProductCardProps) {
       <CardHeader className="p-0">
         <div className="relative">
           <ProductImage imageUrl={product.image_url} name={product.name} />
-          <ProductPromotionBadge product={product} />
+          {showPromotionBadge && <ProductPromotionBadge product={product} />}
         </div>
         <div className="p-4 pb-2">
           <CardTitle className="text-lg line-clamp-2">{product.name}</CardTitle>
-          <ProductCategoryBreadcrumb product={product} />
+          {showCategory && <ProductCategoryBreadcrumb product={product} />}
         </div>
       </CardHeader>
       
@@ -87,9 +98,32 @@ export function ProductCard({ product }: ProductCardProps) {
         )}
         
         <div className="flex items-center justify-between">
-          <ProductPrice product={product} />
+          {showPrice && (
+            <div className="flex flex-col">
+              {product.promotion && product.promotion.promotional_price < product.price ? (
+                <>
+                  <span className="text-sm text-gray-500 line-through">
+                    {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </span>
+                  <span 
+                    className="text-2xl font-bold"
+                    style={{ color: priceColor }}
+                  >
+                    {product.promotion.promotional_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </span>
+                </>
+              ) : (
+                <span 
+                  className="text-2xl font-bold"
+                  style={{ color: priceColor }}
+                >
+                  {product.price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </span>
+              )}
+            </div>
+          )}
           {showStockQuantity && (
-            <span className="text-sm text-gray-500">
+            <span className="text-sm" style={{ color: secondaryColor }}>
               Estoque: {product.stock_quantity}
             </span>
           )}
@@ -102,6 +136,10 @@ export function ProductCard({ product }: ProductCardProps) {
           onClick={handleAddToCartClick}
           disabled={product.stock_quantity === 0}
           variant={itemQuantity > 0 ? "secondary" : "default"}
+          style={itemQuantity === 0 ? { 
+            backgroundColor: primaryColor,
+            borderColor: primaryColor 
+          } : {}}
         >
           {product.stock_quantity === 0 ? (
             'Fora de Estoque'

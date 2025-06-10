@@ -67,8 +67,16 @@ export default function StorePage() {
     );
   }
 
+  // Aplicar cores personalizadas via CSS variables se disponíveis
+  const storeSettings = store?.store_settings;
+  const customStyles = storeSettings ? {
+    '--primary-color': storeSettings.primary_color || '#3b82f6',
+    '--secondary-color': storeSettings.secondary_color || '#6b7280',
+    '--price-color': storeSettings.price_color || '#16a34a',
+  } as React.CSSProperties : {};
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" style={customStyles}>
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
@@ -76,7 +84,7 @@ export default function StorePage() {
             Bem-vindo à {store?.name}
           </h1>
           <p className="text-gray-600">
-            Descubra nossos produtos incríveis de perfumaria para casa e sabonetes artesanais
+            {storeSettings?.store_description || 'Descubra nossos produtos incríveis de perfumaria para casa e sabonetes artesanais'}
           </p>
         </div>
 
