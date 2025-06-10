@@ -1,73 +1,40 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import React from 'react';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { InputMask } from '@/components/ui/input-mask';
 
 interface CepInputProps {
-  onCepCalculate: (cep: string) => void;
-  onUseCustomAddress: (use: boolean) => void;
-  calculating: boolean;
+  cep: string;
+  onCepChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-export function CepInput({ onCepCalculate, onUseCustomAddress, calculating }: CepInputProps) {
-  const [cep, setCep] = useState('');
-  const [useCustomAddress, setUseCustomAddress] = useState(false);
-
-  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newCep = e.target.value;
-    setCep(newCep);
-    
-    // Auto-calculate shipping when CEP is complete
-    if (newCep.replace(/\D/g, '').length === 8) {
-      onCepCalculate(newCep);
+export function CepInput({ cep, onCepChange }: CepInputProps) {
+  const formatCep = (value: string) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (cleaned.length <= 5) {
+      return cleaned;
+    } else {
+      return cleaned.slice(0, 5) + '-' + cleaned.slice(5, 8);
     }
   };
 
-  const handleCustomAddressChange = (checked: boolean) => {
-    setUseCustomAddress(checked);
-    onUseCustomAddress(checked);
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formattedCep = formatCep(e.target.value);
+    e.target.value = formattedCep;
+    onCepChange(e);
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Calcular Frete</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="cep">CEP de Entrega</Label>
-          <div className="flex gap-2">
-            <InputMask
-              mask="cep"
-              id="cep"
-              placeholder="00000-000"
-              value={cep}
-              onChange={handleCepChange}
-            />
-            <Button 
-              onClick={() => onCepCalculate(cep)}
-              disabled={calculating || !cep.trim()}
-              variant="outline"
-            >
-              {calculating ? 'Calculando...' : 'Calcular'}
-            </Button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="custom-address"
-            checked={useCustomAddress}
-            onChange={(e) => handleCustomAddressChange(e.target.checked)}
-          />
-          <Label htmlFor="custom-address">
-            Informar endereço completo de entrega
-          </Label>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="space-y-2">
+      <Label htmlFor="cep">CEP de Entrega</Label>
+      <Input
+        id="cep"
+        type="text"
+        placeholder="00000-000"
+        value={cep}
+        onChange={handleChange}
+        maxLength={9}
+      />
+    </div>
   );
 }

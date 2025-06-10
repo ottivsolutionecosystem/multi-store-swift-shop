@@ -1,16 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { ShippingMethodSelector } from '@/components/cart/ShippingMethodSelector';
+import { CepInput } from './CepInput';
+import { ShippingCalculatorActions } from './ShippingCalculatorActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserAddresses } from '@/hooks/useUserAddresses';
 import { useServices } from '@/hooks/useServices';
 import { useToast } from '@/hooks/use-toast';
 import { ShippingCalculation } from '@/types/shipping';
-import { Loader2 } from 'lucide-react';
 
 interface SmartShippingCalculatorProps {
   items: any[];
@@ -153,41 +151,14 @@ export function SmartShippingCalculator({
         <CardTitle className="text-lg">Calcular Frete</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="cep">CEP de Entrega</Label>
-          <Input
-            id="cep"
-            type="text"
-            placeholder="00000-000"
-            value={cep}
-            onChange={handleCepChange}
-            maxLength={9}
-          />
-        </div>
+        <CepInput cep={cep} onCepChange={handleCepChange} />
 
-        {shouldShowCalculateButton && (
-          <Button 
-            onClick={calculateShipping}
-            disabled={!cep.trim() || calculatingShipping}
-            className="w-full"
-          >
-            {calculatingShipping ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Calculando...
-              </>
-            ) : (
-              'Calcular Frete'
-            )}
-          </Button>
-        )}
-
-        {calculatingShipping && !shouldShowCalculateButton && (
-          <div className="flex items-center justify-center py-2">
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            <span className="text-sm text-muted-foreground">Calculando frete...</span>
-          </div>
-        )}
+        <ShippingCalculatorActions
+          shouldShowCalculateButton={shouldShowCalculateButton}
+          calculatingShipping={calculatingShipping}
+          cep={cep}
+          onCalculateShipping={calculateShipping}
+        />
 
         {shippingCalculations.length > 0 && (
           <ShippingMethodSelector
