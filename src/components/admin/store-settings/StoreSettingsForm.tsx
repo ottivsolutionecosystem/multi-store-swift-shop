@@ -5,7 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { useTenant } from '@/contexts/TenantContext';
+import { useStoreSettingsUpdate } from '@/hooks/useStoreSettingsUpdate';
 import { storeSettingsSchema, StoreSettingsFormData } from '@/types/store-settings';
 import { GeneralSettingsTab } from './GeneralSettingsTab';
 import { VisualSettingsTab } from './VisualSettingsTab';
@@ -13,7 +14,8 @@ import { ProductSettingsTab } from './ProductSettingsTab';
 import { OriginAddressTab } from './OriginAddressTab';
 
 export function StoreSettingsForm() {
-  const { storeSettings, updateStoreSettings, isLoading, isUpdating } = useStoreSettings();
+  const { store, loading: tenantLoading } = useTenant();
+  const { updateStoreSettings, isUpdating } = useStoreSettingsUpdate();
 
   const form = useForm<StoreSettingsFormData>({
     resolver: zodResolver(storeSettingsSchema),
@@ -35,34 +37,36 @@ export function StoreSettingsForm() {
   });
 
   React.useEffect(() => {
-    if (storeSettings) {
-      console.log('StoreSettingsForm - updating form with settings:', storeSettings);
+    if (store?.store_settings) {
+      console.log('StoreSettingsForm - updating form with settings from tenant:', store.store_settings);
+      const settings = store.store_settings;
+      
       form.reset({
-        primary_color: storeSettings.primary_color || '#3b82f6',
-        secondary_color: storeSettings.secondary_color || '#6b7280',
-        price_color: storeSettings.price_color || '#16a34a',
-        logo_url: storeSettings.logo_url || '',
-        banner_url: storeSettings.banner_url || '',
-        store_description: storeSettings.store_description || '',
-        show_category: storeSettings.show_category ?? true,
-        show_description: storeSettings.show_description ?? true,
-        show_stock_quantity: storeSettings.show_stock_quantity ?? true,
-        show_price: storeSettings.show_price ?? true,
-        show_promotion_badge: storeSettings.show_promotion_badge ?? true,
-        promotion_display_format: storeSettings.promotion_display_format || 'percentage',
-        origin_address: (storeSettings.origin_address && typeof storeSettings.origin_address === 'object' && storeSettings.origin_address !== null) 
-          ? storeSettings.origin_address as any 
+        primary_color: settings.primary_color || '#3b82f6',
+        secondary_color: settings.secondary_color || '#6b7280',
+        price_color: settings.price_color || '#16a34a',
+        logo_url: settings.logo_url || '',
+        banner_url: settings.banner_url || '',
+        store_description: settings.store_description || '',
+        show_category: settings.show_category ?? true,
+        show_description: settings.show_description ?? true,
+        show_stock_quantity: settings.show_stock_quantity ?? true,
+        show_price: settings.show_price ?? true,
+        show_promotion_badge: settings.show_promotion_badge ?? true,
+        promotion_display_format: settings.promotion_display_format || 'percentage',
+        origin_address: (settings.origin_address && typeof settings.origin_address === 'object' && settings.origin_address !== null) 
+          ? settings.origin_address as any 
           : undefined,
       });
     }
-  }, [storeSettings, form]);
+  }, [store?.store_settings, form]);
 
   const onSubmit = (data: StoreSettingsFormData) => {
     console.log('StoreSettingsForm - submitting data:', data);
     updateStoreSettings(data);
   };
 
-  if (isLoading) {
+  if (tenantLoading || !store) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>

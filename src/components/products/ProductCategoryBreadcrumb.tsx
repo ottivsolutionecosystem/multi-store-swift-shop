@@ -2,15 +2,15 @@
 import React from 'react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { ProductWithPromotion } from '@/types/product';
-import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface ProductCategoryBreadcrumbProps {
   product: ProductWithPromotion;
 }
 
 export function ProductCategoryBreadcrumb({ product }: ProductCategoryBreadcrumbProps) {
-  const { storeSettings } = useStoreSettings();
-  const showCategory = storeSettings?.show_category ?? true;
+  const { store } = useTenant();
+  const showCategory = store?.store_settings?.show_category ?? true;
 
   if (!showCategory || !product.category) {
     return null;

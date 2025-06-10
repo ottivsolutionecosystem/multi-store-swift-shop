@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { ProductWithPromotion } from '@/types/product';
-import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { useTenant } from '@/contexts/TenantContext';
 import { 
   getPromotionBadgeClassName, 
   formatPromotionBadgeText 
@@ -13,9 +13,9 @@ interface ProductPromotionBadgeProps {
 }
 
 export function ProductPromotionBadge({ product }: ProductPromotionBadgeProps) {
-  const { storeSettings } = useStoreSettings();
-  const showPromotionBadge = storeSettings?.show_promotion_badge ?? true;
-  const promotionDisplayFormat = storeSettings?.promotion_display_format || 'percentage';
+  const { store } = useTenant();
+  const showPromotionBadge = store?.store_settings?.show_promotion_badge ?? true;
+  const promotionDisplayFormat = store?.store_settings?.promotion_display_format || 'percentage';
 
   const hasPromotion = Boolean(product.promotion);
 

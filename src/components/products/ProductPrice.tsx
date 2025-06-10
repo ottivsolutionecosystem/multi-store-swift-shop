@@ -2,18 +2,18 @@
 import React from 'react';
 import { ProductWithPromotion } from '@/types/product';
 import { formatPrice } from '@/lib/promotionUtils';
-import { useStoreSettings } from '@/hooks/useStoreSettings';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface ProductPriceProps {
   product: ProductWithPromotion;
 }
 
 export function ProductPrice({ product }: ProductPriceProps) {
-  const { storeSettings } = useStoreSettings();
+  const { store } = useTenant();
   
-  const showPrice = storeSettings?.show_price ?? true;
-  const promotionDisplayFormat = storeSettings?.promotion_display_format || 'percentage';
-  const priceColor = storeSettings?.price_color || '#16a34a';
+  const showPrice = store?.store_settings?.show_price ?? true;
+  const promotionDisplayFormat = store?.store_settings?.promotion_display_format || 'percentage';
+  const priceColor = store?.store_settings?.price_color || '#16a34a';
 
   if (!showPrice) return null;
 
