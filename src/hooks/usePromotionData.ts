@@ -25,7 +25,7 @@ export function usePromotionData() {
     },
     enabled: !!services?.promotionService,
     staleTime: 3 * 60 * 1000, // 3 minutes
-    cacheTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 2,
     onError: (error: any) => {
       console.error('Erro ao carregar promoções:', error);

@@ -33,7 +33,7 @@ export function useAdminPageData(options: UseAdminPageDataOptions = {}) {
         },
         enabled: loadProducts && !!services?.productService,
         staleTime: 5 * 60 * 1000, // 5 minutes
-        cacheTime: 15 * 60 * 1000, // 15 minutes
+        gcTime: 15 * 60 * 1000, // 15 minutes
         retry: 2,
         onError: (error: any) => {
           console.error('Erro ao carregar produtos:', error);
@@ -54,7 +54,7 @@ export function useAdminPageData(options: UseAdminPageDataOptions = {}) {
         },
         enabled: loadCategories && !!services?.categoryService,
         staleTime: 10 * 60 * 1000, // 10 minutes (categories change less frequently)
-        cacheTime: 20 * 60 * 1000, // 20 minutes
+        gcTime: 20 * 60 * 1000, // 20 minutes
         retry: 2,
         onError: (error: any) => {
           console.error('Erro ao carregar categorias:', error);
@@ -75,7 +75,7 @@ export function useAdminPageData(options: UseAdminPageDataOptions = {}) {
         },
         enabled: loadPromotions && !!services?.promotionService,
         staleTime: 3 * 60 * 1000, // 3 minutes
-        cacheTime: 10 * 60 * 1000, // 10 minutes
+        gcTime: 10 * 60 * 1000, // 10 minutes
         retry: 2,
         onError: (error: any) => {
           console.error('Erro ao carregar promoções:', error);
@@ -96,7 +96,7 @@ export function useAdminPageData(options: UseAdminPageDataOptions = {}) {
         },
         enabled: loadShipping && !!services?.shippingService,
         staleTime: 5 * 60 * 1000, // 5 minutes
-        cacheTime: 15 * 60 * 1000, // 15 minutes
+        gcTime: 15 * 60 * 1000, // 15 minutes
         retry: 2,
         onError: (error: any) => {
           console.error('Erro ao carregar métodos de frete:', error);
