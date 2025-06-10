@@ -11,7 +11,7 @@ interface CepInputProps {
   calculating: boolean;
 }
 
-export function CepInput({ onCepCalculate, onUseCustomAddress, calculating }: CepInputProps) {
+export function CepInput({ onCepCalculate, calculating }: CepInputProps) {
   const [cep, setCep] = useState('');
 
   const formatCep = (value: string) => {
@@ -48,30 +48,20 @@ export function CepInput({ onCepCalculate, onUseCustomAddress, calculating }: Ce
         />
       </div>
       
-      <div className="flex gap-2">
-        <Button 
-          onClick={handleCalculate}
-          disabled={!cep.trim() || calculating}
-          className="flex-1"
-        >
-          {calculating ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Calculando...
-            </>
-          ) : (
-            'Calcular Frete'
-          )}
-        </Button>
-        
-        <Button 
-          type="button"
-          variant="outline"
-          onClick={() => onUseCustomAddress(true)}
-        >
-          Endereço Personalizado
-        </Button>
-      </div>
+      <Button 
+        onClick={handleCalculate}
+        disabled={!cep.trim() || calculating}
+        className="w-full"
+      >
+        {calculating ? (
+          <>
+            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            Calculando...
+          </>
+        ) : (
+          'Calcular Frete'
+        )}
+      </Button>
     </div>
   );
 }

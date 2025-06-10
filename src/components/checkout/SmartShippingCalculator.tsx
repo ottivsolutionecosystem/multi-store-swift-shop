@@ -33,7 +33,6 @@ export function SmartShippingCalculator({
   const [hasExpressMethods, setHasExpressMethods] = useState(false);
   const [hasApiMethods, setHasApiMethods] = useState(false);
   const [autoCalculated, setAutoCalculated] = useState(false);
-  const [useCustomAddress, setUseCustomAddress] = useState(false);
 
   // Check available shipping methods
   useEffect(() => {
@@ -112,19 +111,6 @@ export function SmartShippingCalculator({
 
   const shouldShowCalculateButton = hasApiMethods || !hasExpressMethods;
 
-  if (useCustomAddress) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Endereço de Entrega</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>Funcionalidade de endereço personalizado será implementada aqui.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -133,7 +119,7 @@ export function SmartShippingCalculator({
       <CardContent className="space-y-4">
         <CepInput
           onCepCalculate={calculateShipping}
-          onUseCustomAddress={setUseCustomAddress}
+          onUseCustomAddress={() => {}}
           calculating={calculatingShipping}
         />
 
