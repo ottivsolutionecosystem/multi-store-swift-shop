@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { CheckoutSteps } from '@/components/checkout/CheckoutSteps';
 import { EnhancedCartSummary } from '@/components/checkout/EnhancedCartSummary';
+import { SmartShippingCalculator } from '@/components/checkout/SmartShippingCalculator';
 import { IdentificationStep } from '@/components/checkout/IdentificationStep';
 import { ShippingStep } from '@/components/checkout/ShippingStep';
 import { FinalStep } from '@/components/checkout/FinalStep';
@@ -97,23 +98,34 @@ export default function CheckoutPage() {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {checkoutState.step === 1 && (
-              <div className="space-y-6">
-                <EnhancedCartSummary 
-                  allowEditing={true}
-                  showShippingCalculator={true}
-                  onShippingCalculated={handleShippingCalculated}
-                  onShippingMethodSelected={handleShippingMethodSelected}
-                />
-                <div className="flex justify-between">
-                  <Link to="/">
-                    <Button variant="outline">Continuar Comprando</Button>
-                  </Link>
-                  <Button 
-                    onClick={nextStep}
-                    disabled={items.length === 0}
-                  >
-                    Continuar para Identificação
-                  </Button>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Coluna 1: Calcular Frete (menor) */}
+                <div className="md:col-span-1">
+                  <SmartShippingCalculator
+                    items={items}
+                    onShippingCalculated={handleShippingCalculated}
+                    onShippingMethodSelected={handleShippingMethodSelected}
+                  />
+                </div>
+                
+                {/* Coluna 2: Resumo do Carrinho (maior) */}
+                <div className="md:col-span-2">
+                  <EnhancedCartSummary 
+                    allowEditing={true}
+                    showShippingCalculator={false}
+                  />
+                  
+                  <div className="flex justify-between mt-6">
+                    <Link to="/">
+                      <Button variant="outline">Continuar Comprando</Button>
+                    </Link>
+                    <Button 
+                      onClick={nextStep}
+                      disabled={items.length === 0}
+                    >
+                      Continuar para Identificação
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}

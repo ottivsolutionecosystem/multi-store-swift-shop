@@ -1,6 +1,6 @@
 
 import { ShippingMethodRepository } from '@/repositories/ShippingMethodRepository';
-import { ShippingMethod, ShippingCalculation } from '@/types/shipping';
+import { ShippingMethod, ShippingCalculation, ShippingMethodType } from '@/types/shipping';
 
 export class ShippingService {
   constructor(private shippingMethodRepository: ShippingMethodRepository) {}
@@ -13,6 +13,12 @@ export class ShippingService {
   async getActiveShippingMethods(): Promise<ShippingMethod[]> {
     console.log('ShippingService - Getting active shipping methods');
     return this.shippingMethodRepository.getActiveShippingMethods();
+  }
+
+  async getActiveShippingMethodsByType(type: ShippingMethodType): Promise<ShippingMethod[]> {
+    console.log('ShippingService - Getting active shipping methods by type:', type);
+    const activeMethods = await this.getActiveShippingMethods();
+    return activeMethods.filter(method => method.type === type);
   }
 
   async getShippingMethodById(id: string): Promise<ShippingMethod | null> {
@@ -42,6 +48,20 @@ export class ShippingService {
     const methods = await this.getActiveShippingMethods();
     
     return methods.map(method => ({
+      method_id: method.id,
+      method_name: method.name,
+      price: method.price || 0,
+      delivery_days: method.delivery_days || undefined,
+      delivery_label: method.delivery_days ? `${method.delivery_days} dias` : undefined,
+    }));
+  }
+
+  async calculateExpressShipping(items: any[], zipCode: string): Promise<ShippingCalculation[]> {
+    console.log('ShippingService - Calculating express shipping for:', zipCode, items);
+    
+    const expressMethods = await this.getActiveShippingMethodsByType('express');
+    
+    return expressMethods.map(method => ({
       method_id: method.id,
       method_name: method.name,
       price: method.price || 0,
