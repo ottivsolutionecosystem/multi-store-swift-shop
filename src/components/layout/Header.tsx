@@ -3,13 +3,12 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTenant } from '@/contexts/TenantContext';
-import { signOut } from '@/lib/auth';
 import { User, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CartButton } from '@/components/layout/CartButton';
 
 export function Header() {
-  const { user, profile } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { store } = useTenant();
 
   const handleSignOut = async () => {

@@ -4,6 +4,7 @@ import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { Profile } from '@/types/auth';
 import { useServices } from '@/hooks/useServices';
+import { SmartUserCache } from '@/lib/smartUserCache';
 
 interface AuthState {
   user: User | null;
@@ -134,16 +135,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     console.log('AuthContext - Signing out');
     
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      console.error('AuthContext - Sign out error:', error);
+    try {
+      // Get current user to invalidate their cache
+      const currentUser = user;
+      
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) {
+        console.error('AuthContext - Sign out error:', error);
+        throw error;
+      }
+
+      // Clear cache after successful sign out
+      if (currentUser) {
+        await SmartUserCache.invalidateUser(currentUser.id);
+      } else {
+        await SmartUserCache.clearAll();
+      }
+
+      // Clear local state
+      setUser(null);
+      setProfile(null);
+      
+      console.log('AuthContext - Sign out successful');
+      
+      // Redirect to auth page
+      window.location.href = '/auth';
+    } catch (error) {
+      console.error('AuthContext - Error during sign out:', error);
       throw error;
     }
-
-    setUser(null);
-    setProfile(null);
-    console.log('AuthContext - Sign out successful');
   };
 
   const value: AuthState = {
