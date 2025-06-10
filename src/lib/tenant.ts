@@ -63,7 +63,7 @@ export async function getCurrentStore() {
       return store;
     }
     
-    // Se não encontrou a loja, criar uma loja demo com configurações padrão
+    // Se não encontrou a loja, criar uma loja demo com configurações padrão completas
     console.warn('🚧 No store found for domain:', domain, '- creating demo store with default settings');
     
     const demoStore = {
@@ -88,6 +88,13 @@ export async function getCurrentStore() {
         show_price: true,
         show_promotion_badge: true,
         promotion_display_format: 'percentage',
+        contact_info: {},
+        shipping_settings: {},
+        payment_settings: {},
+        free_shipping_enabled: false,
+        free_shipping_threshold: 0,
+        free_shipping_message: 'Frete grátis em compras acima de R$ {threshold}',
+        origin_address: {},
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
@@ -99,7 +106,7 @@ export async function getCurrentStore() {
   } catch (error) {
     console.error('❌ Error getting current store:', error);
     
-    // Fallback para demo store com configurações padrão em caso de erro
+    // Fallback para demo store com configurações padrão completas em caso de erro
     const fallbackStore = {
       id: 'bb9e7e18-b166-4fb7-8f73-e431400dfd87',
       name: 'Demo Store (Fallback)',
@@ -122,6 +129,13 @@ export async function getCurrentStore() {
         show_price: true,
         show_promotion_badge: true,
         promotion_display_format: 'percentage',
+        contact_info: {},
+        shipping_settings: {},
+        payment_settings: {},
+        free_shipping_enabled: false,
+        free_shipping_threshold: 0,
+        free_shipping_message: 'Frete grátis em compras acima de R$ {threshold}',
+        origin_address: {},
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }

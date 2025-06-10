@@ -38,14 +38,39 @@ export const TenantProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       } catch (error) {
         console.error('TenantProvider - Error loading store:', error);
         
-        // Em caso de erro, ainda assim criar uma store fallback
+        // Em caso de erro, ainda assim criar uma store fallback com todas as propriedades obrigatórias
         const errorFallbackStore: Store = {
           id: 'bb9e7e18-b166-4fb7-8f73-e431400dfd87',
           name: 'Demo Store (Error Fallback)',
-          domain: window.location?.host || 'unknown',
+          domain: typeof window !== 'undefined' ? window.location?.host : 'unknown',
           custom_domain: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          store_settings: {
+            id: 'fallback-settings',
+            store_id: 'bb9e7e18-b166-4fb7-8f73-e431400dfd87',
+            primary_color: '#3b82f6',
+            secondary_color: '#6b7280',
+            price_color: '#16a34a',
+            logo_url: '',
+            banner_url: '',
+            store_description: 'Loja demonstrativa (modo de erro)',
+            show_category: true,
+            show_description: true,
+            show_stock_quantity: true,
+            show_price: true,
+            show_promotion_badge: true,
+            promotion_display_format: 'percentage',
+            contact_info: {},
+            shipping_settings: {},
+            payment_settings: {},
+            free_shipping_enabled: false,
+            free_shipping_threshold: 0,
+            free_shipping_message: 'Frete grátis em compras acima de R$ {threshold}',
+            origin_address: {},
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }
         };
         
         console.log('TenantProvider - Using error fallback store:', errorFallbackStore);
