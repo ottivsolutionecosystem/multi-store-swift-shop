@@ -34,7 +34,9 @@ export class PaymentMethodService {
         throw error;
       }
 
-      const paymentMethods = (profile?.payment_methods as PaymentMethod[]) || [];
+      // Safe type conversion from Json to PaymentMethod[]
+      const paymentMethodsData = profile?.payment_methods as unknown;
+      const paymentMethods: PaymentMethod[] = Array.isArray(paymentMethodsData) ? paymentMethodsData as PaymentMethod[] : [];
       console.log('PaymentMethodService - payment methods loaded:', paymentMethods.length);
       
       return paymentMethods.filter(method => method.isActive);
@@ -82,9 +84,12 @@ export class PaymentMethodService {
 
       updatedMethods.push(newMethod);
 
+      // Convert to unknown first, then to Json for Supabase
+      const methodsAsJson = updatedMethods as unknown as Database['public']['Tables']['profiles']['Update']['payment_methods'];
+
       const { error } = await supabaseClient
         .from('profiles')
-        .update({ payment_methods: updatedMethods })
+        .update({ payment_methods: methodsAsJson })
         .eq('id', user.id);
 
       if (error) {
@@ -134,9 +139,12 @@ export class PaymentMethodService {
 
       currentMethods[methodIndex] = updatedMethod;
 
+      // Convert to unknown first, then to Json for Supabase
+      const methodsAsJson = currentMethods as unknown as Database['public']['Tables']['profiles']['Update']['payment_methods'];
+
       const { error } = await supabaseClient
         .from('profiles')
-        .update({ payment_methods: currentMethods })
+        .update({ payment_methods: methodsAsJson })
         .eq('id', user.id);
 
       if (error) {
@@ -164,9 +172,12 @@ export class PaymentMethodService {
       const currentMethods = await this.getPaymentMethods();
       const updatedMethods = currentMethods.filter(method => method.id !== methodId);
 
+      // Convert to unknown first, then to Json for Supabase
+      const methodsAsJson = updatedMethods as unknown as Database['public']['Tables']['profiles']['Update']['payment_methods'];
+
       const { error } = await supabaseClient
         .from('profiles')
-        .update({ payment_methods: updatedMethods })
+        .update({ payment_methods: methodsAsJson })
         .eq('id', user.id);
 
       if (error) {
@@ -196,9 +207,12 @@ export class PaymentMethodService {
         isDefault: method.id === methodId
       }));
 
+      // Convert to unknown first, then to Json for Supabase
+      const methodsAsJson = updatedMethods as unknown as Database['public']['Tables']['profiles']['Update']['payment_methods'];
+
       const { error } = await supabaseClient
         .from('profiles')
-        .update({ payment_methods: updatedMethods })
+        .update({ payment_methods: methodsAsJson })
         .eq('id', user.id);
 
       if (error) {

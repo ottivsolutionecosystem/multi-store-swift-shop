@@ -171,7 +171,7 @@ export function PaymentMethodFormDialog({
               <Checkbox
                 id="consent"
                 checked={consentGiven}
-                onCheckedChange={setConsentGiven}
+                onCheckedChange={(checked) => setConsentGiven(checked === true)}
               />
               <Label htmlFor="consent" className="text-sm">
                 Eu concordo com o tratamento dos meus dados conforme descrito acima e autorizo 
@@ -370,7 +370,7 @@ export function PaymentMethodFormDialog({
             <Checkbox
               id="isDefault"
               checked={formData.isDefault}
-              onCheckedChange={(checked) => setFormData({ ...formData, isDefault: !!checked })}
+              onCheckedChange={(checked) => setFormData({ ...formData, isDefault: checked === true })}
             />
             <Label htmlFor="isDefault">Definir como método padrão</Label>
           </div>
