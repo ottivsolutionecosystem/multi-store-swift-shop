@@ -70,7 +70,6 @@ export function ShippingStep({ guestUser, onShippingSelect, onAddressSelect, onN
     <div className="space-y-6">
       <CepInput
         onCepCalculate={handleCepCalculate}
-        onUseCustomAddress={setUseCustomAddress}
         calculating={calculatingShipping}
       />
 
