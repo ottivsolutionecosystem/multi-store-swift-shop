@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShippingMethodSelector } from '@/components/cart/ShippingMethodSelector';
 import { CepInput } from './CepInput';
-import { ShippingCalculatorActions } from './ShippingCalculatorActions';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserAddresses } from '@/hooks/useUserAddresses';
 import { useServices } from '@/hooks/useServices';
@@ -32,7 +31,6 @@ export function SmartShippingCalculator({
   const [calculatingShipping, setCalculatingShipping] = useState(false);
   const [hasExpressMethods, setHasExpressMethods] = useState(false);
   const [hasApiMethods, setHasApiMethods] = useState(false);
-  const [autoCalculated, setAutoCalculated] = useState(false);
   const [useCustomAddress, setUseCustomAddress] = useState(false);
 
   // Check available shipping methods
@@ -110,49 +108,50 @@ export function SmartShippingCalculator({
     onShippingMethodSelected?.(methodId, price);
   };
 
-  const shouldShowCalculateButton = hasApiMethods || !hasExpressMethods;
-
   if (useCustomAddress) {
     return (
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-4">
           <CardTitle className="text-lg">Endereço de Entrega</CardTitle>
         </CardHeader>
         <CardContent>
-          <p>Funcionalidade de endereço personalizado será implementada aqui.</p>
+          <p className="text-sm text-muted-foreground mb-4">
+            Funcionalidade de endereço personalizado será implementada aqui.
+          </p>
+          <button 
+            onClick={() => setUseCustomAddress(false)}
+            className="text-sm text-primary hover:underline"
+          >
+            ← Voltar para cálculo por CEP
+          </button>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Calcular Frete</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <CepInput
-          onCepCalculate={calculateShipping}
-          onUseCustomAddress={setUseCustomAddress}
-          calculating={calculatingShipping}
-        />
-
-        <ShippingCalculatorActions
-          shouldShowCalculateButton={shouldShowCalculateButton}
-          calculatingShipping={calculatingShipping}
-          cep=""
-          onCalculateShipping={() => {}}
-        />
-
-        {shippingCalculations.length > 0 && (
-          <ShippingMethodSelector
-            calculations={shippingCalculations}
-            selectedMethodId={selectedShippingMethod}
-            onMethodSelect={handleShippingMethodSelect}
-            loading={calculatingShipping}
+    <div className="space-y-4">
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">Calcular Frete</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <CepInput
+            onCepCalculate={calculateShipping}
+            onUseCustomAddress={setUseCustomAddress}
+            calculating={calculatingShipping}
           />
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {shippingCalculations.length > 0 && (
+        <ShippingMethodSelector
+          calculations={shippingCalculations}
+          selectedMethodId={selectedShippingMethod}
+          onMethodSelect={handleShippingMethodSelect}
+          loading={calculatingShipping}
+        />
+      )}
+    </div>
   );
 }

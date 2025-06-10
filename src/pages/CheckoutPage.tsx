@@ -98,30 +98,39 @@ export default function CheckoutPage() {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {checkoutState.step === 1 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Coluna 1: Calcular Frete (menor) */}
-                <div className="md:col-span-1">
-                  <SmartShippingCalculator
-                    items={items}
-                    onShippingCalculated={handleShippingCalculated}
-                    onShippingMethodSelected={handleShippingMethodSelected}
-                  />
+              <div className="space-y-6">
+                {/* Layout responsivo: mobile vertical, desktop em duas colunas */}
+                <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                  {/* Calculador de Frete - 40% no desktop */}
+                  <div className="lg:col-span-2">
+                    <SmartShippingCalculator
+                      items={items}
+                      onShippingCalculated={handleShippingCalculated}
+                      onShippingMethodSelected={handleShippingMethodSelected}
+                    />
+                  </div>
+                  
+                  {/* Resumo do Carrinho - 60% no desktop */}
+                  <div className="lg:col-span-3">
+                    <EnhancedCartSummary 
+                      allowEditing={true}
+                      showShippingCalculator={false}
+                    />
+                  </div>
                 </div>
                 
-                {/* Coluna 2: Resumo do Carrinho (maior) */}
-                <div className="md:col-span-2">
-                  <EnhancedCartSummary 
-                    allowEditing={true}
-                    showShippingCalculator={false}
-                  />
-                  
-                  <div className="flex justify-between mt-6">
+                {/* Botões de navegação em seção separada */}
+                <div className="bg-white rounded-lg border p-6">
+                  <div className="flex flex-col sm:flex-row justify-between gap-4">
                     <Link to="/">
-                      <Button variant="outline">Continuar Comprando</Button>
+                      <Button variant="outline" className="w-full sm:w-auto">
+                        Continuar Comprando
+                      </Button>
                     </Link>
                     <Button 
                       onClick={nextStep}
                       disabled={items.length === 0}
+                      className="w-full sm:w-auto"
                     >
                       Continuar para Identificação
                     </Button>
