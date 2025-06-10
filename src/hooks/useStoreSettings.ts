@@ -25,7 +25,7 @@ export function useStoreSettings() {
     queryFn: async () => {
       console.log('useStoreSettings - fetching store settings...');
       if (!services || !storeId) {
-        console.log('useStoreSettings - no services or storeId available, skipping');
+        console.log('useStoreSettings - no services or storeId available');
         return null;
       }
       
@@ -38,14 +38,11 @@ export function useStoreSettings() {
         return settings;
       } catch (error) {
         console.error('useStoreSettings - error loading settings:', error);
-        // Em caso de erro, retorna null em vez de throw para evitar loop
-        return null;
+        throw error;
       }
     },
     enabled: !!services && !!storeId,
     retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
   });
 
   const updateMutation = useMutation({
@@ -78,12 +75,9 @@ export function useStoreSettings() {
     },
   });
 
-  // Melhorar a lógica de isLoading para não ficar infinita
-  const finalIsLoading = isLoading && !!services && !!storeId;
-
   return {
     storeSettings,
-    isLoading: finalIsLoading,
+    isLoading: isLoading || !services || !storeId,
     error,
     updateStoreSettings: (settings: StoreSettingsUpdate) => {
       if (!services || !storeId) {
