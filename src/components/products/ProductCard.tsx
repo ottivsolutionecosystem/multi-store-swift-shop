@@ -7,7 +7,7 @@ import { ProductPrice } from './ProductPrice';
 import { ProductPromotionBadge } from './ProductPromotionBadge';
 import { ProductCategoryBreadcrumb } from './ProductCategoryBreadcrumb';
 import { ProductWithPromotion } from '@/types/product';
-import { useTenant } from '@/contexts/TenantContext';
+import { useStoreSettings } from '@/hooks/useStoreSettings';
 
 interface ProductCardProps {
   product: ProductWithPromotion;
@@ -27,21 +27,10 @@ const DEFAULT_SETTINGS = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { store } = useTenant();
+  const { storeSettings } = useStoreSettings();
 
-  // Usar configurações da loja se disponíveis, senão usar fallback padrão
-  const storeSettings = store?.store_settings;
-  const settings = storeSettings ? {
-    show_category: storeSettings.show_category ?? DEFAULT_SETTINGS.show_category,
-    show_description: storeSettings.show_description ?? DEFAULT_SETTINGS.show_description,
-    show_stock_quantity: storeSettings.show_stock_quantity ?? DEFAULT_SETTINGS.show_stock_quantity,
-    show_price: storeSettings.show_price ?? DEFAULT_SETTINGS.show_price,
-    show_promotion_badge: storeSettings.show_promotion_badge ?? DEFAULT_SETTINGS.show_promotion_badge,
-    promotion_display_format: storeSettings.promotion_display_format || DEFAULT_SETTINGS.promotion_display_format,
-    primary_color: storeSettings.primary_color || DEFAULT_SETTINGS.primary_color,
-    secondary_color: storeSettings.secondary_color || DEFAULT_SETTINGS.secondary_color,
-    price_color: storeSettings.price_color || DEFAULT_SETTINGS.price_color,
-  } : DEFAULT_SETTINGS;
+  // Usar settings carregadas ou fallback padrão
+  const settings = storeSettings || DEFAULT_SETTINGS;
 
   // Verificação mais robusta para hasPromotion
   const hasPromotion = Boolean(
@@ -53,7 +42,6 @@ export function ProductCard({ product }: ProductCardProps) {
   );
 
   console.log('🎯 ProductCard - Product:', product.id, 'hasPromotion:', hasPromotion, 'promotion:', product.promotion);
-  console.log('🎯 ProductCard - Using settings:', settings.show_category ? 'with categories' : 'without categories');
 
   return (
     <Card className="group hover:shadow-lg transition-shadow duration-200 overflow-hidden">

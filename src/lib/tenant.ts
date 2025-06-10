@@ -7,30 +7,7 @@ export async function getStoreByDomain(domain: string) {
   try {
     const { data: store, error } = await supabase
       .from('stores')
-      .select(`
-        *,
-        store_settings (
-          primary_color,
-          secondary_color,
-          price_color,
-          logo_url,
-          banner_url,
-          store_description,
-          show_category,
-          show_description,
-          show_stock_quantity,
-          show_price,
-          show_promotion_badge,
-          promotion_display_format,
-          origin_address,
-          contact_info,
-          shipping_settings,
-          payment_settings,
-          free_shipping_enabled,
-          free_shipping_threshold,
-          free_shipping_message
-        )
-      `)
+      .select('*')
       .or(`domain.eq.${domain},custom_domain.eq.${domain}`)
       .maybeSingle();
 
@@ -80,7 +57,6 @@ export async function getCurrentStore() {
       custom_domain: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      store_settings: null, // Demo store sem configurações personalizadas
     };
     
     console.log('Using demo store:', demoStore);
@@ -97,7 +73,6 @@ export async function getCurrentStore() {
       custom_domain: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      store_settings: null,
     };
     
     console.log('Using fallback store due to error:', fallbackStore);
