@@ -3,18 +3,19 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Header } from '@/components/layout/Header';
 import { CheckoutSteps } from '@/components/checkout/CheckoutSteps';
-import { CartSummary } from '@/components/checkout/CartSummary';
+import { EnhancedCartSummary } from '@/components/checkout/EnhancedCartSummary';
 import { IdentificationStep } from '@/components/checkout/IdentificationStep';
 import { ShippingStep } from '@/components/checkout/ShippingStep';
 import { FinalStep } from '@/components/checkout/FinalStep';
 import { useCart } from '@/contexts/CartContext';
 import { useCheckout } from '@/hooks/useCheckout';
-import { CheckoutStep } from '@/types/checkout';
+import { CheckoutStep, GuestUser } from '@/types/checkout';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { ShippingCalculation } from '@/types/shipping';
 
 const steps: CheckoutStep[] = [
-  { id: '1', title: 'Resumo', completed: false, current: false },
+  { id: '1', title: 'Carrinho', completed: false, current: false },
   { id: '2', title: 'Identificação', completed: false, current: false },
   { id: '3', title: 'Entrega', completed: false, current: false },
   { id: '4', title: 'Finalização', completed: false, current: false },
@@ -46,7 +47,7 @@ export default function CheckoutPage() {
     current: index + 1 === checkoutState.step,
   }));
 
-  const handleIdentificationComplete = (guestData?: any) => {
+  const handleIdentificationComplete = (guestData?: GuestUser) => {
     if (guestData) {
       setUser(guestData);
     }
@@ -68,6 +69,17 @@ export default function CheckoutPage() {
     });
   };
 
+  const handleShippingCalculated = (calculations: ShippingCalculation[]) => {
+    // Auto-select first method if available
+    if (calculations.length > 0) {
+      setShippingMethod(calculations[0].method_id, calculations[0].price);
+    }
+  };
+
+  const handleShippingMethodSelected = (methodId: string, price: number) => {
+    setShippingMethod(methodId, price);
+  };
+
   if (items.length === 0) {
     return null;
   }
@@ -86,12 +98,20 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2">
             {checkoutState.step === 1 && (
               <div className="space-y-6">
-                <CartSummary />
+                <EnhancedCartSummary 
+                  allowEditing={true}
+                  showShippingCalculator={true}
+                  onShippingCalculated={handleShippingCalculated}
+                  onShippingMethodSelected={handleShippingMethodSelected}
+                />
                 <div className="flex justify-between">
                   <Link to="/">
                     <Button variant="outline">Continuar Comprando</Button>
                   </Link>
-                  <Button onClick={nextStep}>
+                  <Button 
+                    onClick={nextStep}
+                    disabled={items.length === 0}
+                  >
                     Continuar para Identificação
                   </Button>
                 </div>
@@ -127,7 +147,10 @@ export default function CheckoutPage() {
           {/* Sidebar - Summary for steps 2+ */}
           {checkoutState.step > 1 && (
             <div className="lg:col-span-1">
-              <CartSummary />
+              <EnhancedCartSummary 
+                allowEditing={false}
+                showShippingCalculator={false}
+              />
             </div>
           )}
         </div>
