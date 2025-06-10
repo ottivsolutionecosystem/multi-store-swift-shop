@@ -64,15 +64,17 @@ export class ProfileService {
   }
 
   async ensureUserStoreAssociation(storeId: string): Promise<void> {
-    console.log('ProfileService - ensuring user store association for store:', storeId);
+    console.log('ProfileService - START ensuring user store association for store:', storeId);
     try {
+      console.log('ProfileService - step 1: getting current user profile');
       const profile = await this.getCurrentUserProfile();
+      
       if (!profile) {
-        console.error('ProfileService - user profile not found for store association');
+        console.error('ProfileService - step 1 FAILED: user profile not found for store association');
         throw new Error('User profile not found');
       }
 
-      console.log('ProfileService - current profile:', { 
+      console.log('ProfileService - step 2: current profile data:', { 
         id: profile.id, 
         role: profile.role, 
         store_id: profile.store_id 
@@ -80,19 +82,21 @@ export class ProfileService {
 
       // Se o usuário é admin mas não tem store_id associado, associe à loja
       if (profile.role === 'admin' && !profile.store_id) {
-        console.log('ProfileService - associating admin user to store:', storeId);
+        console.log('ProfileService - step 3: associating admin user to store:', storeId);
         await this.updateProfile({ store_id: storeId });
-        console.log('ProfileService - admin user successfully associated to store');
+        console.log('ProfileService - step 3 SUCCESS: admin user successfully associated to store');
       } else if (profile.store_id && profile.store_id !== storeId) {
-        console.log('ProfileService - user already has different store_id:', {
+        console.log('ProfileService - step 3 SKIP: user already has different store_id:', {
           current: profile.store_id,
           requested: storeId
         });
       } else {
-        console.log('ProfileService - user already properly associated with store');
+        console.log('ProfileService - step 3 SKIP: user already properly associated with store');
       }
+      
+      console.log('ProfileService - END: store association completed successfully');
     } catch (error) {
-      console.error('ProfileService - error ensuring store association:', error);
+      console.error('ProfileService - ERROR in ensureUserStoreAssociation:', error);
       throw error;
     }
   }
