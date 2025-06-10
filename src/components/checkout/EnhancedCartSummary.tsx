@@ -1,16 +1,15 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { ProductImage } from '@/components/products/ProductImage';
-import { ShippingMethodSelector } from '@/components/cart/ShippingMethodSelector';
 import { CartShippingCalculator } from '@/components/cart/CartShippingCalculator';
+import { ShippingMethodSelector } from '@/components/cart/ShippingMethodSelector';
+import { CartItemDisplay } from './CartItemDisplay';
+import { CartTotals } from './CartTotals';
+import { CartActions } from './CartActions';
 import { useCart } from '@/contexts/CartContext';
 import { useServices } from '@/hooks/useServices';
 import { useToast } from '@/hooks/use-toast';
 import { ShippingCalculation } from '@/types/shipping';
-import { Minus, Plus, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 
 interface EnhancedCartSummaryProps {
   allowEditing?: boolean;
@@ -98,8 +97,6 @@ export function EnhancedCartSummary({
     setCep(formattedCep);
   };
 
-  const finalTotal = total + shippingPrice;
-
   return (
     <div className="space-y-4">
       <Card>
@@ -108,92 +105,17 @@ export function EnhancedCartSummary({
         </CardHeader>
         <CardContent className="space-y-4">
           {items.map((item) => (
-            <div key={item.product.id} className="flex items-center gap-3 p-3 border rounded-md">
-              <div className="w-16 h-16 flex-shrink-0">
-                <ProductImage 
-                  imageUrl={item.product.image_url} 
-                  name={item.product.name}
-                />
-              </div>
-              
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-sm line-clamp-2">{item.product.name}</h4>
-                <p className="text-sm text-primary font-semibold">
-                  {item.finalPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                </p>
-              </div>
-              
-              {allowEditing && (
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center border rounded">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </Button>
-                    <span className="px-2 text-sm">{item.quantity}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                      disabled={item.quantity >= item.product.stock_quantity}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </Button>
-                  </div>
-                  
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeItem(item.product.id)}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              )}
-
-              {!allowEditing && (
-                <div className="text-sm text-gray-600">
-                  Qtd: {item.quantity}
-                </div>
-              )}
-            </div>
+            <CartItemDisplay
+              key={item.product.id}
+              item={item}
+              allowEditing={allowEditing}
+              onUpdateQuantity={updateQuantity}
+              onRemoveItem={removeItem}
+            />
           ))}
           
-          <div className="pt-4 border-t space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span>{total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-            </div>
-            
-            {shippingPrice > 0 && (
-              <div className="flex justify-between">
-                <span>Frete:</span>
-                <span>{shippingPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-              </div>
-            )}
-            
-            <div className="flex justify-between text-lg font-bold">
-              <span>Total:</span>
-              <span>{finalTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-            </div>
-          </div>
-          
-          {allowEditing && (
-            <div className="pt-4 border-t">
-              <Link to="/">
-                <Button variant="outline" className="w-full">
-                  Continuar Comprando
-                </Button>
-              </Link>
-            </div>
-          )}
+          <CartTotals subtotal={total} shippingPrice={shippingPrice} />
+          <CartActions allowEditing={allowEditing} />
         </CardContent>
       </Card>
 
