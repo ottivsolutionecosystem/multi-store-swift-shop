@@ -1,14 +1,12 @@
 
 export interface PaymentMethod {
   id: string;
-  type: 'credit_card' | 'debit_card' | 'pix';
-  provider?: string; // visa, mastercard, elo, pix
-  lastFourDigits?: string;
-  cardholderName?: string;
-  expiryMonth?: number;
-  expiryYear?: number;
-  pixKey?: string;
-  pixKeyType?: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random';
+  type: 'credit_card' | 'debit_card';
+  provider: string; // visa, mastercard, elo, etc
+  lastFourDigits: string;
+  cardholderName: string;
+  expiryMonth: number;
+  expiryYear: number;
   isDefault: boolean;
   isActive: boolean;
   consentGiven: boolean;
@@ -18,14 +16,12 @@ export interface PaymentMethod {
 }
 
 export interface PaymentMethodFormData {
-  type: 'credit_card' | 'debit_card' | 'pix';
-  provider?: string;
+  type: 'credit_card' | 'debit_card';
+  provider: string;
   cardNumber?: string;
-  cardholderName?: string;
-  expiryMonth?: number;
-  expiryYear?: number;
-  pixKey?: string;
-  pixKeyType?: 'cpf' | 'cnpj' | 'email' | 'phone' | 'random';
+  cardholderName: string;
+  expiryMonth: number;
+  expiryYear: number;
   isDefault: boolean;
 }
 

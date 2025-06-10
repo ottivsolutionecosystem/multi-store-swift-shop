@@ -4,8 +4,6 @@ import { PaymentMethod, PaymentMethodFormData } from '@/types/payment-method';
 import { UserSessionService } from './UserSessionService';
 import { supabaseClient } from '@/lib/supabaseClient';
 
-type Profile = Database['public']['Tables']['profiles']['Row'];
-
 export class PaymentMethodService {
   private userSessionService: UserSessionService;
 
@@ -62,12 +60,10 @@ export class PaymentMethodService {
         id: crypto.randomUUID(),
         type: data.type,
         provider: data.provider,
-        lastFourDigits: data.cardNumber ? data.cardNumber.slice(-4) : undefined,
+        lastFourDigits: data.cardNumber ? data.cardNumber.slice(-4) : '',
         cardholderName: data.cardholderName,
         expiryMonth: data.expiryMonth,
         expiryYear: data.expiryYear,
-        pixKey: data.pixKey,
-        pixKeyType: data.pixKeyType,
         isDefault: data.isDefault,
         isActive: true,
         consentGiven: true,

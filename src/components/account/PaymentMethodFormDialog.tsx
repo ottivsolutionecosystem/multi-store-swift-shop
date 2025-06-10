@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CreditCard, Smartphone, Shield } from 'lucide-react';
+import { CreditCard, Shield } from 'lucide-react';
 import { PaymentMethod, PaymentMethodFormData } from '@/types/payment-method';
 import { useServices } from '@/hooks/useServices';
 import { useToast } from '@/hooks/use-toast';
@@ -30,10 +30,8 @@ export function PaymentMethodFormDialog({
     provider: '',
     cardNumber: '',
     cardholderName: '',
-    expiryMonth: undefined,
-    expiryYear: undefined,
-    pixKey: '',
-    pixKeyType: 'cpf',
+    expiryMonth: 1,
+    expiryYear: new Date().getFullYear(),
     isDefault: false
   });
   const [consentGiven, setConsentGiven] = useState(false);
@@ -48,10 +46,8 @@ export function PaymentMethodFormDialog({
         type: editingMethod.type,
         provider: editingMethod.provider || '',
         cardholderName: editingMethod.cardholderName || '',
-        expiryMonth: editingMethod.expiryMonth,
-        expiryYear: editingMethod.expiryYear,
-        pixKey: editingMethod.pixKey || '',
-        pixKeyType: editingMethod.pixKeyType || 'cpf',
+        expiryMonth: editingMethod.expiryMonth || 1,
+        expiryYear: editingMethod.expiryYear || new Date().getFullYear(),
         isDefault: editingMethod.isDefault
       });
       setConsentGiven(true); // Already consented for existing methods
@@ -61,10 +57,8 @@ export function PaymentMethodFormDialog({
         provider: '',
         cardNumber: '',
         cardholderName: '',
-        expiryMonth: undefined,
-        expiryYear: undefined,
-        pixKey: '',
-        pixKeyType: 'cpf',
+        expiryMonth: 1,
+        expiryYear: new Date().getFullYear(),
         isDefault: false
       });
       setConsentGiven(false);
@@ -88,13 +82,13 @@ export function PaymentMethodFormDialog({
         await services.paymentMethodService.updatePaymentMethod(editingMethod.id, formData);
         toast({
           title: 'Sucesso',
-          description: 'Método de pagamento atualizado',
+          description: 'Cartão atualizado na sua carteira',
         });
       } else {
         await services.paymentMethodService.addPaymentMethod(formData);
         toast({
           title: 'Sucesso',
-          description: 'Método de pagamento adicionado',
+          description: 'Cartão adicionado à sua carteira',
         });
       }
       
@@ -103,7 +97,7 @@ export function PaymentMethodFormDialog({
       console.error('Error saving payment method:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao salvar método de pagamento',
+        description: 'Erro ao salvar cartão',
         variant: 'destructive',
       });
     } finally {
@@ -115,22 +109,6 @@ export function PaymentMethodFormDialog({
     const cleaned = value.replace(/\D/g, '');
     const formatted = cleaned.replace(/(\d{4})(?=\d)/g, '$1 ');
     return formatted;
-  };
-
-  const formatPixKey = (value: string, type: string) => {
-    if (type === 'cpf') {
-      const cleaned = value.replace(/\D/g, '');
-      return cleaned.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-    }
-    if (type === 'cnpj') {
-      const cleaned = value.replace(/\D/g, '');
-      return cleaned.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
-    }
-    if (type === 'phone') {
-      const cleaned = value.replace(/\D/g, '');
-      return cleaned.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
-    }
-    return value;
   };
 
   const currentYear = new Date().getFullYear();
@@ -147,7 +125,7 @@ export function PaymentMethodFormDialog({
               <span>Consentimento LGPD</span>
             </DialogTitle>
             <DialogDescription>
-              Para salvar seu método de pagamento, precisamos do seu consentimento.
+              Para salvar seu cartão na carteira digital, precisamos do seu consentimento.
             </DialogDescription>
           </DialogHeader>
           
@@ -158,8 +136,8 @@ export function PaymentMethodFormDialog({
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="text-sm text-gray-600 space-y-2">
-                  <p><strong>Dados coletados:</strong> Apenas os últimos 4 dígitos do cartão, nome do portador, validade e informações do PIX.</p>
-                  <p><strong>Finalidade:</strong> Facilitar futuras compras e melhorar sua experiência.</p>
+                  <p><strong>Dados coletados:</strong> Apenas os últimos 4 dígitos do cartão, nome do portador e validade.</p>
+                  <p><strong>Finalidade:</strong> Facilitar futuras compras com checkout mais rápido.</p>
                   <p><strong>Armazenamento:</strong> Dados criptografados e seguros em nossos servidores.</p>
                   <p><strong>Retenção:</strong> Mantemos os dados por 1 ano ou até você solicitar a remoção.</p>
                   <p><strong>Seus direitos:</strong> Você pode acessar, corrigir ou excluir seus dados a qualquer momento.</p>
@@ -175,7 +153,7 @@ export function PaymentMethodFormDialog({
               />
               <Label htmlFor="consent" className="text-sm">
                 Eu concordo com o tratamento dos meus dados conforme descrito acima e autorizo 
-                o armazenamento seguro das informações do meu método de pagamento.
+                o armazenamento seguro das informações do meu cartão na carteira digital.
               </Label>
             </div>
 
@@ -204,16 +182,16 @@ export function PaymentMethodFormDialog({
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {editingMethod ? 'Editar' : 'Adicionar'} Método de Pagamento
+            {editingMethod ? 'Editar' : 'Adicionar'} Cartão
           </DialogTitle>
           <DialogDescription>
-            {editingMethod ? 'Atualize as informações do seu método de pagamento' : 'Adicione um novo método de pagamento para suas compras'}
+            {editingMethod ? 'Atualize as informações do seu cartão' : 'Adicione um novo cartão à sua carteira digital'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="type">Tipo de Pagamento</Label>
+            <Label htmlFor="type">Tipo de Cartão</Label>
             <Select
               value={formData.type}
               onValueChange={(value: any) => setFormData({ ...formData, type: value })}
@@ -234,137 +212,93 @@ export function PaymentMethodFormDialog({
                     <span>Cartão de Débito</span>
                   </div>
                 </SelectItem>
-                <SelectItem value="pix">
-                  <div className="flex items-center space-x-2">
-                    <Smartphone className="h-4 w-4" />
-                    <span>PIX</span>
-                  </div>
-                </SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {(formData.type === 'credit_card' || formData.type === 'debit_card') && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="provider">Bandeira</Label>
-                <Select
-                  value={formData.provider}
-                  onValueChange={(value) => setFormData({ ...formData, provider: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a bandeira" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="visa">Visa</SelectItem>
-                    <SelectItem value="mastercard">Mastercard</SelectItem>
-                    <SelectItem value="elo">Elo</SelectItem>
-                    <SelectItem value="amex">American Express</SelectItem>
-                    <SelectItem value="hipercard">Hipercard</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="provider">Bandeira</Label>
+            <Select
+              value={formData.provider}
+              onValueChange={(value) => setFormData({ ...formData, provider: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a bandeira" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="visa">Visa</SelectItem>
+                <SelectItem value="mastercard">Mastercard</SelectItem>
+                <SelectItem value="elo">Elo</SelectItem>
+                <SelectItem value="amex">American Express</SelectItem>
+                <SelectItem value="hipercard">Hipercard</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-              {!editingMethod && (
-                <div className="space-y-2">
-                  <Label htmlFor="cardNumber">Número do Cartão</Label>
-                  <Input
-                    id="cardNumber"
-                    value={formatCardNumber(formData.cardNumber || '')}
-                    onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value.replace(/\s/g, '') })}
-                    placeholder="0000 0000 0000 0000"
-                    maxLength={19}
-                    required
-                  />
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label htmlFor="cardholderName">Nome do Portador</Label>
-                <Input
-                  id="cardholderName"
-                  value={formData.cardholderName}
-                  onChange={(e) => setFormData({ ...formData, cardholderName: e.target.value })}
-                  placeholder="Nome como aparece no cartão"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="expiryMonth">Mês</Label>
-                  <Select
-                    value={formData.expiryMonth?.toString()}
-                    onValueChange={(value) => setFormData({ ...formData, expiryMonth: parseInt(value) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Mês" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {months.map(month => (
-                        <SelectItem key={month} value={month.toString()}>
-                          {month.toString().padStart(2, '0')}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="expiryYear">Ano</Label>
-                  <Select
-                    value={formData.expiryYear?.toString()}
-                    onValueChange={(value) => setFormData({ ...formData, expiryYear: parseInt(value) })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Ano" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {years.map(year => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </>
+          {!editingMethod && (
+            <div className="space-y-2">
+              <Label htmlFor="cardNumber">Número do Cartão</Label>
+              <Input
+                id="cardNumber"
+                value={formatCardNumber(formData.cardNumber || '')}
+                onChange={(e) => setFormData({ ...formData, cardNumber: e.target.value.replace(/\s/g, '') })}
+                placeholder="0000 0000 0000 0000"
+                maxLength={19}
+                required
+              />
+            </div>
           )}
 
-          {formData.type === 'pix' && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="pixKeyType">Tipo de Chave PIX</Label>
-                <Select
-                  value={formData.pixKeyType}
-                  onValueChange={(value: any) => setFormData({ ...formData, pixKeyType: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cpf">CPF</SelectItem>
-                    <SelectItem value="cnpj">CNPJ</SelectItem>
-                    <SelectItem value="email">E-mail</SelectItem>
-                    <SelectItem value="phone">Telefone</SelectItem>
-                    <SelectItem value="random">Chave Aleatória</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="cardholderName">Nome do Portador</Label>
+            <Input
+              id="cardholderName"
+              value={formData.cardholderName}
+              onChange={(e) => setFormData({ ...formData, cardholderName: e.target.value })}
+              placeholder="Nome como aparece no cartão"
+              required
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="pixKey">Chave PIX</Label>
-                <Input
-                  id="pixKey"
-                  value={formatPixKey(formData.pixKey || '', formData.pixKeyType || 'cpf')}
-                  onChange={(e) => setFormData({ ...formData, pixKey: e.target.value })}
-                  placeholder="Sua chave PIX"
-                  required
-                />
-              </div>
-            </>
-          )}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="expiryMonth">Mês</Label>
+              <Select
+                value={formData.expiryMonth?.toString()}
+                onValueChange={(value) => setFormData({ ...formData, expiryMonth: parseInt(value) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map(month => (
+                    <SelectItem key={month} value={month.toString()}>
+                      {month.toString().padStart(2, '0')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="expiryYear">Ano</Label>
+              <Select
+                value={formData.expiryYear?.toString()}
+                onValueChange={(value) => setFormData({ ...formData, expiryYear: parseInt(value) })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -372,7 +306,7 @@ export function PaymentMethodFormDialog({
               checked={formData.isDefault}
               onCheckedChange={(checked) => setFormData({ ...formData, isDefault: checked === true })}
             />
-            <Label htmlFor="isDefault">Definir como método padrão</Label>
+            <Label htmlFor="isDefault">Definir como cartão padrão</Label>
           </div>
 
           <div className="flex justify-end space-x-2">

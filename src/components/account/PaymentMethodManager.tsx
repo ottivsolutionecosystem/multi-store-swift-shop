@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Plus, CreditCard, Smartphone, Star, Trash2, Edit } from 'lucide-react';
+import { Plus, CreditCard, Star, Trash2, Edit, Wallet } from 'lucide-react';
 import { PaymentMethodFormDialog } from './PaymentMethodFormDialog';
 import { PaymentMethod } from '@/types/payment-method';
 import { useServices } from '@/hooks/useServices';
@@ -28,7 +28,7 @@ export function PaymentMethodManager() {
       console.error('Error loading payment methods:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao carregar métodos de pagamento',
+        description: 'Erro ao carregar cartões salvos',
         variant: 'destructive',
       });
     } finally {
@@ -48,13 +48,13 @@ export function PaymentMethodManager() {
       await loadPaymentMethods();
       toast({
         title: 'Sucesso',
-        description: 'Método de pagamento padrão atualizado',
+        description: 'Cartão padrão atualizado',
       });
     } catch (error) {
       console.error('Error setting default payment method:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao definir método padrão',
+        description: 'Erro ao definir cartão padrão',
         variant: 'destructive',
       });
     }
@@ -68,35 +68,19 @@ export function PaymentMethodManager() {
       await loadPaymentMethods();
       toast({
         title: 'Sucesso',
-        description: 'Método de pagamento removido',
+        description: 'Cartão removido da carteira',
       });
     } catch (error) {
       console.error('Error removing payment method:', error);
       toast({
         title: 'Erro',
-        description: 'Erro ao remover método de pagamento',
+        description: 'Erro ao remover cartão',
         variant: 'destructive',
       });
     }
   };
 
-  const getPaymentMethodIcon = (type: string) => {
-    switch (type) {
-      case 'pix':
-        return <Smartphone className="h-4 w-4" />;
-      default:
-        return <CreditCard className="h-4 w-4" />;
-    }
-  };
-
   const getPaymentMethodDisplay = (method: PaymentMethod) => {
-    if (method.type === 'pix') {
-      return {
-        title: 'PIX',
-        subtitle: `${method.pixKeyType?.toUpperCase()}: ${method.pixKey?.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.**$4') || '***'}`
-      };
-    }
-    
     return {
       title: `${method.provider?.toUpperCase() || 'Cartão'} •••• ${method.lastFourDigits}`,
       subtitle: method.cardholderName || 'Nome não informado'
@@ -119,14 +103,17 @@ export function PaymentMethodManager() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Métodos de Pagamento</CardTitle>
+              <CardTitle className="flex items-center space-x-2">
+                <Wallet className="h-5 w-5" />
+                <span>Carteira Digital</span>
+              </CardTitle>
               <CardDescription>
-                Gerencie seus cartões e métodos de pagamento salvos
+                Seus cartões salvos para compras mais rápidas e seguras
               </CardDescription>
             </div>
             <Button onClick={() => setDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Adicionar
+              Adicionar Cartão
             </Button>
           </div>
         </CardHeader>
@@ -134,9 +121,12 @@ export function PaymentMethodManager() {
           {paymentMethods.length === 0 ? (
             <div className="text-center py-8">
               <CreditCard className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500 mb-4">Nenhum método de pagamento cadastrado</p>
+              <p className="text-gray-500 mb-4">Nenhum cartão salvo na sua carteira</p>
+              <p className="text-sm text-gray-400 mb-4">
+                Salve seus cartões para fazer compras mais rapidamente
+              </p>
               <Button onClick={() => setDialogOpen(true)}>
-                Adicionar primeiro método
+                Adicionar primeiro cartão
               </Button>
             </div>
           ) : (
@@ -149,7 +139,7 @@ export function PaymentMethodManager() {
                     className="flex items-center justify-between p-4 border rounded-lg"
                   >
                     <div className="flex items-center space-x-3">
-                      {getPaymentMethodIcon(method.type)}
+                      <CreditCard className="h-4 w-4" />
                       <div>
                         <div className="flex items-center space-x-2">
                           <span className="font-medium">{display.title}</span>
@@ -161,6 +151,10 @@ export function PaymentMethodManager() {
                           )}
                         </div>
                         <p className="text-sm text-gray-500">{display.subtitle}</p>
+                        <p className="text-xs text-gray-400">
+                          {method.type === 'credit_card' ? 'Crédito' : 'Débito'} • 
+                          Exp: {method.expiryMonth?.toString().padStart(2, '0')}/{method.expiryYear}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -200,10 +194,10 @@ export function PaymentMethodManager() {
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
             <h4 className="font-medium text-blue-900 mb-2">Segurança e Privacidade</h4>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Seus dados de pagamento são criptografados e protegidos</li>
-              <li>• Armazenamos apenas os últimos 4 dígitos do cartão</li>
-              <li>• Você pode remover seus dados a qualquer momento</li>
-              <li>• Conformidade com a Lei Geral de Proteção de Dados (LGPD)</li>
+              <li>• Armazenamos apenas os últimos 4 dígitos para sua segurança</li>
+              <li>• Seus dados são criptografados e protegidos</li>
+              <li>• Use sua carteira para checkout mais rápido</li>
+              <li>• Conforme a Lei Geral de Proteção de Dados (LGPD)</li>
             </ul>
           </div>
         </CardContent>

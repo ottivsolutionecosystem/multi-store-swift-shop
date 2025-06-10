@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,9 +49,9 @@ export default function AccountPage() {
               <MapPin className="h-4 w-4" />
               <span>Endereços</span>
             </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center space-x-2">
+            <TabsTrigger value="wallet" className="flex items-center space-x-2">
               <CreditCard className="h-4 w-4" />
-              <span>Pagamentos</span>
+              <span>Carteira Digital</span>
             </TabsTrigger>
             <TabsTrigger value="orders" className="flex items-center space-x-2">
               <Package className="h-4 w-4" />
@@ -106,7 +105,7 @@ export default function AccountPage() {
             <AddressManager />
           </TabsContent>
 
-          <TabsContent value="payments">
+          <TabsContent value="wallet">
             <PaymentMethodManager />
           </TabsContent>
 
