@@ -2,6 +2,7 @@
 import { useQueries } from '@tanstack/react-query';
 import { useServices } from '@/hooks/useServices';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 interface UseAdminPageDataOptions {
   loadProducts?: boolean;
@@ -35,14 +36,6 @@ export function useAdminPageData(options: UseAdminPageDataOptions = {}) {
         staleTime: 5 * 60 * 1000, // 5 minutes
         gcTime: 15 * 60 * 1000, // 15 minutes
         retry: 2,
-        onError: (error: any) => {
-          console.error('Erro ao carregar produtos:', error);
-          toast({
-            title: 'Erro',
-            description: 'Erro ao carregar produtos',
-            variant: 'destructive',
-          });
-        }
       },
       {
         queryKey: ['categories'],
@@ -56,14 +49,6 @@ export function useAdminPageData(options: UseAdminPageDataOptions = {}) {
         staleTime: 10 * 60 * 1000, // 10 minutes (categories change less frequently)
         gcTime: 20 * 60 * 1000, // 20 minutes
         retry: 2,
-        onError: (error: any) => {
-          console.error('Erro ao carregar categorias:', error);
-          toast({
-            title: 'Erro',
-            description: 'Erro ao carregar categorias',
-            variant: 'destructive',
-          });
-        }
       },
       {
         queryKey: ['promotions'],
@@ -77,14 +62,6 @@ export function useAdminPageData(options: UseAdminPageDataOptions = {}) {
         staleTime: 3 * 60 * 1000, // 3 minutes
         gcTime: 10 * 60 * 1000, // 10 minutes
         retry: 2,
-        onError: (error: any) => {
-          console.error('Erro ao carregar promoções:', error);
-          toast({
-            title: 'Erro',
-            description: 'Erro ao carregar promoções',
-            variant: 'destructive',
-          });
-        }
       },
       {
         queryKey: ['shipping-methods'],
@@ -98,19 +75,56 @@ export function useAdminPageData(options: UseAdminPageDataOptions = {}) {
         staleTime: 5 * 60 * 1000, // 5 minutes
         gcTime: 15 * 60 * 1000, // 15 minutes
         retry: 2,
-        onError: (error: any) => {
-          console.error('Erro ao carregar métodos de frete:', error);
-          toast({
-            title: 'Erro',
-            description: 'Erro ao carregar métodos de frete',
-            variant: 'destructive',
-          });
-        }
       }
     ]
   });
 
   const [productsQuery, categoriesQuery, promotionsQuery, shippingQuery] = queries;
+
+  // Handle errors through useEffect
+  useEffect(() => {
+    if (loadProducts && productsQuery.error) {
+      console.error('Erro ao carregar produtos:', productsQuery.error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar produtos',
+        variant: 'destructive',
+      });
+    }
+  }, [loadProducts, productsQuery.error, toast]);
+
+  useEffect(() => {
+    if (loadCategories && categoriesQuery.error) {
+      console.error('Erro ao carregar categorias:', categoriesQuery.error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar categorias',
+        variant: 'destructive',
+      });
+    }
+  }, [loadCategories, categoriesQuery.error, toast]);
+
+  useEffect(() => {
+    if (loadPromotions && promotionsQuery.error) {
+      console.error('Erro ao carregar promoções:', promotionsQuery.error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar promoções',
+        variant: 'destructive',
+      });
+    }
+  }, [loadPromotions, promotionsQuery.error, toast]);
+
+  useEffect(() => {
+    if (loadShipping && shippingQuery.error) {
+      console.error('Erro ao carregar métodos de frete:', shippingQuery.error);
+      toast({
+        title: 'Erro',
+        description: 'Erro ao carregar métodos de frete',
+        variant: 'destructive',
+      });
+    }
+  }, [loadShipping, shippingQuery.error, toast]);
 
   return {
     // Products
