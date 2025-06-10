@@ -98,9 +98,9 @@ export default function CheckoutPage() {
           {/* Main Content */}
           <div className="lg:col-span-2">
             {checkoutState.step === 1 && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-6">
                 {/* Coluna 1: Calcular Frete (menor) */}
-                <div className="md:col-span-1">
+                <div className="md:col-span-2">
                   <SmartShippingCalculator
                     items={items}
                     onShippingCalculated={handleShippingCalculated}
@@ -109,7 +109,7 @@ export default function CheckoutPage() {
                 </div>
                 
                 {/* Coluna 2: Resumo do Carrinho (maior) */}
-                <div className="md:col-span-2">
+                <div className="md:col-span-4">
                   <EnhancedCartSummary 
                     allowEditing={true}
                     showShippingCalculator={false}
