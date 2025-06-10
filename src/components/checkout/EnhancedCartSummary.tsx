@@ -14,6 +14,7 @@ import { ShippingCalculation } from '@/types/shipping';
 interface EnhancedCartSummaryProps {
   allowEditing?: boolean;
   showShippingCalculator?: boolean;
+  shippingPrice?: number;
   onShippingCalculated?: (calculations: ShippingCalculation[]) => void;
   onShippingMethodSelected?: (methodId: string, price: number) => void;
 }
@@ -21,6 +22,7 @@ interface EnhancedCartSummaryProps {
 export function EnhancedCartSummary({ 
   allowEditing = false, 
   showShippingCalculator = false,
+  shippingPrice: externalShippingPrice,
   onShippingCalculated,
   onShippingMethodSelected
 }: EnhancedCartSummaryProps) {
@@ -31,8 +33,11 @@ export function EnhancedCartSummary({
   const [cep, setCep] = useState('');
   const [shippingCalculations, setShippingCalculations] = useState<ShippingCalculation[]>([]);
   const [selectedShippingMethod, setSelectedShippingMethod] = useState<string>('');
-  const [shippingPrice, setShippingPrice] = useState(0);
+  const [internalShippingPrice, setInternalShippingPrice] = useState(0);
   const [calculatingShipping, setCalculatingShipping] = useState(false);
+
+  // Use external shipping price if provided, otherwise use internal state
+  const currentShippingPrice = externalShippingPrice !== undefined ? externalShippingPrice : internalShippingPrice;
 
   const calculateShipping = async () => {
     if (!services || !cep.trim()) {
@@ -60,7 +65,7 @@ export function EnhancedCartSummary({
       
       if (calculations.length > 0) {
         setSelectedShippingMethod(calculations[0].method_id);
-        setShippingPrice(calculations[0].price);
+        setInternalShippingPrice(calculations[0].price);
         onShippingMethodSelected?.(calculations[0].method_id, calculations[0].price);
       }
       
@@ -79,7 +84,7 @@ export function EnhancedCartSummary({
 
   const handleShippingMethodSelect = (methodId: string, price: number) => {
     setSelectedShippingMethod(methodId);
-    setShippingPrice(price);
+    setInternalShippingPrice(price);
     onShippingMethodSelected?.(methodId, price);
   };
 
@@ -114,7 +119,7 @@ export function EnhancedCartSummary({
             />
           ))}
           
-          <CartTotals subtotal={total} shippingPrice={shippingPrice} />
+          <CartTotals subtotal={total} shippingPrice={currentShippingPrice} />
           <CartActions allowEditing={allowEditing} />
         </CardContent>
       </Card>

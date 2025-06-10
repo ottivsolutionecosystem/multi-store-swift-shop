@@ -9,6 +9,7 @@ import { ShippingCalculation } from '@/types/shipping';
 
 interface CartStepProps {
   items: CartItem[];
+  shippingPrice: number;
   onShippingCalculated: (calculations: ShippingCalculation[]) => void;
   onShippingMethodSelected: (methodId: string, price: number) => void;
   onNext: () => void;
@@ -16,6 +17,7 @@ interface CartStepProps {
 
 export function CartStep({ 
   items, 
+  shippingPrice,
   onShippingCalculated, 
   onShippingMethodSelected, 
   onNext 
@@ -37,6 +39,7 @@ export function CartStep({
           <EnhancedCartSummary 
             allowEditing={true}
             showShippingCalculator={false}
+            shippingPrice={shippingPrice}
           />
         </div>
       </div>

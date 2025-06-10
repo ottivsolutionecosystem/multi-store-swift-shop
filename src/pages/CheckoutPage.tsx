@@ -98,6 +98,7 @@ export default function CheckoutPage() {
             {checkoutState.step === 1 && (
               <CartStep
                 items={items}
+                shippingPrice={checkoutState.shipping_price}
                 onShippingCalculated={handleShippingCalculated}
                 onShippingMethodSelected={handleShippingMethodSelected}
                 onNext={nextStep}
@@ -136,6 +137,7 @@ export default function CheckoutPage() {
               <EnhancedCartSummary 
                 allowEditing={false}
                 showShippingCalculator={false}
+                shippingPrice={checkoutState.shipping_price}
               />
             </div>
           )}
