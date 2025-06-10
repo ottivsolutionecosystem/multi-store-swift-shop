@@ -1,14 +1,16 @@
 
-import { Database } from '@/integrations/supabase/types';
 import { PaymentMethod, PaymentMethodFormData } from '@/types/payment-method';
 import { UserSessionService } from './UserSessionService';
-import { supabaseClient } from '@/lib/supabaseClient';
+import { PaymentMethodRepository } from '@/repositories/PaymentMethodRepository';
+import { PaymentMethodHelpers } from '@/lib/paymentMethodHelpers';
 
 export class PaymentMethodService {
   private userSessionService: UserSessionService;
+  private repository: PaymentMethodRepository;
 
   constructor() {
     this.userSessionService = new UserSessionService();
+    this.repository = new PaymentMethodRepository();
   }
 
   async getPaymentMethods(): Promise<PaymentMethod[]> {
@@ -21,23 +23,10 @@ export class PaymentMethodService {
         return [];
       }
 
-      const { data: profile, error } = await supabaseClient
-        .from('profiles')
-        .select('payment_methods')
-        .eq('id', user.id)
-        .single();
-
-      if (error) {
-        console.error('PaymentMethodService - error getting payment methods:', error);
-        throw error;
-      }
-
-      // Safe type conversion from Json to PaymentMethod[]
-      const paymentMethodsData = profile?.payment_methods as unknown;
-      const paymentMethods: PaymentMethod[] = Array.isArray(paymentMethodsData) ? paymentMethodsData as PaymentMethod[] : [];
-      console.log('PaymentMethodService - payment methods loaded:', paymentMethods.length);
+      const methods = await this.repository.getPaymentMethodsByUserId(user.id);
+      console.log('PaymentMethodService - payment methods loaded:', methods.length);
       
-      return paymentMethods.filter(method => method.isActive);
+      return methods;
     } catch (error) {
       console.error('PaymentMethodService - error in getPaymentMethods:', error);
       throw error;
@@ -54,44 +43,17 @@ export class PaymentMethodService {
       }
 
       const currentMethods = await this.getPaymentMethods();
-      
-      // Create new payment method
-      const newMethod: PaymentMethod = {
-        id: crypto.randomUUID(),
-        type: data.type,
-        provider: data.provider,
-        lastFourDigits: data.cardNumber ? data.cardNumber.slice(-4) : '',
-        cardholderName: data.cardholderName,
-        expiryMonth: data.expiryMonth,
-        expiryYear: data.expiryYear,
-        isDefault: data.isDefault,
-        isActive: true,
-        consentGiven: true,
-        consentDate: new Date().toISOString(),
-        dataRetentionUntil: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year
-        createdAt: new Date().toISOString()
-      };
+      const newMethod = PaymentMethodHelpers.createNewPaymentMethod(data);
 
       // If this is set as default, remove default from others
-      const updatedMethods = currentMethods.map(method => ({
-        ...method,
-        isDefault: data.isDefault ? false : method.isDefault
-      }));
+      let updatedMethods = currentMethods;
+      if (data.isDefault) {
+        updatedMethods = PaymentMethodHelpers.removeDefaultFromOthers(currentMethods, newMethod.id);
+      }
 
       updatedMethods.push(newMethod);
 
-      // Convert to unknown first, then to Json for Supabase
-      const methodsAsJson = updatedMethods as unknown as Database['public']['Tables']['profiles']['Update']['payment_methods'];
-
-      const { error } = await supabaseClient
-        .from('profiles')
-        .update({ payment_methods: methodsAsJson })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('PaymentMethodService - error adding payment method:', error);
-        throw error;
-      }
+      await this.repository.updatePaymentMethods(user.id, updatedMethods);
 
       console.log('PaymentMethodService - payment method added successfully');
       return newMethod;
@@ -111,42 +73,24 @@ export class PaymentMethodService {
       }
 
       const currentMethods = await this.getPaymentMethods();
-      const methodIndex = currentMethods.findIndex(method => method.id === methodId);
+      const existingMethod = PaymentMethodHelpers.findMethodById(currentMethods, methodId);
       
-      if (methodIndex === -1) {
+      if (!existingMethod) {
         throw new Error('Payment method not found');
       }
 
       // If setting as default, remove default from others
+      let updatedMethods = currentMethods;
       if (data.isDefault) {
-        currentMethods.forEach(method => {
-          if (method.id !== methodId) {
-            method.isDefault = false;
-          }
-        });
+        updatedMethods = PaymentMethodHelpers.removeDefaultFromOthers(currentMethods, methodId);
       }
 
       // Update the specific method
-      const updatedMethod = {
-        ...currentMethods[methodIndex],
-        ...data,
-        lastFourDigits: data.cardNumber ? data.cardNumber.slice(-4) : currentMethods[methodIndex].lastFourDigits
-      };
+      const updatedMethod = PaymentMethodHelpers.updatePaymentMethodData(existingMethod, data);
+      const methodIndex = updatedMethods.findIndex(method => method.id === methodId);
+      updatedMethods[methodIndex] = updatedMethod;
 
-      currentMethods[methodIndex] = updatedMethod;
-
-      // Convert to unknown first, then to Json for Supabase
-      const methodsAsJson = currentMethods as unknown as Database['public']['Tables']['profiles']['Update']['payment_methods'];
-
-      const { error } = await supabaseClient
-        .from('profiles')
-        .update({ payment_methods: methodsAsJson })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('PaymentMethodService - error updating payment method:', error);
-        throw error;
-      }
+      await this.repository.updatePaymentMethods(user.id, updatedMethods);
 
       console.log('PaymentMethodService - payment method updated successfully');
       return updatedMethod;
@@ -166,20 +110,9 @@ export class PaymentMethodService {
       }
 
       const currentMethods = await this.getPaymentMethods();
-      const updatedMethods = currentMethods.filter(method => method.id !== methodId);
+      const updatedMethods = PaymentMethodHelpers.removeMethod(currentMethods, methodId);
 
-      // Convert to unknown first, then to Json for Supabase
-      const methodsAsJson = updatedMethods as unknown as Database['public']['Tables']['profiles']['Update']['payment_methods'];
-
-      const { error } = await supabaseClient
-        .from('profiles')
-        .update({ payment_methods: methodsAsJson })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('PaymentMethodService - error removing payment method:', error);
-        throw error;
-      }
+      await this.repository.updatePaymentMethods(user.id, updatedMethods);
 
       console.log('PaymentMethodService - payment method removed successfully');
     } catch (error) {
@@ -198,23 +131,9 @@ export class PaymentMethodService {
       }
 
       const currentMethods = await this.getPaymentMethods();
-      const updatedMethods = currentMethods.map(method => ({
-        ...method,
-        isDefault: method.id === methodId
-      }));
+      const updatedMethods = PaymentMethodHelpers.setDefaultMethod(currentMethods, methodId);
 
-      // Convert to unknown first, then to Json for Supabase
-      const methodsAsJson = updatedMethods as unknown as Database['public']['Tables']['profiles']['Update']['payment_methods'];
-
-      const { error } = await supabaseClient
-        .from('profiles')
-        .update({ payment_methods: methodsAsJson })
-        .eq('id', user.id);
-
-      if (error) {
-        console.error('PaymentMethodService - error setting default payment method:', error);
-        throw error;
-      }
+      await this.repository.updatePaymentMethods(user.id, updatedMethods);
 
       console.log('PaymentMethodService - default payment method set successfully');
     } catch (error) {
