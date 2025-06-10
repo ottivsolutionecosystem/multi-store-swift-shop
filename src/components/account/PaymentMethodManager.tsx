@@ -2,9 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Plus, CreditCard, Star, Trash2, Edit, Wallet } from 'lucide-react';
+import { Plus, Wallet } from 'lucide-react';
 import { PaymentMethodFormDialog } from './PaymentMethodFormDialog';
+import { PaymentMethodCard } from './PaymentMethodCard';
+import { PaymentMethodEmptyState } from './PaymentMethodEmptyState';
+import { PaymentMethodSecurityInfo } from './PaymentMethodSecurityInfo';
 import { PaymentMethod } from '@/types/payment-method';
 import { useServices } from '@/hooks/useServices';
 import { useToast } from '@/hooks/use-toast';
@@ -80,11 +82,19 @@ export function PaymentMethodManager() {
     }
   };
 
-  const getPaymentMethodDisplay = (method: PaymentMethod) => {
-    return {
-      title: `${method.provider?.toUpperCase() || 'Cartão'} •••• ${method.lastFourDigits}`,
-      subtitle: method.cardholderName || 'Nome não informado'
-    };
+  const handleEdit = (method: PaymentMethod) => {
+    setEditingMethod(method);
+    setDialogOpen(true);
+  };
+
+  const handleAddCard = () => {
+    setDialogOpen(true);
+  };
+
+  const handleDialogSuccess = () => {
+    loadPaymentMethods();
+    setDialogOpen(false);
+    setEditingMethod(null);
   };
 
   if (loading) {
@@ -111,7 +121,7 @@ export function PaymentMethodManager() {
                 Seus cartões salvos para compras mais rápidas e seguras
               </CardDescription>
             </div>
-            <Button onClick={() => setDialogOpen(true)}>
+            <Button onClick={handleAddCard}>
               <Plus className="h-4 w-4 mr-2" />
               Adicionar Cartão
             </Button>
@@ -119,87 +129,22 @@ export function PaymentMethodManager() {
         </CardHeader>
         <CardContent>
           {paymentMethods.length === 0 ? (
-            <div className="text-center py-8">
-              <CreditCard className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500 mb-4">Nenhum cartão salvo na sua carteira</p>
-              <p className="text-sm text-gray-400 mb-4">
-                Salve seus cartões para fazer compras mais rapidamente
-              </p>
-              <Button onClick={() => setDialogOpen(true)}>
-                Adicionar primeiro cartão
-              </Button>
-            </div>
+            <PaymentMethodEmptyState onAddCard={handleAddCard} />
           ) : (
             <div className="space-y-4">
-              {paymentMethods.map((method) => {
-                const display = getPaymentMethodDisplay(method);
-                return (
-                  <div
-                    key={method.id}
-                    className="flex items-center justify-between p-4 border rounded-lg"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <CreditCard className="h-4 w-4" />
-                      <div>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium">{display.title}</span>
-                          {method.isDefault && (
-                            <Badge variant="secondary">
-                              <Star className="h-3 w-3 mr-1" />
-                              Padrão
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-500">{display.subtitle}</p>
-                        <p className="text-xs text-gray-400">
-                          {method.type === 'credit_card' ? 'Crédito' : 'Débito'} • 
-                          Exp: {method.expiryMonth?.toString().padStart(2, '0')}/{method.expiryYear}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      {!method.isDefault && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleSetDefault(method.id)}
-                        >
-                          Definir como padrão
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditingMethod(method);
-                          setDialogOpen(true);
-                        }}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRemove(method.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
+              {paymentMethods.map((method) => (
+                <PaymentMethodCard
+                  key={method.id}
+                  method={method}
+                  onSetDefault={handleSetDefault}
+                  onEdit={handleEdit}
+                  onRemove={handleRemove}
+                />
+              ))}
             </div>
           )}
           
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">Segurança e Privacidade</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Armazenamos apenas os últimos 4 dígitos para sua segurança</li>
-              <li>• Seus dados são criptografados e protegidos</li>
-              <li>• Use sua carteira para checkout mais rápido</li>
-              <li>• Conforme a Lei Geral de Proteção de Dados (LGPD)</li>
-            </ul>
-          </div>
+          <PaymentMethodSecurityInfo />
         </CardContent>
       </Card>
 
@@ -207,11 +152,7 @@ export function PaymentMethodManager() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         editingMethod={editingMethod}
-        onSuccess={() => {
-          loadPaymentMethods();
-          setDialogOpen(false);
-          setEditingMethod(null);
-        }}
+        onSuccess={handleDialogSuccess}
       />
     </>
   );
