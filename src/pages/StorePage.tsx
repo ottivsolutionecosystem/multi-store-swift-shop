@@ -5,17 +5,15 @@ import { ProductCard } from '@/components/products/ProductCard';
 import { CategoryNav } from '@/components/categories/CategoryNav';
 import { useServices } from '@/hooks/useServices';
 import { useTenant } from '@/contexts/TenantContext';
-import { useStoreSettings } from '@/hooks/useStoreSettings';
 import { useToast } from '@/hooks/use-toast';
 import { ProductWithPromotion } from '@/types/product';
 
 export default function StorePage() {
   const [products, setProducts] = useState<ProductWithPromotion[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
   const services = useServices();
   const { store, loading: tenantLoading } = useTenant();
-  const { storeSettings, isLoading: settingsLoading } = useStoreSettings();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -26,7 +24,6 @@ export default function StorePage() {
       }
 
       try {
-        setProductsLoading(true);
         let productsData: ProductWithPromotion[];
         
         if (selectedCategoryId) {
@@ -46,17 +43,14 @@ export default function StorePage() {
           variant: 'destructive',
         });
       } finally {
-        setProductsLoading(false);
+        setLoading(false);
       }
     };
 
     loadProducts();
   }, [services, tenantLoading, selectedCategoryId, toast]);
 
-  // Loading state - aguarda produtos E configurações da loja
-  const isLoading = tenantLoading || productsLoading || settingsLoading;
-
-  if (isLoading) {
+  if (tenantLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
