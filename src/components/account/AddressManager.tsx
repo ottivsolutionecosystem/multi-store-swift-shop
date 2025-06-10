@@ -9,9 +9,11 @@ import { AddressFormDialog } from './AddressFormDialog';
 import { UserAddress } from '@/types/user-address';
 
 export function AddressManager() {
-  const { addresses, isLoading, deleteAddress, setDefaultAddress } = useUserAddresses();
+  const { addresses, isLoading, error, deleteAddress, setDefaultAddress } = useUserAddresses();
   const [editingAddress, setEditingAddress] = useState<UserAddress | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  console.log('AddressManager - isLoading:', isLoading, 'addresses:', addresses, 'error:', error);
 
   const handleEdit = (address: UserAddress) => {
     setEditingAddress(address);
@@ -38,7 +40,29 @@ export function AddressManager() {
     setDefaultAddress(id);
   };
 
+  // Show error state if there's an error
+  if (error) {
+    console.error('AddressManager - Error loading addresses:', error);
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="text-center py-8">
+            <MapPin className="h-12 w-12 mx-auto mb-4 text-red-300" />
+            <p className="text-lg font-medium mb-2 text-red-600">Erro ao carregar endereços</p>
+            <p className="text-sm text-red-500 mb-4">
+              {error.message || 'Ocorreu um erro inesperado'}
+            </p>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Tentar Novamente
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (isLoading) {
+    console.log('AddressManager - Showing loading state');
     return (
       <Card>
         <CardContent className="p-6">
@@ -51,6 +75,8 @@ export function AddressManager() {
       </Card>
     );
   }
+
+  console.log('AddressManager - Rendering addresses:', addresses?.length || 0);
 
   return (
     <>

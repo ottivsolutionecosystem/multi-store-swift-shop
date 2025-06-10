@@ -11,6 +11,8 @@ export function useUserAddresses() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
+  console.log('useUserAddresses - user:', user?.id, 'services available:', !!services?.userAddressService);
+
   const {
     data: addresses = [],
     isLoading,
@@ -18,12 +20,24 @@ export function useUserAddresses() {
   } = useQuery({
     queryKey: ['user-addresses', user?.id],
     queryFn: async () => {
+      console.log('useUserAddresses - Starting query for user:', user?.id);
+      
       if (!services?.userAddressService || !user?.id) {
+        console.error('useUserAddresses - Missing dependencies:', {
+          userAddressService: !!services?.userAddressService,
+          userId: !!user?.id
+        });
         throw new Error('Service not available or user not authenticated');
       }
-      return services.userAddressService.getUserAddresses(user.id);
+      
+      console.log('useUserAddresses - Calling getUserAddresses');
+      const result = await services.userAddressService.getUserAddresses(user.id);
+      console.log('useUserAddresses - Query result:', result);
+      return result;
     },
     enabled: !!services?.userAddressService && !!user?.id,
+    retry: 3,
+    retryDelay: 1000,
   });
 
   const createAddressMutation = useMutation({
@@ -41,6 +55,7 @@ export function useUserAddresses() {
       });
     },
     onError: (error) => {
+      console.error('useUserAddresses - Create error:', error);
       toast({
         title: 'Erro ao criar endereço',
         description: error.message,
@@ -64,6 +79,7 @@ export function useUserAddresses() {
       });
     },
     onError: (error) => {
+      console.error('useUserAddresses - Update error:', error);
       toast({
         title: 'Erro ao atualizar endereço',
         description: error.message,
@@ -87,6 +103,7 @@ export function useUserAddresses() {
       });
     },
     onError: (error) => {
+      console.error('useUserAddresses - Delete error:', error);
       toast({
         title: 'Erro ao excluir endereço',
         description: error.message,
@@ -110,6 +127,7 @@ export function useUserAddresses() {
       });
     },
     onError: (error) => {
+      console.error('useUserAddresses - Set default error:', error);
       toast({
         title: 'Erro ao definir endereço padrão',
         description: error.message,
