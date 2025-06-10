@@ -3,8 +3,7 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { StoreSettingsFormData } from '@/types/store-settings';
 
 interface ProductSettingsTabProps {
@@ -114,7 +113,7 @@ export function ProductSettingsTab({ form }: ProductSettingsTabProps) {
                 <div className="space-y-0.5">
                   <FormLabel>Mostrar Badge de Promoção</FormLabel>
                   <FormDescription>
-                    Exibir badge quando produto estiver em promoção
+                    Exibir badge quando produto estiver em promoção. O formato será determinado automaticamente pelo tipo de desconto da promoção.
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -123,31 +122,6 @@ export function ProductSettingsTab({ form }: ProductSettingsTabProps) {
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="promotion_display_format"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Formato de Exibição da Promoção</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o formato" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="percentage">Porcentagem (30% ↓)</SelectItem>
-                    <SelectItem value="comparison">Comparação (De R$ 100 por R$ 70)</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Como as promoções serão exibidas nos produtos
-                </FormDescription>
-                <FormMessage />
               </FormItem>
             )}
           />

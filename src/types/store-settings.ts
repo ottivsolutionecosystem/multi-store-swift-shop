@@ -23,7 +23,6 @@ export const storeSettingsSchema = z.object({
   show_stock_quantity: z.boolean().default(true),
   show_price: z.boolean().default(true),
   show_promotion_badge: z.boolean().default(true),
-  promotion_display_format: z.enum(['percentage', 'comparison']).default('percentage'),
   // Endereço de origem para cálculo de frete
   origin_address: addressSchema.optional(),
 });

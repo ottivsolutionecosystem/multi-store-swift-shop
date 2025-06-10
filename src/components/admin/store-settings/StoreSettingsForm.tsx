@@ -31,7 +31,6 @@ export function StoreSettingsForm() {
       show_stock_quantity: true,
       show_price: true,
       show_promotion_badge: true,
-      promotion_display_format: 'percentage',
       origin_address: undefined,
     },
   });
@@ -53,7 +52,6 @@ export function StoreSettingsForm() {
         show_stock_quantity: settings.show_stock_quantity ?? true,
         show_price: settings.show_price ?? true,
         show_promotion_badge: settings.show_promotion_badge ?? true,
-        promotion_display_format: settings.promotion_display_format || 'percentage',
         origin_address: (settings.origin_address && typeof settings.origin_address === 'object' && settings.origin_address !== null) 
           ? settings.origin_address as any 
           : undefined,

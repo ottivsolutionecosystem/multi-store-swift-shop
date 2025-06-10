@@ -12,7 +12,6 @@ export function ProductPrice({ product }: ProductPriceProps) {
   const { store } = useTenant();
   
   const showPrice = store?.store_settings?.show_price ?? true;
-  const promotionDisplayFormat = store?.store_settings?.promotion_display_format || 'percentage';
   const priceColor = store?.store_settings?.price_color || '#16a34a';
 
   if (!showPrice) return null;
@@ -55,11 +54,6 @@ export function ProductPrice({ product }: ProductPriceProps) {
           >
             {formatPrice(displayPrice)}
           </span>
-          {promotionDisplayFormat === 'comparison' && (
-            <span className="text-xs text-red-500 font-medium">
-              Economia: {formatPrice(savings)}
-            </span>
-          )}
         </>
       ) : (
         <span 

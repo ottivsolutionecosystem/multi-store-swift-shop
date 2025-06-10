@@ -1,56 +1,34 @@
 
-export function getPromotionBadgeVariant(promotionType: string) {
-  switch (promotionType) {
-    case 'global':
-      return 'destructive'; // Vermelho
-    case 'category':
-      return 'secondary'; // Cinza/Laranja
-    case 'product':
-      return 'default'; // Azul
-    default:
-      return 'outline'; // Verde para preço comparativo
-  }
-}
+import { Database } from '@/integrations/supabase/types';
 
-export function getPromotionBadgeClassName(promotionType: string) {
-  switch (promotionType) {
-    case 'global':
-      return 'bg-red-500 text-white hover:bg-red-600';
-    case 'category':
-      return 'bg-orange-500 text-white hover:bg-orange-600';
-    case 'product':
-      return 'bg-blue-500 text-white hover:bg-blue-600';
-    default:
-      return 'bg-green-500 text-white hover:bg-green-600';
-  }
-}
+type DiscountType = Database['public']['Enums']['discount_type'];
 
-export function getPromotionTypeLabel(promotionType: string): string {
+export function getPromotionBadgeClassName(promotionType: string): string {
+  const baseClasses = "text-white text-xs font-bold px-2 py-1 rounded";
+  
   switch (promotionType) {
-    case 'global':
-      return 'GLOBAL';
-    case 'category':
-      return 'CATEGORIA';
     case 'product':
-      return 'PRODUTO';
+      return `${baseClasses} bg-red-500`;
+    case 'category':
+      return `${baseClasses} bg-orange-500`;
+    case 'global':
+      return `${baseClasses} bg-purple-500`;
     default:
-      return 'OFERTA';
+      return `${baseClasses} bg-blue-500`;
   }
 }
 
 export function formatPromotionBadgeText(
-  promotionType: string,
-  promotionName: string | undefined,
+  discountType: DiscountType,
   originalPrice: number,
-  displayPrice: number,
-  displayFormat: 'percentage' | 'comparison'
+  promotionalPrice: number
 ): string {
-  if (displayFormat === 'percentage') {
-    const percentage = Math.round(((originalPrice - displayPrice) / originalPrice) * 100);
-    const typeLabel = getPromotionTypeLabel(promotionType);
-    return `${typeLabel} ${percentage}% ↓`;
+  if (discountType === 'percentage') {
+    const percentage = Math.round(((originalPrice - promotionalPrice) / originalPrice) * 100);
+    return `${percentage}% ↓`;
   } else {
-    // Para formato de comparação, usar o nome da promoção ou tipo
-    return promotionName || promotionType?.toUpperCase() || 'PROMOÇÃO';
+    // fixed_amount
+    const savings = originalPrice - promotionalPrice;
+    return `R$ ${savings.toFixed(2)} ↓`;
   }
 }

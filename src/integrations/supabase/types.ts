@@ -1047,7 +1047,6 @@ export type Database = {
           payment_settings: Json | null
           price_color: string
           primary_color: string
-          promotion_display_format: Database["public"]["Enums"]["promotion_display_format"]
           secondary_color: string
           shipping_settings: Json | null
           show_category: boolean
@@ -1072,7 +1071,6 @@ export type Database = {
           payment_settings?: Json | null
           price_color?: string
           primary_color?: string
-          promotion_display_format?: Database["public"]["Enums"]["promotion_display_format"]
           secondary_color?: string
           shipping_settings?: Json | null
           show_category?: boolean
@@ -1097,7 +1095,6 @@ export type Database = {
           payment_settings?: Json | null
           price_color?: string
           primary_color?: string
-          promotion_display_format?: Database["public"]["Enums"]["promotion_display_format"]
           secondary_color?: string
           shipping_settings?: Json | null
           show_category?: boolean

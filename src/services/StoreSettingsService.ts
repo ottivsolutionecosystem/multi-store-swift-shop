@@ -30,7 +30,6 @@ export class StoreSettingsService {
       show_stock_quantity: true,
       show_price: true,
       show_promotion_badge: true,
-      promotion_display_format: 'percentage' as const,
       contact_info: {},
       shipping_settings: {},
       payment_settings: {},
@@ -51,11 +50,6 @@ export class StoreSettingsService {
 
     if (settings.price_color && !this.isValidHexColor(settings.price_color)) {
       throw new Error('Price color must be a valid hex color');
-    }
-
-    if (settings.promotion_display_format && 
-        !['percentage', 'comparison'].includes(settings.promotion_display_format)) {
-      throw new Error('Invalid promotion display format');
     }
 
     return this.storeSettingsRepository.update(settings);
