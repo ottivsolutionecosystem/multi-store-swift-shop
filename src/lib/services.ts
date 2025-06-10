@@ -1,3 +1,4 @@
+
 import { createProductServices } from '@/lib/factories/ProductServiceFactory';
 import { createCategoryServices } from '@/lib/factories/CategoryServiceFactory';
 import { createUserServices } from '@/lib/factories/UserServiceFactory';
@@ -6,7 +7,7 @@ import { createPromotionServices } from '@/lib/factories/PromotionServiceFactory
 import { createVariantServices } from '@/lib/factories/VariantServiceFactory';
 import { createStoreServices } from '@/lib/factories/StoreServiceFactory';
 import { createShippingServices } from '@/lib/factories/ShippingServiceFactory';
-import { PaymentMethodServiceFactory } from './factories/PaymentMethodServiceFactory';
+import { DigitalWalletServiceFactory } from './factories/DigitalWalletServiceFactory';
 
 export function createServices(storeId: string) {
   console.log('Creating services for store:', storeId);
@@ -31,6 +32,6 @@ export function createServices(storeId: string) {
     ...variantServices,
     ...storeServices,
     ...shippingServices,
-    paymentMethodService: PaymentMethodServiceFactory.create(),
+    digitalWalletService: DigitalWalletServiceFactory.create(),
   };
 }

@@ -3,24 +3,24 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard, Star, Edit, Trash2 } from 'lucide-react';
-import { PaymentMethod } from '@/types/payment-method';
+import { DigitalWalletCard } from '@/types/digital-wallet';
 
-interface PaymentMethodCardProps {
-  method: PaymentMethod;
-  onSetDefault: (methodId: string) => void;
-  onEdit: (method: PaymentMethod) => void;
-  onRemove: (methodId: string) => void;
+interface DigitalWalletCardProps {
+  card: DigitalWalletCard;
+  onSetDefault: (cardId: string) => void;
+  onEdit: (card: DigitalWalletCard) => void;
+  onRemove: (cardId: string) => void;
 }
 
-export function PaymentMethodCard({ method, onSetDefault, onEdit, onRemove }: PaymentMethodCardProps) {
-  const getPaymentMethodDisplay = (method: PaymentMethod) => {
+export function DigitalWalletCardComponent({ card, onSetDefault, onEdit, onRemove }: DigitalWalletCardProps) {
+  const getDigitalWalletCardDisplay = (card: DigitalWalletCard) => {
     return {
-      title: `${method.provider?.toUpperCase() || 'Cartão'} •••• ${method.lastFourDigits}`,
-      subtitle: method.cardholderName || 'Nome não informado'
+      title: `${card.provider?.toUpperCase() || 'Cartão'} •••• ${card.lastFourDigits}`,
+      subtitle: card.cardholderName || 'Nome não informado'
     };
   };
 
-  const display = getPaymentMethodDisplay(method);
+  const display = getDigitalWalletCardDisplay(card);
 
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg">
@@ -29,7 +29,7 @@ export function PaymentMethodCard({ method, onSetDefault, onEdit, onRemove }: Pa
         <div>
           <div className="flex items-center space-x-2">
             <span className="font-medium">{display.title}</span>
-            {method.isDefault && (
+            {card.isDefault && (
               <Badge variant="secondary">
                 <Star className="h-3 w-3 mr-1" />
                 Padrão
@@ -38,17 +38,17 @@ export function PaymentMethodCard({ method, onSetDefault, onEdit, onRemove }: Pa
           </div>
           <p className="text-sm text-gray-500">{display.subtitle}</p>
           <p className="text-xs text-gray-400">
-            {method.type === 'credit_card' ? 'Crédito' : 'Débito'} • 
-            Exp: {method.expiryMonth?.toString().padStart(2, '0')}/{method.expiryYear}
+            {card.type === 'credit_card' ? 'Crédito' : 'Débito'} • 
+            Exp: {card.expiryMonth?.toString().padStart(2, '0')}/{card.expiryYear}
           </p>
         </div>
       </div>
       <div className="flex items-center space-x-2">
-        {!method.isDefault && (
+        {!card.isDefault && (
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onSetDefault(method.id)}
+            onClick={() => onSetDefault(card.id)}
           >
             Definir como padrão
           </Button>
@@ -56,14 +56,14 @@ export function PaymentMethodCard({ method, onSetDefault, onEdit, onRemove }: Pa
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onEdit(method)}
+          onClick={() => onEdit(card)}
         >
           <Edit className="h-4 w-4" />
         </Button>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onRemove(method.id)}
+          onClick={() => onRemove(card.id)}
         >
           <Trash2 className="h-4 w-4" />
         </Button>

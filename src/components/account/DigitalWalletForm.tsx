@@ -6,25 +6,25 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { CreditCard } from 'lucide-react';
-import { PaymentMethodFormData } from '@/types/payment-method';
+import { DigitalWalletCardFormData } from '@/types/digital-wallet';
 
-interface PaymentMethodFormProps {
-  formData: PaymentMethodFormData;
-  setFormData: (data: PaymentMethodFormData) => void;
+interface DigitalWalletFormProps {
+  formData: DigitalWalletCardFormData;
+  setFormData: (data: DigitalWalletCardFormData) => void;
   loading: boolean;
   isEditing: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
 }
 
-export function PaymentMethodForm({
+export function DigitalWalletForm({
   formData,
   setFormData,
   loading,
   isEditing,
   onSubmit,
   onCancel
-}: PaymentMethodFormProps) {
+}: DigitalWalletFormProps) {
   const formatCardNumber = (value: string) => {
     const cleaned = value.replace(/\D/g, '');
     const formatted = cleaned.replace(/(\d{4})(?=\d)/g, '$1 ');

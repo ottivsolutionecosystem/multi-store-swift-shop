@@ -1,26 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { PaymentMethod, PaymentMethodFormData } from '@/types/payment-method';
+import { DigitalWalletCard, DigitalWalletCardFormData } from '@/types/digital-wallet';
 import { useServices } from '@/hooks/useServices';
 import { useToast } from '@/hooks/use-toast';
 import { LGPDConsentModal } from './LGPDConsentModal';
-import { PaymentMethodForm } from './PaymentMethodForm';
+import { DigitalWalletForm } from './DigitalWalletForm';
 
-interface PaymentMethodFormDialogProps {
+interface DigitalWalletFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  editingMethod?: PaymentMethod | null;
+  editingCard?: DigitalWalletCard | null;
   onSuccess: () => void;
 }
 
-export function PaymentMethodFormDialog({
+export function DigitalWalletFormDialog({
   open,
   onOpenChange,
-  editingMethod,
+  editingCard,
   onSuccess
-}: PaymentMethodFormDialogProps) {
-  const [formData, setFormData] = useState<PaymentMethodFormData>({
+}: DigitalWalletFormDialogProps) {
+  const [formData, setFormData] = useState<DigitalWalletCardFormData>({
     type: 'credit_card',
     provider: '',
     cardNumber: '',
@@ -36,14 +36,14 @@ export function PaymentMethodFormDialog({
   const { toast } = useToast();
 
   useEffect(() => {
-    if (editingMethod) {
+    if (editingCard) {
       setFormData({
-        type: editingMethod.type,
-        provider: editingMethod.provider || '',
-        cardholderName: editingMethod.cardholderName || '',
-        expiryMonth: editingMethod.expiryMonth || 1,
-        expiryYear: editingMethod.expiryYear || new Date().getFullYear(),
-        isDefault: editingMethod.isDefault
+        type: editingCard.type,
+        provider: editingCard.provider || '',
+        cardholderName: editingCard.cardholderName || '',
+        expiryMonth: editingCard.expiryMonth || 1,
+        expiryYear: editingCard.expiryYear || new Date().getFullYear(),
+        isDefault: editingCard.isDefault
       });
       setConsentGiven(true);
     } else {
@@ -58,12 +58,12 @@ export function PaymentMethodFormDialog({
       });
       setConsentGiven(false);
     }
-  }, [editingMethod, open]);
+  }, [editingCard, open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!editingMethod && !consentGiven) {
+    if (!editingCard && !consentGiven) {
       setShowConsentModal(true);
       return;
     }
@@ -73,14 +73,14 @@ export function PaymentMethodFormDialog({
     try {
       setLoading(true);
       
-      if (editingMethod) {
-        await services.paymentMethodService.updatePaymentMethod(editingMethod.id, formData);
+      if (editingCard) {
+        await services.digitalWalletService.updateDigitalWalletCard(editingCard.id, formData);
         toast({
           title: 'Sucesso',
           description: 'Cartão atualizado na sua carteira',
         });
       } else {
-        await services.paymentMethodService.addPaymentMethod(formData);
+        await services.digitalWalletService.addDigitalWalletCard(formData);
         toast({
           title: 'Sucesso',
           description: 'Cartão adicionado à sua carteira',
@@ -89,7 +89,7 @@ export function PaymentMethodFormDialog({
       
       onSuccess();
     } catch (error) {
-      console.error('Error saving payment method:', error);
+      console.error('Error saving digital wallet card:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao salvar cartão',
@@ -119,18 +119,18 @@ export function PaymentMethodFormDialog({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingMethod ? 'Editar' : 'Adicionar'} Cartão
+              {editingCard ? 'Editar' : 'Adicionar'} Cartão
             </DialogTitle>
             <DialogDescription>
-              {editingMethod ? 'Atualize as informações do seu cartão' : 'Adicione um novo cartão à sua carteira digital'}
+              {editingCard ? 'Atualize as informações do seu cartão' : 'Adicione um novo cartão à sua carteira digital'}
             </DialogDescription>
           </DialogHeader>
 
-          <PaymentMethodForm
+          <DigitalWalletForm
             formData={formData}
             setFormData={setFormData}
             loading={loading}
-            isEditing={!!editingMethod}
+            isEditing={!!editingCard}
             onSubmit={handleSubmit}
             onCancel={() => onOpenChange(false)}
           />

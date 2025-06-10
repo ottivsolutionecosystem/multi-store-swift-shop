@@ -3,11 +3,11 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { CreditCard } from 'lucide-react';
 
-interface PaymentMethodEmptyStateProps {
+interface DigitalWalletEmptyStateProps {
   onAddCard: () => void;
 }
 
-export function PaymentMethodEmptyState({ onAddCard }: PaymentMethodEmptyStateProps) {
+export function DigitalWalletEmptyState({ onAddCard }: DigitalWalletEmptyStateProps) {
   return (
     <div className="text-center py-8">
       <CreditCard className="h-12 w-12 mx-auto text-gray-400 mb-4" />

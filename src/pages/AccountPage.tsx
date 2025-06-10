@@ -5,7 +5,7 @@ import { Header } from '@/components/layout/Header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AddressManager } from '@/components/account/AddressManager';
-import { PaymentMethodManager } from '@/components/account/PaymentMethodManager';
+import { DigitalWalletManager } from '@/components/account/DigitalWalletManager';
 import { User, MapPin, CreditCard, Package, Shield } from 'lucide-react';
 
 export default function AccountPage() {
@@ -106,7 +106,7 @@ export default function AccountPage() {
           </TabsContent>
 
           <TabsContent value="wallet">
-            <PaymentMethodManager />
+            <DigitalWalletManager />
           </TabsContent>
 
           <TabsContent value="orders">

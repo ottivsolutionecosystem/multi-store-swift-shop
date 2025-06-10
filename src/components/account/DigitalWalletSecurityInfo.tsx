@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-export function PaymentMethodSecurityInfo() {
+export function DigitalWalletSecurityInfo() {
   return (
     <div className="mt-6 p-4 bg-blue-50 rounded-lg">
       <h4 className="font-medium text-blue-900 mb-2">Segurança e Privacidade</h4>

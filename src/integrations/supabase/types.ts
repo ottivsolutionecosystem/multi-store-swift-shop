@@ -652,10 +652,10 @@ export type Database = {
           address: Json | null
           avatar_url: string | null
           created_at: string
+          digital_wallet_cards: Json | null
           email: string
           full_name: string | null
           id: string
-          payment_methods: Json | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
           store_id: string | null
@@ -665,10 +665,10 @@ export type Database = {
           address?: Json | null
           avatar_url?: string | null
           created_at?: string
+          digital_wallet_cards?: Json | null
           email: string
           full_name?: string | null
           id: string
-          payment_methods?: Json | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           store_id?: string | null
@@ -678,10 +678,10 @@ export type Database = {
           address?: Json | null
           avatar_url?: string | null
           created_at?: string
+          digital_wallet_cards?: Json | null
           email?: string
           full_name?: string | null
           id?: string
-          payment_methods?: Json | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           store_id?: string | null

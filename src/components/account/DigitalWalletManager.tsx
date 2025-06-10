@@ -3,31 +3,31 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, Wallet } from 'lucide-react';
-import { PaymentMethodFormDialog } from './PaymentMethodFormDialog';
-import { PaymentMethodCard } from './PaymentMethodCard';
-import { PaymentMethodEmptyState } from './PaymentMethodEmptyState';
-import { PaymentMethodSecurityInfo } from './PaymentMethodSecurityInfo';
-import { PaymentMethod } from '@/types/payment-method';
+import { DigitalWalletFormDialog } from './DigitalWalletFormDialog';
+import { DigitalWalletCardComponent } from './DigitalWalletCard';
+import { DigitalWalletEmptyState } from './DigitalWalletEmptyState';
+import { DigitalWalletSecurityInfo } from './DigitalWalletSecurityInfo';
+import { DigitalWalletCard } from '@/types/digital-wallet';
 import { useServices } from '@/hooks/useServices';
 import { useToast } from '@/hooks/use-toast';
 
-export function PaymentMethodManager() {
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+export function DigitalWalletManager() {
+  const [digitalWalletCards, setDigitalWalletCards] = useState<DigitalWalletCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingMethod, setEditingMethod] = useState<PaymentMethod | null>(null);
+  const [editingCard, setEditingCard] = useState<DigitalWalletCard | null>(null);
   const services = useServices();
   const { toast } = useToast();
 
-  const loadPaymentMethods = async () => {
+  const loadDigitalWalletCards = async () => {
     if (!services) return;
     
     try {
       setLoading(true);
-      const methods = await services.paymentMethodService.getPaymentMethods();
-      setPaymentMethods(methods);
+      const cards = await services.digitalWalletService.getDigitalWalletCards();
+      setDigitalWalletCards(cards);
     } catch (error) {
-      console.error('Error loading payment methods:', error);
+      console.error('Error loading digital wallet cards:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao carregar cartões salvos',
@@ -39,21 +39,21 @@ export function PaymentMethodManager() {
   };
 
   useEffect(() => {
-    loadPaymentMethods();
+    loadDigitalWalletCards();
   }, [services]);
 
-  const handleSetDefault = async (methodId: string) => {
+  const handleSetDefault = async (cardId: string) => {
     if (!services) return;
     
     try {
-      await services.paymentMethodService.setDefaultPaymentMethod(methodId);
-      await loadPaymentMethods();
+      await services.digitalWalletService.setDefaultDigitalWalletCard(cardId);
+      await loadDigitalWalletCards();
       toast({
         title: 'Sucesso',
         description: 'Cartão padrão atualizado',
       });
     } catch (error) {
-      console.error('Error setting default payment method:', error);
+      console.error('Error setting default digital wallet card:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao definir cartão padrão',
@@ -62,18 +62,18 @@ export function PaymentMethodManager() {
     }
   };
 
-  const handleRemove = async (methodId: string) => {
+  const handleRemove = async (cardId: string) => {
     if (!services) return;
     
     try {
-      await services.paymentMethodService.removePaymentMethod(methodId);
-      await loadPaymentMethods();
+      await services.digitalWalletService.removeDigitalWalletCard(cardId);
+      await loadDigitalWalletCards();
       toast({
         title: 'Sucesso',
         description: 'Cartão removido da carteira',
       });
     } catch (error) {
-      console.error('Error removing payment method:', error);
+      console.error('Error removing digital wallet card:', error);
       toast({
         title: 'Erro',
         description: 'Erro ao remover cartão',
@@ -82,8 +82,8 @@ export function PaymentMethodManager() {
     }
   };
 
-  const handleEdit = (method: PaymentMethod) => {
-    setEditingMethod(method);
+  const handleEdit = (card: DigitalWalletCard) => {
+    setEditingCard(card);
     setDialogOpen(true);
   };
 
@@ -92,9 +92,9 @@ export function PaymentMethodManager() {
   };
 
   const handleDialogSuccess = () => {
-    loadPaymentMethods();
+    loadDigitalWalletCards();
     setDialogOpen(false);
-    setEditingMethod(null);
+    setEditingCard(null);
   };
 
   if (loading) {
@@ -128,14 +128,14 @@ export function PaymentMethodManager() {
           </div>
         </CardHeader>
         <CardContent>
-          {paymentMethods.length === 0 ? (
-            <PaymentMethodEmptyState onAddCard={handleAddCard} />
+          {digitalWalletCards.length === 0 ? (
+            <DigitalWalletEmptyState onAddCard={handleAddCard} />
           ) : (
             <div className="space-y-4">
-              {paymentMethods.map((method) => (
-                <PaymentMethodCard
-                  key={method.id}
-                  method={method}
+              {digitalWalletCards.map((card) => (
+                <DigitalWalletCardComponent
+                  key={card.id}
+                  card={card}
                   onSetDefault={handleSetDefault}
                   onEdit={handleEdit}
                   onRemove={handleRemove}
@@ -144,14 +144,14 @@ export function PaymentMethodManager() {
             </div>
           )}
           
-          <PaymentMethodSecurityInfo />
+          <DigitalWalletSecurityInfo />
         </CardContent>
       </Card>
 
-      <PaymentMethodFormDialog
+      <DigitalWalletFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        editingMethod={editingMethod}
+        editingCard={editingCard}
         onSuccess={handleDialogSuccess}
       />
     </>

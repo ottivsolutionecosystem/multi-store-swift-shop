@@ -1,5 +1,5 @@
 
-export interface PaymentMethod {
+export interface DigitalWalletCard {
   id: string;
   type: 'credit_card' | 'debit_card';
   provider: string; // visa, mastercard, elo, etc
@@ -15,7 +15,7 @@ export interface PaymentMethod {
   createdAt: string;
 }
 
-export interface PaymentMethodFormData {
+export interface DigitalWalletCardFormData {
   type: 'credit_card' | 'debit_card';
   provider: string;
   cardNumber?: string;
