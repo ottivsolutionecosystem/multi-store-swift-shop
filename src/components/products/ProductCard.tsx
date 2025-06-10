@@ -14,9 +14,9 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const { storeSettings } = useStoreSettings();
+  const { storeSettings, isLoading: settingsLoading } = useStoreSettings();
 
-  // Configurações com fallback para valores padrão
+  // Use fallback settings while loading or if settings are not available
   const settings = storeSettings || {
     show_category: true,
     show_description: true,
@@ -35,16 +35,13 @@ export function ProductCard({ product }: ProductCardProps) {
     <Card className="group hover:shadow-lg transition-shadow duration-200 overflow-hidden">
       <div className="relative aspect-square">
         <ProductImage 
-          src={product.image_url} 
-          alt={product.name}
-          className="w-full h-full object-cover"
+          imageUrl={product.image_url} 
+          name={product.name}
         />
         {settings.show_promotion_badge && hasPromotion && (
           <div className="absolute top-2 right-2">
             <ProductPromotionBadge 
-              promotion={product.promotion}
-              originalPrice={product.price}
-              displayFormat={settings.promotion_display_format}
+              product={product}
             />
           </div>
         )}
@@ -66,7 +63,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
       <CardContent className="p-4 space-y-3">
         {settings.show_category && product.category && (
-          <ProductCategoryBreadcrumb category={product.category} />
+          <ProductCategoryBreadcrumb product={product} />
         )}
 
         <div>
@@ -84,10 +81,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="flex items-center justify-between">
           {settings.show_price && (
             <ProductPrice 
-              price={product.price}
-              promotion={product.promotion}
-              priceColor={settings.price_color}
-              displayFormat={settings.promotion_display_format}
+              product={product}
             />
           )}
           
