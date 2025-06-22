@@ -12,6 +12,7 @@ import { GeneralSettingsTab } from './GeneralSettingsTab';
 import { VisualSettingsTab } from './VisualSettingsTab';
 import { ProductSettingsTab } from './ProductSettingsTab';
 import { OriginAddressTab } from './OriginAddressTab';
+import { PaymentSettingsTab } from './PaymentSettingsTab';
 
 export function StoreSettingsForm() {
   const { store, loading: tenantLoading } = useTenant();
@@ -32,6 +33,10 @@ export function StoreSettingsForm() {
       show_price: true,
       show_promotion_badge: true,
       origin_address: undefined,
+      payment_settings: {
+        gateways: [],
+        enabledMethods: [],
+      },
     },
   });
 
@@ -55,6 +60,9 @@ export function StoreSettingsForm() {
         origin_address: (settings.origin_address && typeof settings.origin_address === 'object' && settings.origin_address !== null) 
           ? settings.origin_address as any 
           : undefined,
+        payment_settings: (settings.payment_settings && typeof settings.payment_settings === 'object' && settings.payment_settings !== null)
+          ? settings.payment_settings as any
+          : { gateways: [], enabledMethods: [] },
       });
     }
   }, [store?.store_settings, form]);
@@ -76,10 +84,11 @@ export function StoreSettingsForm() {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <Tabs defaultValue="general" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="general">Geral</TabsTrigger>
             <TabsTrigger value="visual">Visual</TabsTrigger>
             <TabsTrigger value="products">Produtos</TabsTrigger>
+            <TabsTrigger value="payment">Pagamento</TabsTrigger>
             <TabsTrigger value="address">Endereço</TabsTrigger>
           </TabsList>
 
@@ -93,6 +102,10 @@ export function StoreSettingsForm() {
 
           <TabsContent value="products" className="space-y-4">
             <ProductSettingsTab form={form} />
+          </TabsContent>
+
+          <TabsContent value="payment" className="space-y-4">
+            <PaymentSettingsTab />
           </TabsContent>
 
           <TabsContent value="address" className="space-y-4">

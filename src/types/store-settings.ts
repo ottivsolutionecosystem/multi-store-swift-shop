@@ -1,5 +1,6 @@
 
 import { z } from 'zod';
+import { paymentSettingsSchema } from './payment-gateway';
 
 export const addressSchema = z.object({
   street: z.string().min(1, 'Rua é obrigatória'),
@@ -25,6 +26,8 @@ export const storeSettingsSchema = z.object({
   show_promotion_badge: z.boolean().default(true),
   // Endereço de origem para cálculo de frete
   origin_address: addressSchema.optional(),
+  // Configurações de pagamento
+  payment_settings: paymentSettingsSchema.optional(),
 });
 
 export type StoreSettingsFormData = z.infer<typeof storeSettingsSchema>;
