@@ -25,19 +25,32 @@ export function PaymentSettingsTab() {
 
   const handleAddGateway = (type: PaymentGatewayType) => {
     const provider = PaymentServiceFactory.getProvider(type);
+    const availableMethods = provider.getAvailableMethods();
+    
+    // Enable basic methods by default
+    const defaultEnabledMethods = availableMethods
+      .filter(method => ['credit_card', 'pix'].includes(method.type))
+      .map(method => method.id);
+
     const newGateway = {
       id: `${type}_${Date.now()}`,
       name: provider.name,
       type,
-      enabled: false,
+      enabled: true, // Enable by default
       testMode: true,
       credentials: {},
-      supportedMethods: provider.getAvailableMethods(),
+      supportedMethods: availableMethods,
     };
+
+    const currentEnabledMethods = paymentSettings?.enabledMethods || [];
+    const updatedEnabledMethods = [...currentEnabledMethods, ...defaultEnabledMethods];
 
     const updatedSettings = {
       ...paymentSettings,
-      gateways: [...(paymentSettings?.gateways || []), newGateway]
+      gateways: [...(paymentSettings?.gateways || []), newGateway],
+      enabledMethods: updatedEnabledMethods,
+      // Set as default if it's the first gateway
+      defaultGateway: paymentSettings?.gateways?.length === 0 ? newGateway.id : paymentSettings.defaultGateway
     };
 
     updatePaymentSettings(updatedSettings);
@@ -62,11 +75,22 @@ export function PaymentSettingsTab() {
   const handleDeleteGateway = (gatewayId: string) => {
     if (!paymentSettings) return;
 
+    const gatewayToDelete = paymentSettings.gateways.find(g => g.id === gatewayId);
     const updatedGateways = paymentSettings.gateways.filter(gateway => gateway.id !== gatewayId);
+    
+    // Remove methods from this gateway from enabled methods
+    let updatedEnabledMethods = paymentSettings.enabledMethods;
+    if (gatewayToDelete) {
+      const gatewayMethodIds = gatewayToDelete.supportedMethods.map(m => m.id);
+      updatedEnabledMethods = paymentSettings.enabledMethods.filter(
+        methodId => !gatewayMethodIds.includes(methodId)
+      );
+    }
     
     const updatedSettings = {
       ...paymentSettings,
       gateways: updatedGateways,
+      enabledMethods: updatedEnabledMethods,
       defaultGateway: paymentSettings.defaultGateway === gatewayId ? undefined : paymentSettings.defaultGateway
     };
 

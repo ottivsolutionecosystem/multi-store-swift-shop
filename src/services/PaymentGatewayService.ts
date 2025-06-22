@@ -58,9 +58,9 @@ export class PaymentGatewayService {
   validatePaymentSettings(settings: PaymentSettings): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    // Check if at least one gateway is enabled
+    // Check if at least one gateway is enabled only if there are gateways configured
     const enabledGateways = settings.gateways.filter(gateway => gateway.enabled);
-    if (enabledGateways.length === 0) {
+    if (settings.gateways.length > 0 && enabledGateways.length === 0) {
       errors.push('Pelo menos um gateway de pagamento deve estar habilitado');
     }
 
@@ -74,8 +74,8 @@ export class PaymentGatewayService {
       }
     }
 
-    // Check if at least one payment method is enabled
-    if (settings.enabledMethods.length === 0) {
+    // Check if at least one payment method is enabled only if there are enabled gateways
+    if (enabledGateways.length > 0 && settings.enabledMethods.length === 0) {
       errors.push('Pelo menos um método de pagamento deve estar habilitado');
     }
 

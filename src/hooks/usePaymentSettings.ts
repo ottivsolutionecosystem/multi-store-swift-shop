@@ -47,10 +47,13 @@ export function usePaymentSettings() {
         throw new Error('Services or store ID not available');
       }
 
-      // Validate settings
-      const validation = paymentGatewayService.validatePaymentSettings(settings);
-      if (!validation.valid) {
-        throw new Error(`Configuração inválida: ${validation.errors.join(', ')}`);
+      // Only validate if there are enabled gateways (allow saving during configuration)
+      const enabledGateways = settings.gateways.filter(gateway => gateway.enabled);
+      if (enabledGateways.length > 0) {
+        const validation = paymentGatewayService.validatePaymentSettings(settings);
+        if (!validation.valid) {
+          throw new Error(`Configuração inválida: ${validation.errors.join(', ')}`);
+        }
       }
       
       // Update store settings with new payment settings
