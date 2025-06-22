@@ -6,17 +6,9 @@ export class StripePaymentProvider implements PaymentProvider {
   readonly name = 'Stripe';
 
   async validateCredentials(credentials: Record<string, string>, testMode: boolean): Promise<boolean> {
-    const { publicKey, secretKey } = credentials;
-    
-    if (!publicKey || !secretKey) {
-      return false;
-    }
-
-    // Validate key format
-    const expectedPrefix = testMode ? 'pk_test_' : 'pk_live_';
-    const expectedSecretPrefix = testMode ? 'sk_test_' : 'sk_live_';
-    
-    return publicKey.startsWith(expectedPrefix) && secretKey.startsWith(expectedSecretPrefix);
+    // For Stripe Connect, we don't validate credentials directly
+    // Instead, we check if the store is connected via OAuth
+    return true;
   }
 
   getAvailableMethods(): PaymentMethod[] {
@@ -28,6 +20,14 @@ export class StripePaymentProvider implements PaymentProvider {
         enabled: true,
         icon: 'credit-card',
         description: 'Visa, Mastercard, American Express'
+      },
+      {
+        id: 'stripe_pix',
+        name: 'PIX',
+        type: PaymentMethodType.PIX,
+        enabled: true,
+        icon: 'smartphone',
+        description: 'Pagamento instantâneo via PIX'
       },
       {
         id: 'stripe_apple_pay',
@@ -61,27 +61,36 @@ export class StripePaymentProvider implements PaymentProvider {
   }
 
   async testConnection(credentials: Record<string, string>, testMode: boolean): Promise<{ success: boolean; message: string }> {
-    try {
-      const isValid = await this.validateCredentials(credentials, testMode);
-      
-      if (!isValid) {
-        return {
-          success: false,
-          message: 'Credenciais inválidas. Verifique as chaves fornecidas.'
-        };
-      }
+    // For Stripe Connect, we check if the account is connected
+    // This will be handled by the UI to check stripe_connected field
+    return {
+      success: true,
+      message: 'Stripe Connect - use o botão "Conectar com Stripe" para estabelecer a conexão'
+    };
+  }
 
-      // Here you could make an actual API call to Stripe to test the connection
-      // For now, we'll just validate the format
-      return {
-        success: true,
-        message: 'Conexão com Stripe estabelecida com sucesso!'
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: `Erro ao conectar com Stripe: ${error instanceof Error ? error.message : 'Erro desconhecido'}`
-      };
-    }
+  /**
+   * Generate Stripe Connect OAuth URL
+   */
+  generateConnectUrl(storeId: string): string {
+    const clientId = 'ca_QxEKYQi3XAWpR8Yb6xG2H2kqjGaQXx8Z'; // This should be from environment
+    const redirectUri = `${window.location.origin}/supabase/functions/v1/stripe-connect-oauth`;
+    
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: clientId,
+      scope: 'read_write',
+      redirect_uri: redirectUri,
+      state: storeId, // Pass store_id as state parameter
+    });
+
+    return `https://connect.stripe.com/oauth/authorize?${params.toString()}`;
+  }
+
+  /**
+   * Check if store is connected to Stripe
+   */
+  isConnected(stripeUserId?: string): boolean {
+    return !!stripeUserId;
   }
 }

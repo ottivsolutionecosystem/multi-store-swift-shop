@@ -7,7 +7,9 @@ import { Switch } from '@/components/ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, Settings, Trash2, Star, Check, AlertCircle } from 'lucide-react';
 import { PaymentGatewayConfig } from '@/types/payment-gateway';
-import { usePaymentSettings } from '@/hooks/usePaymentSettings';
+import { PaymentGatewayType } from '@/interfaces/PaymentProvider';
+import { StripeConnectCard } from './StripeConnectCard';
+import { useTenant } from '@/contexts/TenantContext';
 
 interface PaymentGatewayCardProps {
   gateway: PaymentGatewayConfig;
@@ -26,55 +28,21 @@ export function PaymentGatewayCard({
   isDefault,
   onSetDefault
 }: PaymentGatewayCardProps) {
-  const { paymentGatewayService } = usePaymentSettings();
-  const [testing, setTesting] = React.useState(false);
-  const [connectionStatus, setConnectionStatus] = React.useState<{
-    tested: boolean;
-    success: boolean;
-    message: string;
-  } | null>(null);
-
-  const handleTestConnection = async () => {
-    setTesting(true);
-    try {
-      const result = await paymentGatewayService.testGatewayConnection(
-        gateway.type,
-        gateway.credentials,
-        gateway.testMode
-      );
-      
-      setConnectionStatus({
-        tested: true,
-        success: result.success,
-        message: result.message
-      });
-    } catch (error) {
-      setConnectionStatus({
-        tested: true,
-        success: false,
-        message: 'Erro ao testar conexão'
-      });
-    } finally {
-      setTesting(false);
-    }
-  };
-
-  const getStatusIcon = () => {
-    if (!connectionStatus?.tested) return null;
-    
-    return connectionStatus.success ? (
-      <Check className="h-4 w-4 text-green-500" />
-    ) : (
-      <AlertCircle className="h-4 w-4 text-red-500" />
+  const { store } = useTenant();
+  
+  // For Stripe, show the Stripe Connect card instead of the generic gateway card
+  if (gateway.type === PaymentGatewayType.STRIPE) {
+    const storeSettings = store?.store_settings;
+    return (
+      <StripeConnectCard
+        isConnected={!!storeSettings?.stripe_connected}
+        stripeUserId={storeSettings?.stripe_user_id || undefined}
+        connectDate={storeSettings?.stripe_connect_date || undefined}
+      />
     );
-  };
+  }
 
-  const getStatusColor = () => {
-    if (!gateway.enabled) return 'secondary';
-    if (!connectionStatus?.tested) return 'outline';
-    return connectionStatus.success ? 'default' : 'destructive';
-  };
-
+  // For other gateways, show the original card (MercadoPago, etc.)
   return (
     <Card className="relative">
       <CardHeader className="pb-3">
@@ -84,10 +52,9 @@ export function PaymentGatewayCard({
             {isDefault && (
               <Star className="h-4 w-4 text-yellow-500 fill-current" />
             )}
-            {getStatusIcon()}
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={getStatusColor()}>
+            <Badge variant={gateway.enabled ? 'default' : 'secondary'}>
               {gateway.enabled ? 'Ativo' : 'Inativo'}
             </Badge>
             <Badge variant={gateway.testMode ? 'outline' : 'default'}>
@@ -132,10 +99,7 @@ export function PaymentGatewayCard({
           <span className="text-sm font-medium">Modo de Teste</span>
           <Switch
             checked={gateway.testMode}
-            onCheckedChange={(testMode) => {
-              onUpdate({ testMode });
-              setConnectionStatus(null); // Reset connection status when mode changes
-            }}
+            onCheckedChange={(testMode) => onUpdate({ testMode })}
           />
         </div>
 
@@ -148,25 +112,7 @@ export function PaymentGatewayCard({
           </div>
         )}
 
-        {connectionStatus && (
-          <div className={`p-3 rounded-md text-sm ${
-            connectionStatus.success 
-              ? 'bg-green-50 text-green-700 border border-green-200' 
-              : 'bg-red-50 text-red-700 border border-red-200'
-          }`}>
-            {connectionStatus.message}
-          </div>
-        )}
-
         <div className="flex gap-2 pt-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleTestConnection}
-            disabled={testing || !gateway.enabled}
-          >
-            {testing ? 'Testando...' : 'Testar Conexão'}
-          </Button>
           <Button
             variant="outline"
             size="sm"

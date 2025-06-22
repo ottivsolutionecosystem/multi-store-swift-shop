@@ -28,6 +28,10 @@ export const storeSettingsSchema = z.object({
   origin_address: addressSchema.optional(),
   // Configurações de pagamento
   payment_settings: paymentSettingsSchema.optional(),
+  // Stripe Connect fields
+  stripe_user_id: z.string().optional(),
+  stripe_connected: z.boolean().default(false),
+  stripe_connect_date: z.string().optional(),
 });
 
 export type StoreSettingsFormData = z.infer<typeof storeSettingsSchema>;

@@ -1056,6 +1056,9 @@ export type Database = {
           show_stock_quantity: boolean
           store_description: string | null
           store_id: string
+          stripe_connect_date: string | null
+          stripe_connected: boolean
+          stripe_user_id: string | null
           updated_at: string
         }
         Insert: {
@@ -1080,6 +1083,9 @@ export type Database = {
           show_stock_quantity?: boolean
           store_description?: string | null
           store_id: string
+          stripe_connect_date?: string | null
+          stripe_connected?: boolean
+          stripe_user_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -1104,6 +1110,9 @@ export type Database = {
           show_stock_quantity?: boolean
           store_description?: string | null
           store_id?: string
+          stripe_connect_date?: string | null
+          stripe_connected?: boolean
+          stripe_user_id?: string | null
           updated_at?: string
         }
         Relationships: [
