@@ -95,6 +95,9 @@ export async function getCurrentStore() {
         free_shipping_threshold: 0,
         free_shipping_message: 'Frete grátis em compras acima de R$ {threshold}',
         origin_address: {},
+        stripe_user_id: null,
+        stripe_connected: false,
+        stripe_connect_date: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
@@ -136,6 +139,9 @@ export async function getCurrentStore() {
         free_shipping_threshold: 0,
         free_shipping_message: 'Frete grátis em compras acima de R$ {threshold}',
         origin_address: {},
+        stripe_user_id: null,
+        stripe_connected: false,
+        stripe_connect_date: null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }

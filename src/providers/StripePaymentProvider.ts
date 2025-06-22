@@ -6,8 +6,7 @@ export class StripePaymentProvider implements PaymentProvider {
   readonly name = 'Stripe';
 
   async validateCredentials(credentials: Record<string, string>, testMode: boolean): Promise<boolean> {
-    // For Stripe Connect, we don't validate credentials directly
-    // Instead, we check if the store is connected via OAuth
+    // For Stripe Connect, validation is done through account status
     return true;
   }
 
@@ -57,34 +56,14 @@ export class StripePaymentProvider implements PaymentProvider {
   }
 
   generateWebhookUrl(storeId: string): string {
-    return `${window.location.origin}/api/webhooks/stripe/${storeId}`;
+    return `${window.location.origin}/supabase/functions/v1/stripe-webhook`;
   }
 
   async testConnection(credentials: Record<string, string>, testMode: boolean): Promise<{ success: boolean; message: string }> {
-    // For Stripe Connect, we check if the account is connected
-    // This will be handled by the UI to check stripe_connected field
     return {
       success: true,
       message: 'Stripe Connect - use o botão "Conectar com Stripe" para estabelecer a conexão'
     };
-  }
-
-  /**
-   * Generate Stripe Connect OAuth URL
-   */
-  generateConnectUrl(storeId: string): string {
-    const clientId = 'ca_QxEKYQi3XAWpR8Yb6xG2H2kqjGaQXx8Z'; // This should be from environment
-    const redirectUri = `${window.location.origin}/supabase/functions/v1/stripe-connect-oauth`;
-    
-    const params = new URLSearchParams({
-      response_type: 'code',
-      client_id: clientId,
-      scope: 'read_write',
-      redirect_uri: redirectUri,
-      state: storeId, // Pass store_id as state parameter
-    });
-
-    return `https://connect.stripe.com/oauth/authorize?${params.toString()}`;
   }
 
   /**

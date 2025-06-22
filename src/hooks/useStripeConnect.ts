@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useTenant } from '@/contexts/TenantContext';
 import { supabaseClient } from '@/lib/supabaseClient';
@@ -11,57 +11,52 @@ export function useStripeConnect() {
   const queryClient = useQueryClient();
   const [isConnecting, setIsConnecting] = useState(false);
 
-  const connectToStripe = (connectUrl: string) => {
-    setIsConnecting(true);
-
-    // Open Stripe Connect in a popup window
-    const popup = window.open(
-      connectUrl,
-      'stripe-connect',
-      'width=500,height=600,scrollbars=yes,resizable=yes'
-    );
-
-    // Listen for messages from the popup
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'stripe_success') {
-        setIsConnecting(false);
-        popup?.close();
-        
-        // Invalidate queries to refresh the data
-        queryClient.invalidateQueries({ queryKey: ['store-settings', storeId] });
-        queryClient.invalidateQueries({ queryKey: ['payment-settings', storeId] });
-        
-        toast({
-          title: 'Conexão estabelecida',
-          description: 'Sua conta Stripe foi conectada com sucesso!',
-        });
-        
-        window.removeEventListener('message', handleMessage);
-      } else if (event.data.type === 'stripe_error') {
-        setIsConnecting(false);
-        popup?.close();
-        
-        toast({
-          title: 'Erro na conexão',
-          description: `Falha ao conectar com Stripe: ${event.data.error}`,
-          variant: 'destructive',
-        });
-        
-        window.removeEventListener('message', handleMessage);
+  // Query to check account status
+  const { data: accountStatus, isLoading: isCheckingStatus } = useQuery({
+    queryKey: ['stripe-account-status', storeId],
+    queryFn: async () => {
+      if (!storeId) return null;
+      
+      const { data, error } = await supabaseClient.functions.invoke('stripe-account-status');
+      
+      if (error) {
+        throw new Error(error.message);
       }
-    };
+      
+      return data;
+    },
+    enabled: !!storeId,
+    refetchInterval: 30000, // Check status every 30 seconds
+  });
 
-    window.addEventListener('message', handleMessage);
-
-    // Check if popup was closed manually
-    const checkClosed = setInterval(() => {
-      if (popup?.closed) {
-        setIsConnecting(false);
-        clearInterval(checkClosed);
-        window.removeEventListener('message', handleMessage);
+  const connectMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabaseClient.functions.invoke('stripe-create-account');
+      
+      if (error) {
+        throw new Error(error.message);
       }
-    }, 1000);
-  };
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      return data;
+    },
+    onSuccess: (data) => {
+      setIsConnecting(true);
+      
+      // Redirect to Stripe onboarding
+      window.location.href = data.account_link_url;
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Erro ao conectar',
+        description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
 
   const disconnectMutation = useMutation({
     mutationFn: async () => {
@@ -80,6 +75,7 @@ export function useStripeConnect() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['store-settings', storeId] });
       queryClient.invalidateQueries({ queryKey: ['payment-settings', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['stripe-account-status', storeId] });
       
       toast({
         title: 'Conta desconectada',
@@ -95,10 +91,47 @@ export function useStripeConnect() {
     },
   });
 
+  // Check for URL parameters on page load
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.get('stripe_success') === 'true') {
+      setIsConnecting(false);
+      
+      toast({
+        title: 'Conexão estabelecida',
+        description: 'Sua conta Stripe foi conectada com sucesso!',
+      });
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      
+      // Refresh queries
+      queryClient.invalidateQueries({ queryKey: ['store-settings', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['payment-settings', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['stripe-account-status', storeId] });
+    }
+    
+    if (urlParams.get('stripe_refresh') === 'true') {
+      setIsConnecting(false);
+      
+      toast({
+        title: 'Processo interrompido',
+        description: 'O processo de conexão foi interrompido. Tente novamente.',
+        variant: 'destructive',
+      });
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [toast, queryClient, storeId]);
+
   return {
-    connectToStripe,
+    connectToStripe: connectMutation.mutate,
     disconnectFromStripe: disconnectMutation.mutate,
-    isConnecting,
+    isConnecting: isConnecting || connectMutation.isPending,
     isDisconnecting: disconnectMutation.isPending,
+    accountStatus,
+    isCheckingStatus,
   };
 }
