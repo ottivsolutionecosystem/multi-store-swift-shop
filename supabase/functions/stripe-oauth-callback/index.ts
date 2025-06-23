@@ -27,7 +27,7 @@ serve(async (req) => {
       throw new Error("Invalid state parameter");
     }
 
-    const { storeId, userId } = stateData;
+    const { storeId, userId, returnTo } = stateData;
     if (!storeId || !userId) {
       throw new Error("Invalid state data - missing store or user ID");
     }
@@ -121,11 +121,10 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         stripe_user_id: stripe_user_id,
-        access_token: access_token,
-        refresh_token: refresh_token,
-        scope: scope,
+        store_id: storeId,
+        return_to: returnTo,
         fully_onboarded: isFullyOnboarded,
-        store_id: storeId
+        connection_status: isFullyOnboarded ? 'connected' : 'pending'
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -48,13 +48,17 @@ serve(async (req) => {
       throw new Error("Stripe Connect Client ID not configured");
     }
 
-    const origin = req.headers.get("origin") || "http://localhost:3000";
-    const redirectUri = `${origin}/stripe/callback`;
+    // Get the origin from request to determine return URL
+    const origin = req.headers.get("origin") || req.headers.get("referer") || "http://localhost:3000";
     
-    // Create state parameter with store information
+    // Fixed redirect URI - centralized callback
+    const redirectUri = "https://plugashop.com/stripe/callback";
+    
+    // Create state parameter with store information and return URL
     const state = btoa(JSON.stringify({
       storeId: storeId,
       userId: user.id,
+      returnTo: `${origin}/admin/store-settings`,
       timestamp: Date.now()
     }));
 
@@ -65,13 +69,14 @@ serve(async (req) => {
     authUrl.searchParams.set("redirect_uri", redirectUri);
     authUrl.searchParams.set("state", state);
 
-    console.log(`Generated OAuth URL for store ${storeId}`);
+    console.log(`Generated OAuth URL for store ${storeId}, return to: ${origin}`);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         auth_url: authUrl.toString(),
-        store_id: storeId
+        store_id: storeId,
+        return_to: origin
       }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -15,6 +15,7 @@ import AdminPage from "./pages/AdminPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import StoreSettingsPage from "./pages/admin/StoreSettingsPage";
 import StripeCallbackPage from "./pages/StripeCallbackPage";
+import CentralStripeCallbackPage from "./pages/CentralStripeCallbackPage";
 import NotFound from "./pages/NotFound";
 import ProductsPage from "./pages/admin/ProductsPage";
 import ProductFormPage from "./pages/admin/ProductFormPage";
@@ -29,6 +30,24 @@ const queryClient = new QueryClient();
 
 const App = () => {
   console.log('App component loaded');
+  
+  // Check if this is the central callback domain
+  const isCentralCallback = window.location.hostname === 'plugashop.com' && 
+                           window.location.pathname === '/stripe/callback';
+  
+  if (isCentralCallback) {
+    return (
+      <ErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <CentralStripeCallbackPage />
+          </TooltipProvider>
+        </QueryClientProvider>
+      </ErrorBoundary>
+    );
+  }
   
   return (
     <ErrorBoundary>

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useTenant } from '@/contexts/TenantContext';
@@ -67,40 +67,39 @@ export function useStripeOAuth() {
     },
   });
 
-  // Handle OAuth callback (can be called from URL parameters)
-  const handleOAuthCallback = async (code: string, state: string) => {
-    try {
-      const result = await stripeOAuthService.handleCallback(code, state);
+  // Check for success callback from central redirect
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.get('stripe') === 'connected') {
+      const stripeUserId = urlParams.get('stripe_user_id');
+      const connectionStatus = urlParams.get('connection_status');
       
-      if (result.success) {
-        toast({
-          title: 'Conexão estabelecida',
-          description: result.message,
-        });
-        
-        // Refresh queries
-        queryClient.invalidateQueries({ queryKey: ['stripe-oauth-status', storeId] });
-        queryClient.invalidateQueries({ queryKey: ['store-settings', storeId] });
-        queryClient.invalidateQueries({ queryKey: ['payment-settings', storeId] });
-      } else {
-        throw new Error(result.message);
-      }
-    } catch (error) {
-      toast({
-        title: 'Erro na conexão',
-        description: error instanceof Error ? error.message : 'Erro desconhecido',
-        variant: 'destructive',
-      });
-    } finally {
       setIsConnecting(false);
+      
+      toast({
+        title: 'Conexão estabelecida',
+        description: `Sua conta Stripe foi conectada com sucesso! ${connectionStatus === 'pending' ? 'Complete o onboarding no Stripe Dashboard.' : ''}`,
+      });
+      
+      // Clean up URL parameters
+      const newUrl = new URL(window.location.href);
+      newUrl.searchParams.delete('stripe');
+      newUrl.searchParams.delete('stripe_user_id');
+      newUrl.searchParams.delete('connection_status');
+      window.history.replaceState({}, document.title, newUrl.toString());
+      
+      // Refresh queries
+      queryClient.invalidateQueries({ queryKey: ['stripe-oauth-status', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['store-settings', storeId] });
+      queryClient.invalidateQueries({ queryKey: ['payment-settings', storeId] });
     }
-  };
+  }, [toast, queryClient, storeId]);
 
   return {
     // Actions
     connectToStripe: connectMutation.mutate,
     disconnectFromStripe: disconnectMutation.mutate,
-    handleOAuthCallback,
     
     // State
     isConnecting: isConnecting || connectMutation.isPending,
