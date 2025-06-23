@@ -14,6 +14,7 @@ import AccountPage from "./pages/AccountPage";
 import AdminPage from "./pages/AdminPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import StoreSettingsPage from "./pages/admin/StoreSettingsPage";
+import StripeCallbackPage from "./pages/StripeCallbackPage";
 import NotFound from "./pages/NotFound";
 import ProductsPage from "./pages/admin/ProductsPage";
 import ProductFormPage from "./pages/admin/ProductFormPage";
@@ -57,6 +58,7 @@ const App = () => {
                     <Route path="/admin/orders" element={<OrdersPage />} />
                     <Route path="/admin/logistics" element={<LogisticsPage />} />
                     <Route path="/admin/store-settings" element={<StoreSettingsPage />} />
+                    <Route path="/stripe/callback" element={<StripeCallbackPage />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </CartProvider>

@@ -1,41 +1,37 @@
-
 import { PaymentGateway, ConnectedAccount, ChargeParams, PaymentResult } from '@/interfaces/PaymentGateway';
 import { supabaseClient } from '@/lib/supabaseClient';
 
 export class StripeGateway implements PaymentGateway {
-  private readonly clientId: string;
   private readonly baseUrl: string;
 
   constructor() {
-    this.clientId = 'ca_QwF8T4Z5v6x2Y9W3e4R5t6Y7u8I9o0P'; // This should come from env
     this.baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
   }
 
   /**
-   * Generates Stripe OAuth authorization URL
+   * Generates Stripe OAuth authorization URL using the edge function
    */
   async connect(storeId: string): Promise<string> {
-    const state = btoa(JSON.stringify({ storeId, timestamp: Date.now() }));
-    const redirectUri = `${this.baseUrl}/stripe/callback`;
-    
-    const params = new URLSearchParams({
-      response_type: 'code',
-      client_id: this.clientId,
-      scope: 'read_write',
-      redirect_uri: redirectUri,
-      state: state,
-    });
-
-    return `https://connect.stripe.com/oauth/authorize?${params.toString()}`;
+    try {
+      const { data, error } = await supabaseClient.functions.invoke('stripe-oauth-connect');
+      
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      
+      return data.auth_url;
+    } catch (error) {
+      console.error('OAuth connect error:', error);
+      throw new Error(`Failed to generate OAuth URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   /**
    * Handles OAuth callback and exchanges authorization code for access token
    */
-  async handleCallback(code: string, stateParams: any): Promise<ConnectedAccount> {
+  async handleCallback(code: string, state: string): Promise<ConnectedAccount> {
     try {
       const { data, error } = await supabaseClient.functions.invoke('stripe-oauth-callback', {
-        body: { code, state: stateParams }
+        body: { code, state }
       });
 
       if (error) throw error;
@@ -47,7 +43,7 @@ export class StripeGateway implements PaymentGateway {
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
         scope: data.scope,
-        status: 'connected',
+        status: data.fully_onboarded ? 'connected' : 'pending',
         connectedAt: new Date()
       };
     } catch (error) {
