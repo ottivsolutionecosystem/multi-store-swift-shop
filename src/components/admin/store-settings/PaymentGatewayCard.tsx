@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal, Settings, Trash2, Star, Check, AlertCircle } from 'lucide-react';
+import { MoreHorizontal, Settings, Trash2, Star } from 'lucide-react';
 import { PaymentGatewayConfig } from '@/types/payment-gateway';
 import { PaymentGatewayType } from '@/interfaces/PaymentProvider';
-import { StripeConnectCard } from './StripeConnectCard';
-import { useTenant } from '@/contexts/TenantContext';
+import { StripeOAuthCard } from './StripeOAuthCard';
 
 interface PaymentGatewayCardProps {
   gateway: PaymentGatewayConfig;
@@ -28,18 +27,10 @@ export function PaymentGatewayCard({
   isDefault,
   onSetDefault
 }: PaymentGatewayCardProps) {
-  const { store } = useTenant();
   
-  // For Stripe, show the Stripe Connect card instead of the generic gateway card
+  // For Stripe, show the new OAuth card instead of the generic gateway card
   if (gateway.type === PaymentGatewayType.STRIPE) {
-    const storeSettings = store?.store_settings;
-    return (
-      <StripeConnectCard
-        isConnected={!!storeSettings?.stripe_connected}
-        stripeUserId={storeSettings?.stripe_user_id || undefined}
-        connectDate={storeSettings?.stripe_connect_date || undefined}
-      />
-    );
+    return <StripeOAuthCard />;
   }
 
   // For other gateways, show the original card (MercadoPago, etc.)
